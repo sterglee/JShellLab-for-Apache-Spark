@@ -1,0 +1,19 @@
+
+tic();
+double sm=0.0;
+int N=10000000;
+for (int k=0;k<N;k++)
+  sm+=0.00455*k;
+  System.out.println("sum = "+sm);
+var tm=toc();
+System.out.println("tm = "+tm);
+
+
+var N=3000;
+
+var x = rand(N,N);
+
+tic();
+var xx = x.multiply(x);
+var tm=toc();
+
