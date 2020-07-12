@@ -1,19 +1,16 @@
 
-tic();
-double sm=0.0;
-int N=10000000;
-for (int k=0;k<N;k++)
-  sm+=0.00455*k;
-  System.out.println("sum = "+sm);
-var tm=toc();
-System.out.println("tm = "+tm);
+
+var myRange = spark.range(1000).toDF("number");
 
 
-var N=3000;
-
-var x = rand(N,N);
-
-tic();
-var xx = x.multiply(x);
-var tm=toc();
-
+// Creating a dataset 
+		Dataset<Row> myRange = spark.range(1000).toDF("number");
+		myRange.show();
+		
+		// Find even numbers in the dataset
+		Dataset<Row> divisBy2 = myRange.where("number % 2 = 0");
+		divisBy2.show();
+		
+		// Get the count of even number in the dataset
+		System.out.println(divisBy2.count());
+	

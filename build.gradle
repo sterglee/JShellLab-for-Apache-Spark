@@ -50,7 +50,7 @@ sourceSets {
 }
 
 jar {
-    baseName="jShellLab"
+    baseName="SparkLab"
     includeEmptyDirs = false
     mainClassName="jshellLabExec.jshellLab.jshellLab"
     
@@ -83,7 +83,7 @@ def extensions = [ 'class', 'jsci', 'gif', 'm', 'htm', 'html', 'jpg', 'plots-jsc
 
 task fatJar(type: Jar) {
 
-    baseName="jShellLab"
+    baseName="sparkLab"
     includeEmptyDirs = false
     mainClassName="jshellLabExec.jshellLab.jshellLab"
     zip64=true

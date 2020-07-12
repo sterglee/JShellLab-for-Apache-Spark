@@ -1,8 +1,0 @@
-
-
-var N=4000;
-
-var xx= vrand(N);
-
-
-plot(xx)

@@ -13,13 +13,16 @@ import jshellLabGlobals.JavaGlobals;
 
 
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import jdk.jshell.JShell;
 import jdk.jshell.Snippet;
 import jdk.jshell.SnippetEvent;
+import jdk.jshell.SourceCodeAnalysis;
 
 
 /**
@@ -173,6 +176,23 @@ GlobalValues.myGEdit = new jshellLabEditor("Untitled", true);
           }   // extraJarsForJShellClasspath folder not empty
           
      
+          String  sparkJarsForJShellClasspathFolder = GlobalValues.jshellLabLibPath.replace("lib", "jars");
+          System.out.println("appending to JShell classpath toolboxes of Spark jars  folder:  "+sparkJarsForJShellClasspathFolder);
+          
+          File [] sparkFolderFiles = (new java.io.File(sparkJarsForJShellClasspathFolder)).listFiles();  // get the list of files at the Spark toolboxes folder
+          if (sparkFolderFiles!=null) {  // jars  folder not empty
+           int sparkFiles = sparkFolderFiles.length; 
+           for (int f=0; f <sparkFiles;  f++) {
+               String currentFileName = sparkFolderFiles[f].getAbsolutePath();
+           
+                  if (currentFileName.endsWith(".jar")) {
+               
+                   GlobalValues.jshell.addToClasspath(currentFileName);
+                   System.out.println("appending to JShell classpath from jars folder toolbox (Spark library): "+currentFileName);
+              }  // endsWith("jar")
+            }   // for all files of the jars  folder
+          }   //  jars folder not empty
+          
             
             String javaClassPath =  System.getProperty("java.class.path");
             System.out.println("javaclasspath = "+javaClassPath);
@@ -198,13 +218,22 @@ GlobalValues.myGEdit = new jshellLabEditor("Untitled", true);
           for (String snippet: GlobalValues.jshellBasicGlobalImports) {
               GlobalValues.jshell.eval(snippet);
           }
-         GlobalValues.jshell.onSnippetEvent(jshellLab::snippetEventHandler);
+    
+                     
+          for (String snippet: GlobalValues.initSparkSnippets) {
+              GlobalValues.jshell.eval(snippet);
+          }
+          
+               
+          GlobalValues.jshell.onSnippetEvent(jshellLab::snippetEventHandler);
            
+    
         }
         
         }
         
         
+   
         public static void snippetEventHandler(SnippetEvent se) {
             String value = se.value();
             
@@ -250,6 +279,23 @@ GlobalValues.myGEdit = new jshellLabEditor("Untitled", true);
           }   // extraJarsForJShellClasspath folder not empty
           
           
+          String  sparkJarsForJShellClasspathFolder = GlobalValues.jshellLabLibPath.replace("lib", "jars");
+          System.out.println("appending to JShell classpath toolboxes of Spark jars  folder:  "+sparkJarsForJShellClasspathFolder);
+          
+          File [] sparkFolderFiles = (new java.io.File(sparkJarsForJShellClasspathFolder)).listFiles();  // get the list of files at the Spark toolboxes folder
+          if (sparkFolderFiles!=null) {  // jars  folder not empty
+           int sparkFiles = sparkFolderFiles.length; 
+           for (int f=0; f <sparkFiles;  f++) {
+               String currentFileName = sparkFolderFiles[f].getAbsolutePath();
+           
+                  if (currentFileName.endsWith(".jar")) {
+               
+                   GlobalValues.jshell.addToClasspath(currentFileName);
+                   System.out.println("appending to JShell classpath from jars folder toolbox (Spark library): "+currentFileName);
+              }  // endsWith("jar")
+            }   // for all files of the jars  folder
+          }   //  jars folder not empty
+          
             
            GlobalValues.jshell.addToClasspath(JavaGlobals.jarFilePath);
            
@@ -271,9 +317,15 @@ GlobalValues.myGEdit = new jshellLabEditor("Untitled", true);
           for (String snippet: GlobalValues.jshellBasicGlobalImports) {
               GlobalValues.jshell.eval(snippet);
           }
-         GlobalValues.jshell.onSnippetEvent(jshellLab::snippetEventHandler);
-           
-        }
+         
+                     
+          for (String snippet: GlobalValues.initSparkSnippets) {
+              GlobalValues.jshell.eval(snippet);
+          }
+          
+          GlobalValues.jshell.onSnippetEvent(jshellLab::snippetEventHandler);
+    
+         }
        
         
         

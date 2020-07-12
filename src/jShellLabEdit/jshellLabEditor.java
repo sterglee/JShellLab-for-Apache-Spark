@@ -94,7 +94,7 @@ public class jshellLabEditor  extends JFrame implements WindowListener {
     public static  JFrame currentFrame  = null;
     public boolean editorTextSaved = false;
     public String editedFileName;   // the full pathname of the file being currently edited
-    public static String titleStr = "JShellLab programmer's editor ( F7 - JShell) "+ jshellLabGlobal.Interpreter.GlobalValues.TITLE;
+    public static String titleStr = "SparkLab programmer's editor ( F7 - JShell) "+ jshellLabGlobal.Interpreter.GlobalValues.TITLE;
 
     public  Vector<String>  recentPaneFiles = new Vector<String>();  // keeps the full names of the recent files
     public  String  fileWithFileListOfPaneRecentFiles = "recentsPaneFile.txt"; // the list of the recent editor's pane files

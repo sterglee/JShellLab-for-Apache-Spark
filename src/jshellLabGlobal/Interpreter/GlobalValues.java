@@ -39,7 +39,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 
 public class GlobalValues
 {  
-    static public   String  dateOfBuild = " 1-June-2020";       // tracks the date of build    
+    static public   String  dateOfBuild = " 12-June-2020";       // tracks the date of build    
     
     static public Equation  eq = new Equation();   // EJML equation object
     
@@ -247,6 +247,16 @@ public class GlobalValues
                 "import static org.ejml.ops.MatrixIO.*;"
   
 };
+          
+          
+   static public String [] initSparkSnippets =  {
+           "import static org.apache.spark.sql.functions.max;",
+           "import static org.apache.spark.sql.functions.desc;",
+           "import org.apache.spark.sql.Dataset;",
+           "import org.apache.spark.sql.Row;",
+           "import org.apache.spark.sql.SparkSession;",
+         "SparkSession spark = SparkSession.builder().master(\"local[*]\").appName(\"SparkLab\").getOrCreate();" 
+};
         
            // Console Configuration
         static String defaultFontName = "Times New Roman";
@@ -413,10 +423,8 @@ public class GlobalValues
     static public int jshellLabServerPort = 8000;   // port on which jshellLab server is listening
     public static int consoleCharsPerLine;
 
-
-    
     static public String buildTitle() {
-      String mainFrameTitle =        "JShellLab based on JShell "+
+      String mainFrameTitle =        "SparkLab based on JShell "+
                    ",   "+System.getProperty("java.vm.name", "").toLowerCase()+",  "+ System.getProperty("os.name", "").toLowerCase()+
                    "  "+ System.getProperty("os.arch", "").toLowerCase()+" ,   "+ "( "+ dateOfBuild+" ) ";
     return mainFrameTitle;

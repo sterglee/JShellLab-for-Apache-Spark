@@ -358,6 +358,7 @@ public EditorKeyMouseHandler()
         }
         
         
+        
 	/**Interpret key presses*/
     public void keyPressed(final KeyEvent e)
     {
