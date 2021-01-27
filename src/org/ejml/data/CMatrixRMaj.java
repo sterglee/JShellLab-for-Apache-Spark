@@ -18,6 +18,7 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.ops.MatrixIO;
 
@@ -30,6 +31,7 @@ import java.util.Arrays;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.data.ZMatrixRMaj")
 public class CMatrixRMaj extends CMatrixD1 {
 
     /**
@@ -236,6 +238,7 @@ public class CMatrixRMaj extends CMatrixD1 {
     /**
      * Sets all the elements in the matrix to zero
      */
+    @Override
     public void zero() {
         Arrays.fill(data, 0, numCols*numRows*2, 0.0f);
     }

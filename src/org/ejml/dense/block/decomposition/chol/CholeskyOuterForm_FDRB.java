@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.block.decomposition.chol;
 
+import javax.annotation.Generated;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.FMatrixRBlock;
 import org.ejml.data.FSubmatrixD1;
@@ -25,7 +26,14 @@ import org.ejml.dense.block.InnerRankUpdate_FDRB;
 import org.ejml.dense.block.MatrixOps_FDRB;
 import org.ejml.dense.block.TriangularSolver_FDRB;
 import org.ejml.interfaces.decomposition.CholeskyDecomposition_F32;
+import org.jetbrains.annotations.Nullable;
 
+//CONCURRENT_INLINE import org.ejml.dense.block.*;
+//CONCURRENT_INLINE import org.ejml.concurrency.EjmlConcurrency;
+
+//CONCURRENT_MACRO MatrixMult_FDRB MatrixMult_MT_FDRB
+//CONCURRENT_MACRO TriangularSolver_FDRB TriangularSolver_MT_FDRB
+//CONCURRENT_MACRO InnerRankUpdate_FDRB InnerRankUpdate_MT_FDRB
 
 /**
  * <p>
@@ -38,27 +46,29 @@ import org.ejml.interfaces.decomposition.CholeskyDecomposition_F32;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.block.decomposition.chol.CholeskyOuterForm_DDRB")
 public class CholeskyOuterForm_FDRB implements CholeskyDecomposition_F32<FMatrixRBlock> {
 
     // if it should compute an upper or lower triangular matrix
-    private boolean lower = false;
+    private final boolean lower;
     // The decomposed matrix.
     private FMatrixRBlock T;
 
     // predeclare local work space
-    private FSubmatrixD1 subA = new FSubmatrixD1();
-    private FSubmatrixD1 subB = new FSubmatrixD1();
-    private FSubmatrixD1 subC = new FSubmatrixD1();
+    private final FSubmatrixD1 subA = new FSubmatrixD1();
+    private final FSubmatrixD1 subB = new FSubmatrixD1();
+    private final FSubmatrixD1 subC = new FSubmatrixD1();
 
     // storage for the determinant
-    private Complex_F32 det = new Complex_F32();
+    private final Complex_F32 det = new Complex_F32();
 
     /**
      * Creates a new BlockCholeskyOuterForm
      *
      * @param lower Should it decompose it into a lower triangular matrix or not.
      */
-    public CholeskyOuterForm_FDRB(boolean lower) {
+    public CholeskyOuterForm_FDRB( boolean lower ) {
         this.lower = lower;
     }
 
@@ -69,13 +79,13 @@ public class CholeskyOuterForm_FDRB implements CholeskyDecomposition_F32<FMatrix
      * @return If it succeeded or not.
      */
     @Override
-    public boolean decompose(FMatrixRBlock A) {
-        if( A.numCols != A.numRows )
+    public boolean decompose( FMatrixRBlock A ) {
+        if (A.numCols != A.numRows)
             throw new IllegalArgumentException("A must be square");
 
         this.T = A;
 
-        if( lower )
+        if (lower)
             return decomposeLower();
         else
             return decomposeUpper();
@@ -88,9 +98,10 @@ public class CholeskyOuterForm_FDRB implements CholeskyDecomposition_F32<FMatrix
         subB.set(T);
         subC.set(T);
 
-        for( int i = 0; i < T.numCols; i += blockLength ) {
-            int widthA = Math.min(blockLength, T.numCols-i);
+        for (int i = 0; i < T.numCols; i += blockLength) {
+            int widthA = Math.min(blockLength, T.numCols - i);
 
+            //@formatter:off
             subA.col0 = i;           subA.col1 = i+widthA;
             subA.row0 = subA.col0;   subA.row1 = subA.col1;
 
@@ -99,26 +110,26 @@ public class CholeskyOuterForm_FDRB implements CholeskyDecomposition_F32<FMatrix
 
             subC.col0 = i+widthA;    subC.col1 = T.numRows;
             subC.row0 = i+widthA;    subC.row1 = T.numRows;
-            
+            //@formatter:on
+
             // cholesky on inner block A
-            if( !InnerCholesky_FDRB.lower(subA))
+            if (!InnerCholesky_FDRB.lower(subA))
                 return false;
 
             // on the last block these operations are not needed.
-            if( widthA == blockLength ) {
+            if (widthA == blockLength) {
                 // B = L^-1 B
-                TriangularSolver_FDRB.solveBlock(blockLength,false,subA,subB,false,true);
+                TriangularSolver_FDRB.solveBlock(blockLength, false, subA, subB, false, true);
 
                 // C = C - B * B^T
-                InnerRankUpdate_FDRB.symmRankNMinus_L(blockLength,subC,subB);
+                InnerRankUpdate_FDRB.symmRankNMinus_L(blockLength, subC, subB);
             }
         }
 
-        MatrixOps_FDRB.zeroTriangle(true,T);
+        MatrixOps_FDRB.zeroTriangle(true, T);
 
         return true;
     }
-
 
     private boolean decomposeUpper() {
         int blockLength = T.blockLength;
@@ -127,9 +138,10 @@ public class CholeskyOuterForm_FDRB implements CholeskyDecomposition_F32<FMatrix
         subB.set(T);
         subC.set(T);
 
-        for( int i = 0; i < T.numCols; i += blockLength ) {
-            int widthA = Math.min(blockLength, T.numCols-i);
+        for (int i = 0; i < T.numCols; i += blockLength) {
+            int widthA = Math.min(blockLength, T.numCols - i);
 
+            //@formatter:off
             subA.col0 = i;          subA.col1 = i+widthA;
             subA.row0 = subA.col0;  subA.row1 = subA.col1;
 
@@ -138,22 +150,23 @@ public class CholeskyOuterForm_FDRB implements CholeskyDecomposition_F32<FMatrix
 
             subC.col0 = i+widthA;   subC.col1 = T.numCols;
             subC.row0 = i+widthA;   subC.row1 = T.numCols;
+            //@formatter:on
 
             // cholesky on inner block A
-            if( !InnerCholesky_FDRB.upper(subA))
+            if (!InnerCholesky_FDRB.upper(subA))
                 return false;
 
             // on the last block these operations are not needed.
-            if( widthA == blockLength ) {
+            if (widthA == blockLength) {
                 // B = U^-1 B
-                TriangularSolver_FDRB.solveBlock(blockLength,true,subA,subB,true,false);
+                TriangularSolver_FDRB.solveBlock(blockLength, true, subA, subB, true, false);
 
                 // C = C - B^T * B
-                InnerRankUpdate_FDRB.symmRankNMinus_U(blockLength,subC,subB);
+                InnerRankUpdate_FDRB.symmRankNMinus_U(blockLength, subC, subB);
             }
         }
 
-        MatrixOps_FDRB.zeroTriangle(false,T);
+        MatrixOps_FDRB.zeroTriangle(false, T);
 
         return true;
     }
@@ -164,8 +177,8 @@ public class CholeskyOuterForm_FDRB implements CholeskyDecomposition_F32<FMatrix
     }
 
     @Override
-    public FMatrixRBlock getT(FMatrixRBlock T) {
-        if( T == null )
+    public FMatrixRBlock getT( @Nullable FMatrixRBlock T ) {
+        if (T == null)
             return this.T;
         T.set(this.T);
 
@@ -177,9 +190,9 @@ public class CholeskyOuterForm_FDRB implements CholeskyDecomposition_F32<FMatrix
         float prod = 1.0f;
 
         int blockLength = T.blockLength;
-        for( int i = 0; i < T.numCols; i += blockLength ) {
+        for (int i = 0; i < T.numCols; i += blockLength) {
             // width of the submatrix
-            int widthA = Math.min(blockLength, T.numCols-i);
+            int widthA = Math.min(blockLength, T.numCols - i);
 
             // index of the first element in the block
             int indexT = i*T.numCols + i*widthA;
@@ -187,7 +200,7 @@ public class CholeskyOuterForm_FDRB implements CholeskyDecomposition_F32<FMatrix
             // product along the diagonal
             for (int j = 0; j < widthA; j++) {
                 prod *= T.data[indexT];
-                indexT += widthA+1;
+                indexT += widthA + 1;
             }
         }
 

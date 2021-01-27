@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.linsol.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
 import org.ejml.dense.row.decomposition.qr.QRDecompositionHouseholderTran_FDRM;
@@ -32,33 +33,35 @@ import org.ejml.interfaces.SolveNullSpace;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.linsol.qr.SolveNullSpaceQR_DDRM")
 public class SolveNullSpaceQR_FDRM implements SolveNullSpace<FMatrixRMaj> {
     CustomizedQR decomposition = new CustomizedQR();
 
     // Storage for Q matrix
-    FMatrixRMaj Q = new FMatrixRMaj(1,1);
+    FMatrixRMaj Q = new FMatrixRMaj(1, 1);
 
     /**
      * Finds the null space of A
+     *
      * @param A (Input) Matrix. Modified
      * @param numSingularValues Number of singular values
      * @param nullspace Storage for null-space
      * @return true if successful or false if it failed
      */
     @Override
-    public boolean process(FMatrixRMaj A , int numSingularValues, FMatrixRMaj nullspace ) {
+    public boolean process( FMatrixRMaj A, int numSingularValues, FMatrixRMaj nullspace ) {
         decomposition.decompose(A);
 
-        if( A.numRows > A.numCols ) {
-            Q.reshape(A.numCols,Math.min(A.numRows,A.numCols));
+        if (A.numRows > A.numCols) {
+            Q.reshape(A.numCols, Math.min(A.numRows, A.numCols));
             decomposition.getQ(Q, true);
         } else {
             Q.reshape(A.numCols, A.numCols);
             decomposition.getQ(Q, false);
         }
 
-        nullspace.reshape(Q.numRows,numSingularValues);
-        CommonOps_FDRM.extract(Q,0,Q.numRows,Q.numCols-numSingularValues,Q.numCols,nullspace,0,0);
+        nullspace.reshape(Q.numRows, numSingularValues);
+        CommonOps_FDRM.extract(Q, 0, Q.numRows, Q.numCols - numSingularValues, Q.numCols, nullspace, 0, 0);
 
         return true;
     }
@@ -74,23 +77,23 @@ public class SolveNullSpaceQR_FDRM implements SolveNullSpace<FMatrixRMaj> {
     private static class CustomizedQR extends QRDecompositionHouseholderTran_FDRM {
 
         @Override
-        public void setExpectedMaxSize( int numRows , int numCols ) {
+        public void setExpectedMaxSize( int numRows, int numCols ) {
             this.numCols = numCols;
             this.numRows = numRows;
-            minLength = Math.min(numCols,numRows);
-            int maxLength = Math.max(numCols,numRows);
+            minLength = Math.min(numCols, numRows);
+            int maxLength = Math.max(numCols, numRows);
 
             // Don't delcare QR. It will use the input matrix for worspace
-            if( v == null ) {
-                v = new float[ maxLength ];
-                gammas = new float[ minLength ];
+            if (v == null) {
+                v = new float[maxLength];
+                gammas = new float[minLength];
             }
 
-            if( v.length < maxLength ) {
-                v = new float[ maxLength ];
+            if (v.length < maxLength) {
+                v = new float[maxLength];
             }
-            if( gammas.length < minLength ) {
-                gammas = new float[ minLength ];
+            if (gammas.length < minLength) {
+                gammas = new float[minLength];
             }
         }
 
@@ -101,21 +104,20 @@ public class SolveNullSpaceQR_FDRM implements SolveNullSpace<FMatrixRMaj> {
         public boolean decompose( FMatrixRMaj A_tran ) {
             // There is a "subtle" hack in the line below. Instead of passing in (cols,rows) I'm passing in
             // (cols,cols) that's because we don't care about updating everything past the cols
-            setExpectedMaxSize(A_tran.numCols, Math.min(A_tran.numRows,A_tran.numCols));
+            setExpectedMaxSize(A_tran.numCols, Math.min(A_tran.numRows, A_tran.numCols));
 
             // use the input matrix for its workspace
             this.QR = A_tran;
 
             error = false;
 
-            for( int j = 0; j < minLength; j++ ) {
+            for (int j = 0; j < minLength; j++) {
                 householder(j);
                 updateA(j);
             }
 
             return !error;
         }
-
     }
 
     public FMatrixRMaj getQ() {

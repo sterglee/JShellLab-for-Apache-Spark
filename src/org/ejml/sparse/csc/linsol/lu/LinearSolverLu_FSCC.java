@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2019, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.sparse.csc.linsol.lu;
 
+import javax.annotation.Generated;
 import org.ejml.data.FGrowArray;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.data.FMatrixSparseCSC;
@@ -35,22 +36,27 @@ import static org.ejml.UtilEjml.adjust;
  *
  * @author Peter Abeles
  */
-public class LinearSolverLu_FSCC implements LinearSolverSparse<FMatrixSparseCSC,FMatrixRMaj> {
+@Generated("org.ejml.sparse.csc.linsol.lu.LinearSolverLu_DSCC")
+public class LinearSolverLu_FSCC implements LinearSolverSparse<FMatrixSparseCSC, FMatrixRMaj> {
 
     LuUpLooking_FSCC decomposition;
 
-    private FGrowArray gx = new FGrowArray();
-    private FGrowArray gb = new FGrowArray();
+    private final FGrowArray gx = new FGrowArray();
+    private final FGrowArray gb = new FGrowArray();
 
-    FMatrixSparseCSC Bp = new FMatrixSparseCSC(1,1,1);
-    FMatrixSparseCSC tmp = new FMatrixSparseCSC(1,1,1);
+    FMatrixSparseCSC Bp = new FMatrixSparseCSC(1, 1, 1);
+    FMatrixSparseCSC tmp = new FMatrixSparseCSC(1, 1, 1);
 
-    public LinearSolverLu_FSCC(LuUpLooking_FSCC decomposition) {
+    // Number of rows in A
+    int AnumCols;
+
+    public LinearSolverLu_FSCC( LuUpLooking_FSCC decomposition ) {
         this.decomposition = decomposition;
     }
 
     @Override
-    public boolean setA(FMatrixSparseCSC A) {
+    public boolean setA( FMatrixSparseCSC A ) {
+        this.AnumCols = A.numCols;
         return decomposition.decompose(A);
     }
 
@@ -60,27 +66,28 @@ public class LinearSolverLu_FSCC implements LinearSolverSparse<FMatrixSparseCSC,
     }
 
     @Override
-    public void solveSparse(FMatrixSparseCSC B, FMatrixSparseCSC X) {
+    public void solveSparse( FMatrixSparseCSC B, FMatrixSparseCSC X ) {
+        X.reshape(AnumCols, B.numCols, X.numRows);
 
         FMatrixSparseCSC L = decomposition.getL();
         FMatrixSparseCSC U = decomposition.getU();
 
         // these are row pivots
-        Bp.reshape(B.numRows,B.numCols,B.nz_length);
+        Bp.reshape(B.numRows, B.numCols, B.nz_length);
         int[] Pinv = decomposition.getPinv();
-        CommonOps_FSCC.permute(Pinv,B,null,Bp);
+        CommonOps_FSCC.permute(Pinv, B, null, Bp);
 
         IGrowArray gw = decomposition.getGw();
         IGrowArray gw1 = decomposition.getGxi();
 
-        tmp.reshape(L.numRows,B.numCols,1);
+        tmp.reshape(L.numRows, B.numCols, 1);
 
-        TriangularSolver_FSCC.solve(L,true,Bp,tmp,null,gx,gw,gw1);
-        TriangularSolver_FSCC.solve(U,false,tmp,X,null,gx,gw,gw1);
+        TriangularSolver_FSCC.solve(L, true, Bp, tmp, null, gx, gw, gw1);
+        TriangularSolver_FSCC.solve(U, false, tmp, X, null, gx, gw, gw1);
     }
 
     @Override
-    public void setStructureLocked(boolean locked ) {
+    public void setStructureLocked( boolean locked ) {
         decomposition.setStructureLocked(locked);
     }
 
@@ -90,38 +97,37 @@ public class LinearSolverLu_FSCC implements LinearSolverSparse<FMatrixSparseCSC,
     }
 
     @Override
-    public void solve(FMatrixRMaj B, FMatrixRMaj X) {
-//        if( B.numCols != X.numCols || B.numRows != numRows || X.numRows != numCols) {
-//            throw new IllegalArgumentException("Unexpected matrix size");
-//        }
+    @SuppressWarnings("NullAway") // Compiler isn't smart enough to realize null condition is impossible
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
+        X.reshape(AnumCols, B.numCols);
 
-        int pinv[] = decomposition.getPinv();
-        int q[] = decomposition.getReducePermutation();
-        float[] x = adjust(gx,X.numRows);
-        float[] b = adjust(gb,B.numRows);
+        int[] pinv = decomposition.getPinv();
+        float[] x = adjust(gx, X.numRows);
+        float[] b = adjust(gb, B.numRows);
 
         FMatrixSparseCSC L = decomposition.getL();
         FMatrixSparseCSC U = decomposition.getU();
 
-        boolean reduceFill = decomposition.getReduceFill() != null;
+        final boolean reduceFill = decomposition.isReduceFill();
+        final int[] q = reduceFill ? decomposition.getReducePermutation() : null;
 
         // process each column in X and B individually
         for (int colX = 0; colX < X.numCols; colX++) {
             int index = colX;
             for (int i = 0; i < B.numRows; i++, index += X.numCols) b[i] = B.data[index];
 
-            CommonOps_FSCC.permuteInv(pinv,b,x,X.numRows);
-            TriangularSolver_FSCC.solveL(L,x);
-            TriangularSolver_FSCC.solveU(U,x);
-            float d[];
-            if( reduceFill ) {
+            CommonOps_FSCC.permuteInv(pinv, b, x, X.numRows);
+            TriangularSolver_FSCC.solveL(L, x);
+            TriangularSolver_FSCC.solveU(U, x);
+            float[] d;
+            if (reduceFill) {
                 CommonOps_FSCC.permute(q, x, b, X.numRows);
                 d = b;
             } else {
                 d = x;
             }
             index = colX;
-            for( int i = 0; i < X.numRows; i++ , index += X.numCols ) X.data[index] = d[i];
+            for (int i = 0; i < X.numRows; i++, index += X.numCols) X.data[index] = d[i];
         }
     }
 

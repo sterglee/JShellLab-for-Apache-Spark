@@ -18,6 +18,7 @@
 
 package org.ejml.ops;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.data.FMatrix;
 
@@ -26,6 +27,7 @@ import org.ejml.data.FMatrix;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.ops.MatrixFeatures_D")
 public class MatrixFeatures_F {
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,13 +18,13 @@
 
 package org.ejml.dense.row.linsol;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRBlock;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.block.MatrixOps_FDRB;
 import org.ejml.dense.block.linsol.chol.CholeskyOuterSolver_FDRB;
 import org.ejml.interfaces.decomposition.DecompositionInterface;
 import org.ejml.interfaces.linsol.LinearSolverDense;
-
 
 /**
  * Wrapper that allows {@link FMatrixRBlock} to implements {@link LinearSolverDense}.  It works
@@ -33,17 +33,18 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.linsol.LinearSolver_DDRB_to_DDRM")
 public class LinearSolver_FDRB_to_FDRM implements LinearSolverDense<FMatrixRMaj> {
     protected LinearSolverDense<FMatrixRBlock> alg = new CholeskyOuterSolver_FDRB();
 
     // block matrix copy of the system A matrix.
-    protected FMatrixRBlock blockA = new FMatrixRBlock(1,1);
+    protected FMatrixRBlock blockA = new FMatrixRBlock(1, 1);
     // block matrix copy of B matrix passed into solve
-    protected FMatrixRBlock blockB = new FMatrixRBlock(1,1);
+    protected FMatrixRBlock blockB = new FMatrixRBlock(1, 1);
     // block matrix copy of X matrix passed into solve
-    protected FMatrixRBlock blockX = new FMatrixRBlock(1,1);
+    protected FMatrixRBlock blockX = new FMatrixRBlock(1, 1);
 
-    public LinearSolver_FDRB_to_FDRM(LinearSolverDense<FMatrixRBlock> alg) {
+    public LinearSolver_FDRB_to_FDRM( LinearSolverDense<FMatrixRBlock> alg ) {
         this.alg = alg;
     }
 
@@ -54,9 +55,9 @@ public class LinearSolver_FDRB_to_FDRM implements LinearSolverDense<FMatrixRMaj>
      * @return true if it can solve the system.
      */
     @Override
-    public boolean setA(FMatrixRMaj A) {
-        blockA.reshape(A.numRows,A.numCols,false);
-        MatrixOps_FDRB.convert(A,blockA);
+    public boolean setA( FMatrixRMaj A ) {
+        blockA.reshape(A.numRows, A.numCols, false);
+        MatrixOps_FDRB.convert(A, blockA);
 
         return alg.setA(blockA);
     }
@@ -73,30 +74,30 @@ public class LinearSolver_FDRB_to_FDRM implements LinearSolverDense<FMatrixRMaj>
      * @param X A matrix &real; <sup>n &times; p</sup>, where the solution is written to.  Modified.
      */
     @Override
-    public void solve(FMatrixRMaj B, FMatrixRMaj X) {
-        X.reshape(blockA.numCols,B.numCols);
-        blockB.reshape(B.numRows,B.numCols,false);
-        blockX.reshape(X.numRows,X.numCols,false);
-        MatrixOps_FDRB.convert(B,blockB);
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
+        X.reshape(blockA.numCols, B.numCols);
+        blockB.reshape(B.numRows, B.numCols, false);
+        blockX.reshape(X.numRows, X.numCols, false);
+        MatrixOps_FDRB.convert(B, blockB);
 
-        alg.solve(blockB,blockX);
+        alg.solve(blockB, blockX);
 
-        MatrixOps_FDRB.convert(blockX,X);
+        MatrixOps_FDRB.convert(blockX, X);
     }
 
     /**
      * Creates a block matrix the same size as A_inv, inverts the matrix and copies the results back
      * onto A_inv.
-     * 
+     *
      * @param A_inv Where the inverted matrix saved. Modified.
      */
     @Override
-    public void invert(FMatrixRMaj A_inv) {
-        blockB.reshape(A_inv.numRows,A_inv.numCols,false);
+    public void invert( FMatrixRMaj A_inv ) {
+        blockB.reshape(A_inv.numRows, A_inv.numCols, false);
 
         alg.invert(blockB);
 
-        MatrixOps_FDRB.convert(blockB,A_inv);
+        MatrixOps_FDRB.convert(blockB, A_inv);
     }
 
     @Override

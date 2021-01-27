@@ -18,6 +18,7 @@
 
 package org.ejml.sparse.csc.factory;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixSparseCSC;
 import org.ejml.interfaces.decomposition.CholeskySparseDecomposition_F32;
 import org.ejml.interfaces.decomposition.LUSparseDecomposition_F32;
@@ -33,6 +34,7 @@ import org.ejml.sparse.csc.decomposition.qr.QrLeftLookingDecomposition_FSCC;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.sparse.csc.factory.DecompositionFactory_DSCC")
 public class DecompositionFactory_FSCC {
     public static CholeskySparseDecomposition_F32 cholesky() {
         return new CholeskyUpLooking_FSCC();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,14 +18,17 @@
 
 package org.ejml.dense.row;
 
+import javax.annotation.Generated;
 import org.ejml.EjmlParameters;
 import org.ejml.LinearSolverSafe;
+import org.ejml.UtilEjml;
 import org.ejml.data.*;
 import org.ejml.dense.row.decompose.lu.LUDecompositionAlt_CDRM;
 import org.ejml.dense.row.factory.LinearSolverFactory_CDRM;
 import org.ejml.dense.row.misc.TransposeAlgs_CDRM;
 import org.ejml.dense.row.mult.MatrixMatrixMult_CDRM;
 import org.ejml.interfaces.linsol.LinearSolverDense;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -34,6 +37,7 @@ import java.util.Arrays;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.CommonOps_ZDRM")
 public class CommonOps_CDRM {
 
     /**
@@ -47,11 +51,11 @@ public class CommonOps_CDRM {
      * @param width The width and height of the identity matrix.
      * @return A new instance of an identity matrix.
      */
-    public static CMatrixRMaj identity(int width ) {
-        CMatrixRMaj A = new CMatrixRMaj(width,width);
+    public static CMatrixRMaj identity( int width ) {
+        CMatrixRMaj A = new CMatrixRMaj(width, width);
 
         for (int i = 0; i < width; i++) {
-            A.set(i,i,1,0);
+            A.set(i, i, 1, 0);
         }
 
         return A;
@@ -69,12 +73,12 @@ public class CommonOps_CDRM {
      * @param height The height of the identity matrix.
      * @return A new instance of an identity matrix.
      */
-    public static CMatrixRMaj identity(int width , int height) {
-        CMatrixRMaj A = new CMatrixRMaj(width,height);
+    public static CMatrixRMaj identity( int width, int height ) {
+        CMatrixRMaj A = new CMatrixRMaj(width, height);
 
-        int m = Math.min(width,height);
+        int m = Math.min(width, height);
         for (int i = 0; i < m; i++) {
-            A.set(i,i,1,0);
+            A.set(i, i, 1, 0);
         }
 
         return A;
@@ -92,19 +96,19 @@ public class CommonOps_CDRM {
      * @param data Contains the values of the diagonal elements of the resulting matrix.
      * @return A new complex matrix.
      */
-    public static CMatrixRMaj diag(float... data ) {
-        if( data.length%2 == 1 )
+    public static CMatrixRMaj diag( float... data ) {
+        if (data.length%2 == 1)
             throw new IllegalArgumentException("must be an even number of arguments");
 
-        return diag(new CMatrixRMaj(1,1),data.length/2,data);
+        return diag(new CMatrixRMaj(1, 1), data.length/2, data);
     }
 
-    public static CMatrixRMaj diag(CMatrixRMaj output , int N, float... data ) {
-        output.reshape(N,N);
+    public static CMatrixRMaj diag( @Nullable CMatrixRMaj output, int N, float... data ) {
+        output = UtilEjml.reshapeOrDeclare(output, N, N);
 
         int index = 0;
         for (int i = 0; i < N; i++) {
-            output.set(i,i,data[index++],data[index++]);
+            output.set(i, i, data[index++], data[index++]);
         }
 
         return output;
@@ -119,19 +123,18 @@ public class CommonOps_CDRM {
      * @param src Matrix whose diagonal elements are being extracted. Not modified.
      * @param dst A vector the results will be written into. Modified.
      */
-    public static void extractDiag(CMatrixRMaj src, CMatrixRMaj dst )
-    {
+    public static void extractDiag( CMatrixRMaj src, CMatrixRMaj dst ) {
         int N = Math.min(src.numRows, src.numCols);
 
         // reshape if it's not the right size
-        if( !MatrixFeatures_CDRM.isVector(dst) || dst.numCols*dst.numCols != N ) {
-            dst.reshape(N,1);
+        if (!MatrixFeatures_CDRM.isVector(dst) || dst.numCols*dst.numCols != N) {
+            dst.reshape(N, 1);
         }
 
-        for( int i = 0; i < N; i++ ) {
-            int index = src.getIndex(i,i);
-            dst.data[i*2]   = src.data[index];
-            dst.data[i*2+1] = src.data[index+1];
+        for (int i = 0; i < N; i++) {
+            int index = src.getIndex(i, i);
+            dst.data[i*2] = src.data[index];
+            dst.data[i*2 + 1] = src.data[index + 1];
         }
     }
 
@@ -141,8 +144,8 @@ public class CommonOps_CDRM {
      * @param input Real matrix. Not modified.
      * @param output Complex matrix. Modified.
      */
-    public static void convert(FMatrixD1 input , CMatrixD1 output ) {
-        if( input.numCols != output.numCols || input.numRows != output.numRows ) {
+    public static void convert( FMatrixD1 input, CMatrixD1 output ) {
+        if (input.numCols != output.numCols || input.numRows != output.numRows) {
             throw new IllegalArgumentException("The matrices are not all the same dimension.");
         }
 
@@ -150,7 +153,7 @@ public class CommonOps_CDRM {
 
         final int length = output.getDataLength();
 
-        for( int i = 0; i < length; i += 2 ) {
+        for (int i = 0; i < length; i += 2) {
             output.data[i] = input.data[i/2];
         }
     }
@@ -161,16 +164,12 @@ public class CommonOps_CDRM {
      * @param input Complex matrix. Not modified.
      * @param output real matrix. Modified.
      */
-    public static FMatrixRMaj stripReal(CMatrixD1 input , FMatrixRMaj output ) {
-        if( output == null ) {
-            output = new FMatrixRMaj(input.numRows,input.numCols);
-        } else if( input.numCols != output.numCols || input.numRows != output.numRows ) {
-            throw new IllegalArgumentException("The matrices are not all the same dimension.");
-        }
+    public static FMatrixRMaj stripReal( CMatrixD1 input, @Nullable FMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numRows, input.numCols);
 
         final int length = input.getDataLength();
 
-        for( int i = 0; i < length; i += 2 ) {
+        for (int i = 0; i < length; i += 2) {
             output.data[i/2] = input.data[i];
         }
         return output;
@@ -182,16 +181,12 @@ public class CommonOps_CDRM {
      * @param input Complex matrix. Not modified.
      * @param output real matrix. Modified.
      */
-    public static FMatrixRMaj stripImaginary(CMatrixD1 input , FMatrixRMaj output ) {
-        if( output == null ) {
-            output = new FMatrixRMaj(input.numRows,input.numCols);
-        } else if( input.numCols != output.numCols || input.numRows != output.numRows ) {
-            throw new IllegalArgumentException("The matrices are not all the same dimension.");
-        }
+    public static FMatrixRMaj stripImaginary( CMatrixD1 input, @Nullable FMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numRows, input.numCols);
 
         final int length = input.getDataLength();
 
-        for( int i = 1; i < length; i += 2 ) {
+        for (int i = 1; i < length; i += 2) {
             output.data[i/2] = input.data[i];
         }
         return output;
@@ -208,16 +203,14 @@ public class CommonOps_CDRM {
      * @param input Complex matrix. Not modified.
      * @param output real matrix. Modified.
      */
-    public static void magnitude(CMatrixD1 input , FMatrixD1 output ) {
-        if( input.numCols != output.numCols || input.numRows != output.numRows ) {
-            throw new IllegalArgumentException("The matrices are not all the same dimension.");
-        }
+    public static void magnitude( CMatrixD1 input, FMatrixD1 output ) {
+        output.reshape(input.numRows, input.numCols);
 
         final int length = input.getDataLength();
 
-        for( int i = 0; i < length; i += 2 ) {
+        for (int i = 0; i < length; i += 2) {
             float real = input.data[i];
-            float imaginary = input.data[i+1];
+            float imaginary = input.data[i + 1];
 
             output.data[i/2] = (float)Math.sqrt(real*real + imaginary*imaginary);
         }
@@ -234,17 +227,17 @@ public class CommonOps_CDRM {
      * @param input Input matrix.  Not modified.
      * @param output The complex conjugate of the input matrix.  Modified.
      */
-    public static void conjugate(CMatrixD1 input , CMatrixD1 output ) {
-        if( input.numCols != output.numCols || input.numRows != output.numRows ) {
-            throw new IllegalArgumentException("The matrices are not all the same dimension.");
-        }
+    public static CMatrixD1 conjugate( CMatrixD1 input, @Nullable CMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numRows, input.numCols);
 
         final int length = input.getDataLength();
 
-        for( int i = 0; i < length; i += 2 ) {
+        for (int i = 0; i < length; i += 2) {
             output.data[i] = input.data[i];
-            output.data[i+1] = -input.data[i+1];
+            output.data[i + 1] = -input.data[i + 1];
         }
+
+        return output;
     }
 
     /**
@@ -258,12 +251,11 @@ public class CommonOps_CDRM {
      * @param real The real component
      * @param imaginary The imaginary component
      */
-    public static void fill(CMatrixD1 a, float real, float imaginary)
-    {
+    public static void fill( CMatrixD1 a, float real, float imaginary ) {
         int N = a.getDataLength();
         for (int i = 0; i < N; i += 2) {
             a.data[i] = real;
-            a.data[i+1] = imaginary;
+            a.data[i + 1] = imaginary;
         }
     }
 
@@ -282,17 +274,14 @@ public class CommonOps_CDRM {
      * @param b A Matrix. Not modified.
      * @param c A Matrix where the results are stored. Modified.
      */
-    public static void add(CMatrixD1 a , CMatrixD1 b , CMatrixD1 c )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows
-                || a.numCols != c.numCols || a.numRows != c.numRows ) {
-            throw new IllegalArgumentException("The matrices are not all the same dimension.");
-        }
+    public static void add( CMatrixD1 a, CMatrixD1 b, CMatrixD1 c ) {
+        UtilEjml.checkSameShape(a, b, true);
+        c.reshape(a.numRows, b.numCols);
 
         final int length = a.getDataLength();
 
-        for( int i = 0; i < length; i++ ) {
-            c.data[i] = a.data[i]+b.data[i];
+        for (int i = 0; i < length; i++) {
+            c.data[i] = a.data[i] + b.data[i];
         }
     }
 
@@ -311,17 +300,14 @@ public class CommonOps_CDRM {
      * @param b A Matrix. Not modified.
      * @param c A Matrix where the results are stored. Modified.
      */
-    public static void subtract(CMatrixD1 a , CMatrixD1 b , CMatrixD1 c )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows
-                || a.numCols != c.numCols || a.numRows != c.numRows ) {
-            throw new IllegalArgumentException("The matrices are not all the same dimension.");
-        }
+    public static void subtract( CMatrixD1 a, CMatrixD1 b, CMatrixD1 c ) {
+        UtilEjml.checkSameShape(a, b, true);
+        c.reshape(a.numRows, b.numCols);
 
         final int length = a.getDataLength();
 
-        for( int i = 0; i < length; i++ ) {
-            c.data[i] = a.data[i]-b.data[i];
+        for (int i = 0; i < length; i++) {
+            c.data[i] = a.data[i] - b.data[i];
         }
     }
 
@@ -336,18 +322,17 @@ public class CommonOps_CDRM {
      * @param alphaReal real component of scale factor
      * @param alphaImag imaginary component of scale factor
      */
-    public static void scale( float alphaReal, float alphaImag , CMatrixD1 a )
-    {
+    public static void scale( float alphaReal, float alphaImag, CMatrixD1 a ) {
         // on very small matrices (2 by 2) the call to getNumElements() can slow it down
         // slightly compared to other libraries since it involves an extra multiplication.
         final int size = a.getNumElements()*2;
 
-        for( int i = 0; i < size; i += 2 ) {
+        for (int i = 0; i < size; i += 2) {
             float real = a.data[i];
-            float imag = a.data[i+1];
+            float imag = a.data[i + 1];
 
             a.data[i] = real*alphaReal - imag*alphaImag;
-            a.data[i+1] = real*alphaImag + imag*alphaReal;
+            a.data[i + 1] = real*alphaImag + imag*alphaReal;
         }
     }
 
@@ -363,9 +348,8 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void mult(CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c)
-    {
-        if( b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH) {
+    public static void mult( CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
+        if (b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH) {
             MatrixMatrixMult_CDRM.mult_reorder(a, b, c);
         } else {
             MatrixMatrixMult_CDRM.mult_small(a, b, c);
@@ -386,12 +370,11 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void mult(float realAlpha , float imgAlpha , CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
-        if( b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ) {
-            MatrixMatrixMult_CDRM.mult_reorder(realAlpha,imgAlpha,a,b,c);
+    public static void mult( float realAlpha, float imgAlpha, CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
+        if (b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH) {
+            MatrixMatrixMult_CDRM.mult_reorder(realAlpha, imgAlpha, a, b, c);
         } else {
-            MatrixMatrixMult_CDRM.mult_small(realAlpha,imgAlpha,a,b,c);
+            MatrixMatrixMult_CDRM.mult_small(realAlpha, imgAlpha, a, b, c);
         }
     }
 
@@ -407,12 +390,11 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAdd(CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
-        if( b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ) {
+    public static void multAdd( CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
+        if (b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
             MatrixMatrixMult_CDRM.multAdd_reorder(a, b, c);
         } else {
-            MatrixMatrixMult_CDRM.multAdd_small(a,b,c);
+            MatrixMatrixMult_CDRM.multAdd_small(a, b, c);
         }
     }
 
@@ -430,12 +412,11 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAdd(float realAlpha , float imgAlpha , CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
-        if( b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ) {
-            MatrixMatrixMult_CDRM.multAdd_reorder(realAlpha,imgAlpha,a,b,c);
+    public static void multAdd( float realAlpha, float imgAlpha, CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
+        if (b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH) {
+            MatrixMatrixMult_CDRM.multAdd_reorder(realAlpha, imgAlpha, a, b, c);
         } else {
-            MatrixMatrixMult_CDRM.multAdd_small(realAlpha,imgAlpha,a,b,c);
+            MatrixMatrixMult_CDRM.multAdd_small(realAlpha, imgAlpha, a, b, c);
         }
     }
 
@@ -451,10 +432,9 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multTransA(CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
-        if( a.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ||
-                b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH  ) {
+    public static void multTransA( CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
+        if (a.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ||
+                b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH) {
             MatrixMatrixMult_CDRM.multTransA_reorder(a, b, c);
         } else {
             MatrixMatrixMult_CDRM.multTransA_small(a, b, c);
@@ -475,18 +455,17 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multTransA(float realAlpha , float imagAlpha, CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
+    public static void multTransA( float realAlpha, float imagAlpha, CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
         // TODO add a matrix vectory multiply here
-        if( a.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ||
-                b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ) {
+        if (a.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ||
+                b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH) {
             MatrixMatrixMult_CDRM.multTransA_reorder(realAlpha, imagAlpha, a, b, c);
         } else {
             MatrixMatrixMult_CDRM.multTransA_small(realAlpha, imagAlpha, a, b, c);
         }
     }
 
-        /**
+    /**
      * <p>
      * Performs the following operation:<br>
      * <br>
@@ -498,8 +477,7 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multTransB(CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
+    public static void multTransB( CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
         MatrixMatrixMult_CDRM.multTransB(a, b, c);
     }
 
@@ -517,13 +495,12 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multTransB(float realAlpha , float imagAlpha, CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
+    public static void multTransB( float realAlpha, float imagAlpha, CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
         // TODO add a matrix vectory multiply here
-        MatrixMatrixMult_CDRM.multTransB(realAlpha,imagAlpha,a,b,c);
+        MatrixMatrixMult_CDRM.multTransB(realAlpha, imagAlpha, a, b, c);
     }
 
-        /**
+    /**
      * <p>
      * Performs the following operation:<br>
      * <br>
@@ -535,9 +512,8 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multTransAB(CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
-        if( a.numCols >= EjmlParameters.CMULT_TRANAB_COLUMN_SWITCH ) {
+    public static void multTransAB( CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
+        if (a.numCols >= EjmlParameters.CMULT_TRANAB_COLUMN_SWITCH) {
             MatrixMatrixMult_CDRM.multTransAB_aux(a, b, c, null);
         } else {
             MatrixMatrixMult_CDRM.multTransAB(a, b, c);
@@ -558,10 +534,9 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multTransAB(float realAlpha , float imagAlpha , CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
+    public static void multTransAB( float realAlpha, float imagAlpha, CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
         // TODO add a matrix vectory multiply here
-        if( a.numCols >= EjmlParameters.CMULT_TRANAB_COLUMN_SWITCH ) {
+        if (a.numCols >= EjmlParameters.CMULT_TRANAB_COLUMN_SWITCH) {
             MatrixMatrixMult_CDRM.multTransAB_aux(realAlpha, imagAlpha, a, b, c, null);
         } else {
             MatrixMatrixMult_CDRM.multTransAB(realAlpha, imagAlpha, a, b, c);
@@ -580,10 +555,9 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransA(CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
-        if( a.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ||
-                b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH  ) {
+    public static void multAddTransA( CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
+        if (a.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ||
+                b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH) {
             MatrixMatrixMult_CDRM.multAddTransA_reorder(a, b, c);
         } else {
             MatrixMatrixMult_CDRM.multAddTransA_small(a, b, c);
@@ -604,17 +578,15 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransA(float realAlpha , float imagAlpha , CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
+    public static void multAddTransA( float realAlpha, float imagAlpha, CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
         // TODO add a matrix vectory multiply here
-        if( a.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ||
-                b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ) {
+        if (a.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH ||
+                b.numCols >= EjmlParameters.CMULT_COLUMN_SWITCH) {
             MatrixMatrixMult_CDRM.multAddTransA_reorder(realAlpha, imagAlpha, a, b, c);
         } else {
             MatrixMatrixMult_CDRM.multAddTransA_small(realAlpha, imagAlpha, a, b, c);
         }
     }
-
 
     /**
      * <p>
@@ -628,9 +600,8 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransB(CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
-        MatrixMatrixMult_CDRM.multAddTransB(a,b,c);
+    public static void multAddTransB( CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
+        MatrixMatrixMult_CDRM.multAddTransB(a, b, c);
     }
 
     /**
@@ -647,10 +618,9 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransB(float realAlpha , float imagAlpha , CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
+    public static void multAddTransB( float realAlpha, float imagAlpha, CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
         // TODO add a matrix vectory multiply here
-        MatrixMatrixMult_CDRM.multAddTransB(realAlpha,imagAlpha,a,b,c);
+        MatrixMatrixMult_CDRM.multAddTransB(realAlpha, imagAlpha, a, b, c);
     }
 
     /**
@@ -665,12 +635,11 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not Modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransAB(CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
-        if( a.numCols >= EjmlParameters.CMULT_TRANAB_COLUMN_SWITCH ) {
-            MatrixMatrixMult_CDRM.multAddTransAB_aux(a,b,c,null);
+    public static void multAddTransAB( CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
+        if (a.numCols >= EjmlParameters.CMULT_TRANAB_COLUMN_SWITCH) {
+            MatrixMatrixMult_CDRM.multAddTransAB_aux(a, b, c, null);
         } else {
-            MatrixMatrixMult_CDRM.multAddTransAB(a,b,c);
+            MatrixMatrixMult_CDRM.multAddTransAB(a, b, c);
         }
     }
 
@@ -688,13 +657,12 @@ public class CommonOps_CDRM {
      * @param b The right matrix in the multiplication operation. Not Modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransAB(float realAlpha , float imagAlpha , CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj c )
-    {
+    public static void multAddTransAB( float realAlpha, float imagAlpha, CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj c ) {
         // TODO add a matrix vectory multiply here
-        if( a.numCols >= EjmlParameters.CMULT_TRANAB_COLUMN_SWITCH ) {
-            MatrixMatrixMult_CDRM.multAddTransAB_aux(realAlpha,imagAlpha, a, b, c, null);
+        if (a.numCols >= EjmlParameters.CMULT_TRANAB_COLUMN_SWITCH) {
+            MatrixMatrixMult_CDRM.multAddTransAB_aux(realAlpha, imagAlpha, a, b, c, null);
         } else {
-            MatrixMatrixMult_CDRM.multAddTransAB(realAlpha,imagAlpha, a, b, c);
+            MatrixMatrixMult_CDRM.multAddTransAB(realAlpha, imagAlpha, a, b, c);
         }
     }
 
@@ -710,10 +678,10 @@ public class CommonOps_CDRM {
      * @param mat The matrix that is to be transposed. Modified.
      */
     public static void transpose( CMatrixRMaj mat ) {
-        if( mat.numCols == mat.numRows ){
+        if (mat.numCols == mat.numRows) {
             TransposeAlgs_CDRM.square(mat);
         } else {
-            CMatrixRMaj b = new CMatrixRMaj(mat.numCols,mat.numRows);
+            CMatrixRMaj b = new CMatrixRMaj(mat.numCols, mat.numRows);
             transpose(mat, b);
             mat.reshape(b.numRows, b.numCols);
             mat.set(b);
@@ -723,15 +691,14 @@ public class CommonOps_CDRM {
     /**
      * <p>Performs an "in-place" conjugate transpose.</p>
      *
-     * @see #transpose(CMatrixRMaj)
-     *
      * @param mat The matrix that is to be transposed. Modified.
+     * @see #transpose(CMatrixRMaj)
      */
     public static void transposeConjugate( CMatrixRMaj mat ) {
-        if( mat.numCols == mat.numRows ){
+        if (mat.numCols == mat.numRows) {
             TransposeAlgs_CDRM.squareConjugate(mat);
         } else {
-            CMatrixRMaj b = new CMatrixRMaj(mat.numCols,mat.numRows);
+            CMatrixRMaj b = new CMatrixRMaj(mat.numCols, mat.numRows);
             transposeConjugate(mat, b);
             mat.reshape(b.numRows, b.numCols);
             mat.set(b);
@@ -750,15 +717,10 @@ public class CommonOps_CDRM {
      * @param output Where the transpose is stored. If null a new matrix is created. Modified.
      * @return The transposed matrix.
      */
-    public static CMatrixRMaj transpose(CMatrixRMaj input , CMatrixRMaj output )
-    {
-        if( output == null ) {
-            output = new CMatrixRMaj(input.numCols,input.numRows);
-        } else if( input.numCols != output.numRows || input.numRows != output.numCols ) {
-            throw new IllegalArgumentException("Input and output shapes are not compatible");
-        }
+    public static CMatrixRMaj transpose( CMatrixRMaj input, @Nullable CMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numCols, input.numRows);
 
-        TransposeAlgs_CDRM.standard(input,output);
+        TransposeAlgs_CDRM.standard(input, output);
 
         return output;
     }
@@ -776,13 +738,8 @@ public class CommonOps_CDRM {
      * @param output Where the transpose is stored. If null a new matrix is created. Modified.
      * @return The transposed matrix.
      */
-    public static CMatrixRMaj transposeConjugate(CMatrixRMaj input , CMatrixRMaj output )
-    {
-        if( output == null ) {
-            output = new CMatrixRMaj(input.numCols,input.numRows);
-        } else if( input.numCols != output.numRows || input.numRows != output.numCols ) {
-            throw new IllegalArgumentException("Input and output shapes are not compatible");
-        }
+    public static CMatrixRMaj transposeConjugate( CMatrixRMaj input, @Nullable CMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numCols, input.numRows);
 
         TransposeAlgs_CDRM.standardConjugate(input, output);
 
@@ -806,11 +763,10 @@ public class CommonOps_CDRM {
      * @param A The matrix that is to be inverted.  Results are stored here.  Modified.
      * @return true if it could invert the matrix false if it could not.
      */
-    public static boolean invert( CMatrixRMaj A )
-    {
+    public static boolean invert( CMatrixRMaj A ) {
         LinearSolverDense<CMatrixRMaj> solver = LinearSolverFactory_CDRM.lu(A.numRows);
 
-        if( solver.setA(A) ) {
+        if (solver.setA(A)) {
             solver.invert(A);
         } else {
             return false;
@@ -842,14 +798,13 @@ public class CommonOps_CDRM {
      * @param output Where the inverse matrix is stored.  Modified.
      * @return true if it could invert the matrix false if it could not.
      */
-    public static boolean invert(CMatrixRMaj input , CMatrixRMaj output )
-    {
+    public static boolean invert( CMatrixRMaj input, CMatrixRMaj output ) {
         LinearSolverDense<CMatrixRMaj> solver = LinearSolverFactory_CDRM.lu(input.numRows);
 
-        if( solver.modifiesA() )
+        if (solver.modifiesA())
             input = input.copy();
 
-        if( !solver.setA(input))
+        if (!solver.setA(input))
             return false;
         solver.invert(output);
         return true;
@@ -880,13 +835,11 @@ public class CommonOps_CDRM {
      * @param a A matrix that is m by n. Not modified.
      * @param b A matrix that is n by k. Not modified.
      * @param x A matrix that is m by k. Modified.
-     *
      * @return true if it could invert the matrix false if it could not.
      */
-    public static boolean solve(CMatrixRMaj a , CMatrixRMaj b , CMatrixRMaj x )
-    {
+    public static boolean solve( CMatrixRMaj a, CMatrixRMaj b, CMatrixRMaj x ) {
         LinearSolverDense<CMatrixRMaj> solver;
-        if( a.numCols == a.numRows ) {
+        if (a.numCols == a.numRows) {
             solver = LinearSolverFactory_CDRM.lu(a.numRows);
         } else {
             solver = LinearSolverFactory_CDRM.qr(a.numRows, a.numCols);
@@ -895,10 +848,10 @@ public class CommonOps_CDRM {
         // make sure the inputs 'a' and 'b' are not modified
         solver = new LinearSolverSafe<CMatrixRMaj>(solver);
 
-        if( !solver.setA(a) )
+        if (!solver.setA(a))
             return false;
 
-        solver.solve(b,x);
+        solver.solve(b, x);
         return true;
     }
 
@@ -910,15 +863,14 @@ public class CommonOps_CDRM {
      * @param mat The matrix whose determinant is to be computed.  Not modified.
      * @return The determinant.
      */
-    public static Complex_F32 det(CMatrixRMaj mat  )
-    {
+    public static Complex_F32 det( CMatrixRMaj mat ) {
         LUDecompositionAlt_CDRM alg = new LUDecompositionAlt_CDRM();
 
-        if( alg.inputModified() ) {
+        if (alg.inputModified()) {
             mat = mat.copy();
         }
 
-        if( !alg.decompose(mat) )
+        if (!alg.decompose(mat))
             return new Complex_F32();
         return alg.computeDeterminant();
     }
@@ -928,25 +880,25 @@ public class CommonOps_CDRM {
      * <br>
      * output<sub>ij</sub> = input<sub>ij</sub> * (real + imaginary*i) <br>
      * </p>
+     *
      * @param input The left matrix in the multiplication operation. Not modified.
      * @param real Real component of the number it is multiplied by
      * @param imaginary Imaginary component of the number it is multiplied by
      * @param output Where the results of the operation are stored. Modified.
      */
-    public static void elementMultiply(CMatrixD1 input , float real , float imaginary, CMatrixD1 output )
-    {
-        if( input.numCols != output.numCols || input.numRows != output.numRows ) {
-            throw new IllegalArgumentException("The 'input' and 'output' matrices do not have compatible dimensions");
-        }
+    public static CMatrixRMaj elementMultiply( CMatrixD1 input, float real, float imaginary, @Nullable CMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numRows, input.numCols);
 
         int N = input.getDataLength();
-        for (int i = 0; i < N; i += 2 ) {
+        for (int i = 0; i < N; i += 2) {
             float inReal = input.data[i];
-            float intImag = input.data[i+1];
+            float intImag = input.data[i + 1];
 
             output.data[i] = inReal*real - intImag*imaginary;
-            output.data[i+1] = inReal*imaginary + intImag*real;
+            output.data[i + 1] = inReal*imaginary + intImag*real;
         }
+
+        return output;
     }
 
     /**
@@ -954,27 +906,27 @@ public class CommonOps_CDRM {
      * <br>
      * output<sub>ij</sub> = input<sub>ij</sub> / (real + imaginary*i) <br>
      * </p>
+     *
      * @param input The left matrix in the multiplication operation. Not modified.
      * @param real Real component of the number it is multiplied by
      * @param imaginary Imaginary component of the number it is multiplied by
      * @param output Where the results of the operation are stored. Modified.
      */
-    public static void elementDivide(CMatrixD1 input , float real , float imaginary, CMatrixD1 output )
-    {
-        if( input.numCols != output.numCols || input.numRows != output.numRows ) {
-            throw new IllegalArgumentException("The 'input' and 'output' matrices do not have compatible dimensions");
-        }
+    public static CMatrixRMaj elementDivide( CMatrixD1 input, float real, float imaginary, @Nullable CMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numRows, input.numCols);
 
         float norm = real*real + imaginary*imaginary;
 
         int N = input.getDataLength();
-        for (int i = 0; i < N; i += 2 ) {
+        for (int i = 0; i < N; i += 2) {
             float inReal = input.data[i];
-            float inImag = input.data[i+1];
+            float inImag = input.data[i + 1];
 
-            output.data[i]   = (inReal*real + inImag*imaginary)/norm;
-            output.data[i+1] = (inImag*real - inReal*imaginary)/norm;
+            output.data[i] = (inReal*real + inImag*imaginary)/norm;
+            output.data[i + 1] = (inImag*real - inReal*imaginary)/norm;
         }
+
+        return output;
     }
 
     /**
@@ -982,27 +934,27 @@ public class CommonOps_CDRM {
      * <br>
      * output<sub>ij</sub> = (real + imaginary*i) / input<sub>ij</sub> <br>
      * </p>
+     *
      * @param real Real component of the number it is multiplied by
      * @param imaginary Imaginary component of the number it is multiplied by
      * @param input The right matrix in the multiplication operation. Not modified.
      * @param output Where the results of the operation are stored. Modified.
      */
-    public static void elementDivide(float real , float imaginary, CMatrixD1 input , CMatrixD1 output )
-    {
-        if( input.numCols != output.numCols || input.numRows != output.numRows ) {
-            throw new IllegalArgumentException("The 'input' and 'output' matrices do not have compatible dimensions");
-        }
+    public static CMatrixRMaj elementDivide( float real, float imaginary, CMatrixD1 input, @Nullable CMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numRows, input.numCols);
 
         int N = input.getDataLength();
-        for (int i = 0; i < N; i += 2 ) {
+        for (int i = 0; i < N; i += 2) {
             float inReal = input.data[i];
-            float inImag = input.data[i+1];
+            float inImag = input.data[i + 1];
 
             float norm = inReal*inReal + inImag*inImag;
 
-            output.data[i]   = (real*inReal + imaginary*inImag)/norm;
-            output.data[i+1] = (imaginary*inReal - real*inImag)/norm;
+            output.data[i] = (real*inReal + imaginary*inImag)/norm;
+            output.data[i + 1] = (imaginary*inReal - real*inImag)/norm;
         }
+
+        return output;
     }
 
     /**
@@ -1019,9 +971,9 @@ public class CommonOps_CDRM {
         final int size = a.getDataLength();
 
         float min = a.data[0];
-        for( int i = 2; i < size; i += 2 ) {
+        for (int i = 2; i < size; i += 2) {
             float val = a.data[i];
-            if( val < min ) {
+            if (val < min) {
                 min = val;
             }
         }
@@ -1043,9 +995,9 @@ public class CommonOps_CDRM {
         final int size = a.getDataLength();
 
         float min = a.data[1];
-        for( int i = 3; i < size; i += 2 ) {
+        for (int i = 3; i < size; i += 2) {
             float val = a.data[i];
-            if( val < min ) {
+            if (val < min) {
                 min = val;
             }
         }
@@ -1067,9 +1019,9 @@ public class CommonOps_CDRM {
         final int size = a.getDataLength();
 
         float max = a.data[0];
-        for( int i = 2; i < size; i += 2 ) {
+        for (int i = 2; i < size; i += 2) {
             float val = a.data[i];
-            if( val > max ) {
+            if (val > max) {
                 max = val;
             }
         }
@@ -1091,9 +1043,9 @@ public class CommonOps_CDRM {
         final int size = a.getDataLength();
 
         float max = a.data[1];
-        for( int i = 3; i < size; i += 2 ) {
+        for (int i = 3; i < size; i += 2) {
             float val = a.data[i];
-            if( val > max ) {
+            if (val > max) {
                 max = val;
             }
         }
@@ -1115,13 +1067,13 @@ public class CommonOps_CDRM {
         final int size = a.getDataLength();
 
         float max = 0;
-        for( int i = 0; i < size; ) {
+        for (int i = 0; i < size; ) {
             float real = a.data[i++];
             float imaginary = a.data[i++];
 
             float m = real*real + imaginary*imaginary;
 
-            if( m > max ) {
+            if (m > max) {
                 max = m;
             }
         }
@@ -1135,16 +1087,15 @@ public class CommonOps_CDRM {
      *
      * @param mat A square matrix.
      */
-    public static void setIdentity( CMatrixRMaj mat )
-    {
+    public static void setIdentity( CMatrixRMaj mat ) {
         int width = mat.numRows < mat.numCols ? mat.numRows : mat.numCols;
 
-        Arrays.fill(mat.data,0,mat.getDataLength(),0);
+        Arrays.fill(mat.data, 0, mat.getDataLength(), 0);
 
         int index = 0;
         int stride = mat.getRowStride();
 
-        for( int i = 0; i < width; i++ , index += stride + 2) {
+        for (int i = 0; i < width; i++, index += stride + 2) {
             mat.data[index] = 1;
         }
     }
@@ -1167,19 +1118,18 @@ public class CommonOps_CDRM {
      * @param srcY1 Stop row+1.
      * @return Extracted submatrix.
      */
-    public static CMatrixRMaj extract(CMatrixRMaj src,
-                                        int srcY0, int srcY1,
-                                        int srcX0, int srcX1 )
-    {
-        if( srcY1 <= srcY0 || srcY0 < 0 || srcY1 > src.numRows )
+    public static CMatrixRMaj extract( CMatrixRMaj src,
+                                       int srcY0, int srcY1,
+                                       int srcX0, int srcX1 ) {
+        if (srcY1 <= srcY0 || srcY0 < 0 || srcY1 > src.numRows)
             throw new IllegalArgumentException("srcY1 <= srcY0 || srcY0 < 0 || srcY1 > src.numRows");
-        if( srcX1 <= srcX0 || srcX0 < 0 || srcX1 > src.numCols )
+        if (srcX1 <= srcX0 || srcX0 < 0 || srcX1 > src.numCols)
             throw new IllegalArgumentException("srcX1 <= srcX0 || srcX0 < 0 || srcX1 > src.numCols");
 
-        int w = srcX1-srcX0;
-        int h = srcY1-srcY0;
+        int w = srcX1 - srcX0;
+        int h = srcY1 - srcY0;
 
-        CMatrixRMaj dst = new CMatrixRMaj(h,w);
+        CMatrixRMaj dst = new CMatrixRMaj(h, w);
 
         extract(src, srcY0, srcY1, srcX0, srcX1, dst, 0, 0);
 
@@ -1206,19 +1156,18 @@ public class CommonOps_CDRM {
      * @param dstY0 Start row in dst.
      * @param dstX0 start column in dst.
      */
-    public static void extract(CMatrixRMaj src,
-                               int srcY0, int srcY1,
-                               int srcX0, int srcX1,
-                               CMatrixRMaj dst,
-                               int dstY0, int dstX0 )
-    {
+    public static void extract( CMatrixRMaj src,
+                                int srcY0, int srcY1,
+                                int srcX0, int srcX1,
+                                CMatrixRMaj dst,
+                                int dstY0, int dstX0 ) {
         int numRows = srcY1 - srcY0;
         int stride = (srcX1 - srcX0)*2;
 
-        for( int y = 0; y < numRows; y++ ) {
-            int indexSrc = src.getIndex(y+srcY0,srcX0);
-            int indexDst = dst.getIndex(y+dstY0,dstX0);
-            System.arraycopy(src.data,indexSrc,dst.data,indexDst, stride);
+        for (int y = 0; y < numRows; y++) {
+            int indexSrc = src.getIndex(y + srcY0, srcX0);
+            int indexDst = dst.getIndex(y + dstY0, dstX0);
+            System.arraycopy(src.data, indexSrc, dst.data, indexDst, stride);
         }
     }
 
@@ -1229,27 +1178,26 @@ public class CommonOps_CDRM {
      * @param v Optional storage for columns.
      * @return An array of vectors.
      */
-    public static CMatrixRMaj[] columnsToVector(CMatrixRMaj A, CMatrixRMaj[] v)
-    {
-        CMatrixRMaj[]ret;
-        if( v == null || v.length < A.numCols ) {
-            ret = new CMatrixRMaj[ A.numCols ];
+    public static CMatrixRMaj[] columnsToVector( CMatrixRMaj A, @Nullable CMatrixRMaj[] v ) {
+        CMatrixRMaj[] ret;
+        if (v == null || v.length < A.numCols) {
+            ret = new CMatrixRMaj[A.numCols];
         } else {
             ret = v;
         }
 
-        for( int i = 0; i < ret.length; i++ ) {
-            if( ret[i] == null ) {
-                ret[i] = new CMatrixRMaj(A.numRows,1);
+        for (int i = 0; i < ret.length; i++) {
+            if (ret[i] == null) {
+                ret[i] = new CMatrixRMaj(A.numRows, 1);
             } else {
-                ret[i].reshape(A.numRows,1);
+                ret[i].reshape(A.numRows, 1);
             }
 
             CMatrixRMaj u = ret[i];
 
             int indexU = 0;
-            for( int j = 0; j < A.numRows; j++ ) {
-                int indexA = A.getIndex(j,i);
+            for (int j = 0; j < A.numRows; j++) {
+                int indexA = A.getIndex(j, i);
                 u.data[indexU++] = A.data[indexA++];
                 u.data[indexU++] = A.data[indexA];
             }
@@ -1272,13 +1220,13 @@ public class CommonOps_CDRM {
         final int size = a.getDataLength();
 
         float max = 0;
-        for( int i = 0; i < size; i += 2 ) {
+        for (int i = 0; i < size; i += 2) {
             float real = a.data[i];
-            float imag = a.data[i+1];
+            float imag = a.data[i + 1];
 
             float val = real*real + imag*imag;
 
-            if( val > max ) {
+            if (val > max) {
                 max = val;
             }
         }
@@ -1300,13 +1248,13 @@ public class CommonOps_CDRM {
         final int size = a.getDataLength();
 
         float min = Float.MAX_VALUE;
-        for( int i = 0; i < size; i += 2 ) {
+        for (int i = 0; i < size; i += 2) {
             float real = a.data[i];
-            float imag = a.data[i+1];
+            float imag = a.data[i + 1];
 
             float val = real*real + imag*imag;
 
-            if( val < min ) {
+            if (val < min) {
                 min = val;
             }
         }

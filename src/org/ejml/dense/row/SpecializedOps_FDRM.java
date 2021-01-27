@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,18 +18,20 @@
 
 package org.ejml.dense.row;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrix1Row;
 import org.ejml.data.FMatrixD1;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.mult.VectorVectorMult_FDRM;
 import org.ejml.interfaces.linsol.LinearSolverDense;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This contains less common or more specialized matrix operations.
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.SpecializedOps_DDRM")
 public class SpecializedOps_FDRM {
 
     /**
@@ -48,15 +50,15 @@ public class SpecializedOps_FDRM {
      * @param u A vector. Not modified.
      * @return An orthogonal reflector.
      */
-    public static FMatrixRMaj createReflector(FMatrix1Row u ) {
-        if( !MatrixFeatures_FDRM.isVector(u))
+    public static FMatrixRMaj createReflector( FMatrix1Row u ) {
+        if (!MatrixFeatures_FDRM.isVector(u))
             throw new IllegalArgumentException("u must be a vector");
 
         float norm = NormOps_FDRM.fastNormF(u);
         float gamma = -2.0f/(norm*norm);
 
         FMatrixRMaj Q = CommonOps_FDRM.identity(u.getNumElements());
-        CommonOps_FDRM.multAddTransB(gamma,u,u,Q);
+        CommonOps_FDRM.multAddTransB(gamma, u, u, Q);
 
         return Q;
     }
@@ -77,12 +79,12 @@ public class SpecializedOps_FDRM {
      * @param gamma To produce a reflector gamma needs to be equal to 2/||u||.
      * @return An orthogonal reflector.
      */
-    public static FMatrixRMaj createReflector(FMatrixRMaj u , float gamma) {
-        if( !MatrixFeatures_FDRM.isVector(u))
+    public static FMatrixRMaj createReflector( FMatrixRMaj u, float gamma ) {
+        if (!MatrixFeatures_FDRM.isVector(u))
             throw new IllegalArgumentException("u must be a vector");
 
         FMatrixRMaj Q = CommonOps_FDRM.identity(u.getNumElements());
-        CommonOps_FDRM.multAddTransB(-gamma,u,u,Q);
+        CommonOps_FDRM.multAddTransB(-gamma, u, u, Q);
 
         return Q;
     }
@@ -94,19 +96,18 @@ public class SpecializedOps_FDRM {
      * @param src The original matrix. Not modified.
      * @param dst A Matrix that is a row swapped copy of src. Modified.
      */
-    public static FMatrixRMaj copyChangeRow(int order[] , FMatrixRMaj src , FMatrixRMaj dst )
-    {
-        if( dst == null ) {
-            dst = new FMatrixRMaj(src.numRows,src.numCols);
-        } else if( src.numRows != dst.numRows || src.numCols != dst.numCols ) {
+    public static FMatrixRMaj copyChangeRow( int[] order, FMatrixRMaj src, @Nullable FMatrixRMaj dst ) {
+        if (dst == null) {
+            dst = new FMatrixRMaj(src.numRows, src.numCols);
+        } else if (src.numRows != dst.numRows || src.numCols != dst.numCols) {
             throw new IllegalArgumentException("src and dst must have the same dimensions.");
         }
 
-        for( int i = 0; i < src.numRows; i++ ) {
+        for (int i = 0; i < src.numRows; i++) {
             int indexDst = i*src.numCols;
             int indexSrc = order[i]*src.numCols;
 
-            System.arraycopy(src.data,indexSrc,dst.data,indexDst,src.numCols);
+            System.arraycopy(src.data, indexSrc, dst.data, indexDst, src.numCols);
         }
 
         return dst;
@@ -120,24 +121,24 @@ public class SpecializedOps_FDRM {
      * @param upper If the upper or lower triangle should be copied.
      * @return The copied matrix.
      */
-    public static FMatrixRMaj copyTriangle(FMatrixRMaj src , FMatrixRMaj dst , boolean upper ) {
-        if( dst == null ) {
-            dst = new FMatrixRMaj(src.numRows,src.numCols);
-        } else if( src.numRows != dst.numRows || src.numCols != dst.numCols ) {
+    public static FMatrixRMaj copyTriangle( FMatrixRMaj src, @Nullable FMatrixRMaj dst, boolean upper ) {
+        if (dst == null) {
+            dst = new FMatrixRMaj(src.numRows, src.numCols);
+        } else if (src.numRows != dst.numRows || src.numCols != dst.numCols) {
             throw new IllegalArgumentException("src and dst must have the same dimensions.");
         }
 
-        if( upper ) {
-            int N = Math.min(src.numRows,src.numCols);
-            for( int i = 0; i < N; i++ ) {
-                int index = i*src.numCols+i;
-                System.arraycopy(src.data,index,dst.data,index,src.numCols-i);
+        if (upper) {
+            int N = Math.min(src.numRows, src.numCols);
+            for (int i = 0; i < N; i++) {
+                int index = i*src.numCols + i;
+                System.arraycopy(src.data, index, dst.data, index, src.numCols - i);
             }
         } else {
-            for( int i = 0; i < src.numRows; i++ ) {
-                int length = Math.min(i+1,src.numCols);
+            for (int i = 0; i < src.numRows; i++) {
+                int length = Math.min(i + 1, src.numCols);
                 int index = i*src.numCols;
-                System.arraycopy(src.data,index,dst.data,index,length);
+                System.arraycopy(src.data, index, dst.data, index, length);
             }
         }
 
@@ -150,41 +151,42 @@ public class SpecializedOps_FDRM {
     public static void multLowerTranB( FMatrixRMaj mat ) {
         int m = mat.numCols;
         float[] L = mat.data;
-        for( int i = 0; i < m; i++ ) {
-            for( int j = m-1; j >= i; j-- ) {
+        for (int i = 0; i < m; i++) {
+            for (int j = m - 1; j >= i; j--) {
                 float val = 0;
-                for( int k = 0; k <= i; k++ ) {
-                    val += L[ i*m + k] * L[ j*m + k ];
+                for (int k = 0; k <= i; k++) {
+                    val += L[i*m + k]*L[j*m + k];
                 }
-                L[ i*m + j ] = val;
+                L[i*m + j] = val;
             }
         }
         // copy the results into the lower portion
-        for( int i = 0; i < m; i++ ) {
+        for (int i = 0; i < m; i++) {
             for (int j = 0; j < i; j++) {
-                L[i*m+j] = L[j*m+i];
+                L[i*m + j] = L[j*m + i];
             }
         }
     }
+
     /**
      * Performs L = L<sup>T</sup>*L
      */
     public static void multLowerTranA( FMatrixRMaj mat ) {
         int m = mat.numCols;
         float[] L = mat.data;
-        for( int i = 0; i < m; i++ ) {
-            for( int j = m-1; j >= i; j-- ) {
+        for (int i = 0; i < m; i++) {
+            for (int j = m - 1; j >= i; j--) {
                 float val = 0;
                 for (int k = j; k < m; k++) {
-                    val += L[ k*m + i] * L[ k*m + j ];
+                    val += L[k*m + i]*L[k*m + j];
                 }
-                L[ i*m + j ] = val;
+                L[i*m + j] = val;
             }
         }
         // copy the results into the lower portion
-        for( int i = 0; i < m; i++ ) {
+        for (int i = 0; i < m; i++) {
             for (int j = 0; j < i; j++) {
-                L[i*m+j] = L[j*m+i];
+                L[i*m + j] = L[j*m + i];
             }
         }
     }
@@ -199,39 +201,35 @@ public class SpecializedOps_FDRM {
      * This is often used as a cost function.
      * </p>
      *
-     * @see NormOps_FDRM#fastNormF
-     *
      * @param a m by n matrix. Not modified.
      * @param b m by n matrix. Not modified.
-     *
      * @return The F normal of the difference matrix.
+     * @see NormOps_FDRM#fastNormF
      */
-    public static float diffNormF(FMatrixD1 a , FMatrixD1 b )
-    {
-        if( a.numRows != b.numRows || a.numCols != b.numCols ) {
+    public static float diffNormF( FMatrixD1 a, FMatrixD1 b ) {
+        if (a.numRows != b.numRows || a.numCols != b.numCols) {
             throw new IllegalArgumentException("Both matrices must have the same shape.");
         }
 
         final int size = a.getNumElements();
 
-        FMatrixRMaj diff = new FMatrixRMaj(size,1);
+        FMatrixRMaj diff = new FMatrixRMaj(size, 1);
 
-        for( int i = 0; i < size; i++ ) {
-            diff.set(i , b.get(i) - a.get(i));
+        for (int i = 0; i < size; i++) {
+            diff.set(i, b.get(i) - a.get(i));
         }
         return NormOps_FDRM.normF(diff);
     }
 
-    public static float diffNormF_fast(FMatrixD1 a , FMatrixD1 b )
-    {
-        if( a.numRows != b.numRows || a.numCols != b.numCols ) {
+    public static float diffNormF_fast( FMatrixD1 a, FMatrixD1 b ) {
+        if (a.numRows != b.numRows || a.numCols != b.numCols) {
             throw new IllegalArgumentException("Both matrices must have the same shape.");
         }
 
         final int size = a.getNumElements();
 
-        float total=0;
-        for( int i = 0; i < size; i++ ) {
+        float total = 0;
+        for (int i = 0; i < size; i++) {
             float diff = b.get(i) - a.get(i);
             total += diff*diff;
         }
@@ -252,19 +250,17 @@ public class SpecializedOps_FDRM {
      *
      * @param a m by n matrix. Not modified.
      * @param b m by n matrix. Not modified.
-     *
      * @return The p=1 p-norm of the difference matrix.
      */
-    public static float diffNormP1(FMatrixD1 a , FMatrixD1 b )
-    {
-        if( a.numRows != b.numRows || a.numCols != b.numCols ) {
+    public static float diffNormP1( FMatrixD1 a, FMatrixD1 b ) {
+        if (a.numRows != b.numRows || a.numCols != b.numCols) {
             throw new IllegalArgumentException("Both matrices must have the same shape.");
         }
 
         final int size = a.getNumElements();
 
-        float total=0;
-        for( int i = 0; i < size; i++ ) {
+        float total = 0;
+        for (int i = 0; i < size; i++) {
             total += Math.abs(b.get(i) - a.get(i));
         }
         return total;
@@ -275,28 +271,27 @@ public class SpecializedOps_FDRM {
      * Performs the following operation:<br>
      * <br>
      * B = A + &alpha;I
-     * <p> 
+     * <p>
      *
      * @param A A square matrix.  Not modified.
      * @param B A square matrix that the results are saved to.  Modified.
      * @param alpha Scaling factor for the identity matrix.
      */
-    public static void addIdentity(FMatrix1Row A , FMatrix1Row B , float alpha )
-    {
-        if( A.numCols != A.numRows )
+    public static void addIdentity( FMatrix1Row A, FMatrix1Row B, float alpha ) {
+        if (A.numCols != A.numRows)
             throw new IllegalArgumentException("A must be square");
-        if( B.numCols != A.numCols || B.numRows != A.numRows )
+        if (B.numCols != A.numCols || B.numRows != A.numRows)
             throw new IllegalArgumentException("B must be the same shape as A");
 
         int n = A.numCols;
 
         int index = 0;
-        for( int i = 0; i < n; i++ ) {
-            for( int j = 0; j < n; j++ , index++) {
-                if( i == j ) {
-                    B.set( index , A.get(index) + alpha);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++, index++) {
+                if (i == j) {
+                    B.set(index, A.get(index) + alpha);
                 } else {
-                    B.set( index , A.get(index) );
+                    B.set(index, A.get(index));
                 }
             }
         }
@@ -317,14 +312,14 @@ public class SpecializedOps_FDRM {
      * @param offsetV First element in 'v' where the results are extracted to.
      * @param v Vector where the results are written to. Modified.
      */
-    public static void subvector(FMatrix1Row A, int rowA, int colA, int length , boolean row, int offsetV, FMatrix1Row v) {
-        if( row ) {
-            for( int i = 0; i < length; i++ ) {
-                v.set( offsetV +i , A.get(rowA,colA+i) );
+    public static void subvector( FMatrix1Row A, int rowA, int colA, int length, boolean row, int offsetV, FMatrix1Row v ) {
+        if (row) {
+            for (int i = 0; i < length; i++) {
+                v.set(offsetV + i, A.get(rowA, colA + i));
             }
         } else {
-            for( int i = 0; i < length; i++ ) {
-                v.set( offsetV +i , A.get(rowA+i,colA));
+            for (int i = 0; i < length; i++) {
+                v.set(offsetV + i, A.get(rowA + i, colA));
             }
         }
     }
@@ -336,24 +331,23 @@ public class SpecializedOps_FDRM {
      * @param column If true then column vectors will be created.
      * @return Set of vectors.
      */
-    public static FMatrixRMaj[] splitIntoVectors(FMatrix1Row A , boolean column )
-    {
+    public static FMatrixRMaj[] splitIntoVectors( FMatrix1Row A, boolean column ) {
         int w = column ? A.numCols : A.numRows;
 
         int M = column ? A.numRows : 1;
         int N = column ? 1 : A.numCols;
 
-        int o = Math.max(M,N);
+        int o = Math.max(M, N);
 
-        FMatrixRMaj[] ret  = new FMatrixRMaj[w];
+        FMatrixRMaj[] ret = new FMatrixRMaj[w];
 
-        for( int i = 0; i < w; i++ ) {
-            FMatrixRMaj a = new FMatrixRMaj(M,N);
+        for (int i = 0; i < w; i++) {
+            FMatrixRMaj a = new FMatrixRMaj(M, N);
 
-            if( column )
-                subvector(A,0,i,o,false,0,a);
+            if (column)
+                subvector(A, 0, i, o, false, 0, a);
             else
-                subvector(A,i,0,o,true,0,a);
+                subvector(A, i, 0, o, true, 0, a);
 
             ret[i] = a;
         }
@@ -377,23 +371,23 @@ public class SpecializedOps_FDRM {
      * @param transposed If the transpose of the matrix is returned.
      * @return A pivot matrix.
      */
-    public static FMatrixRMaj pivotMatrix(FMatrixRMaj ret, int pivots[], int numPivots, boolean transposed ) {
+    public static FMatrixRMaj pivotMatrix( @Nullable FMatrixRMaj ret, int pivots[], int numPivots, boolean transposed ) {
 
-        if( ret == null ) {
+        if (ret == null) {
             ret = new FMatrixRMaj(numPivots, numPivots);
         } else {
-            if( ret.numCols != numPivots || ret.numRows != numPivots )
+            if (ret.numCols != numPivots || ret.numRows != numPivots)
                 throw new IllegalArgumentException("Unexpected matrix dimension");
             CommonOps_FDRM.fill(ret, 0);
         }
 
-        if( transposed ) {
-            for( int i = 0; i < numPivots; i++ ) {
-                ret.set(pivots[i],i,1);
+        if (transposed) {
+            for (int i = 0; i < numPivots; i++) {
+                ret.set(pivots[i], i, 1);
             }
         } else {
-            for( int i = 0; i < numPivots; i++ ) {
-                ret.set(i,pivots[i],1);
+            for (int i = 0; i < numPivots; i++) {
+                ret.set(i, pivots[i], 1);
             }
         }
 
@@ -407,12 +401,11 @@ public class SpecializedOps_FDRM {
      * @param T A matrix.
      * @return product of the diagonal elements.
      */
-    public static float diagProd( FMatrix1Row T )
-    {
+    public static float diagProd( FMatrix1Row T ) {
         float prod = 1.0f;
-        int N = Math.min(T.numRows,T.numCols);
-        for( int i = 0; i < N; i++ ) {
-            prod *= T.unsafe_get(i,i);
+        int N = Math.min(T.numRows, T.numCols);
+        for (int i = 0; i < N; i++) {
+            prod *= T.unsafe_get(i, i);
         }
 
         return prod;
@@ -429,12 +422,12 @@ public class SpecializedOps_FDRM {
      * @return The max abs element value of the matrix.
      */
     public static float elementDiagonalMaxAbs( FMatrixD1 a ) {
-        final int size = Math.min(a.numRows,a.numCols);
+        final int size = Math.min(a.numRows, a.numCols);
 
         float max = 0;
-        for( int i = 0; i < size; i++ ) {
-            float val = Math.abs(a.get( i,i ));
-            if( val > max ) {
+        for (int i = 0; i < size; i++) {
+            float val = Math.abs(a.get(i, i));
+            if (val > max) {
                 max = val;
             }
         }
@@ -452,19 +445,18 @@ public class SpecializedOps_FDRM {
      * @param T A matrix.
      * @return the quality of the system.
      */
-    public static float qualityTriangular(FMatrixD1 T)
-    {
-        int N = Math.min(T.numRows,T.numCols);
+    public static float qualityTriangular( FMatrixD1 T ) {
+        int N = Math.min(T.numRows, T.numCols);
 
         // TODO make faster by just checking the upper triangular portion
         float max = elementDiagonalMaxAbs(T);
 
-        if( max == 0.0f )
+        if (max == 0.0f)
             return 0.0f;
 
         float quality = 1.0f;
-        for( int i = 0; i < N; i++ ) {
-            quality *= T.unsafe_get(i,i)/max;
+        for (int i = 0; i < N; i++) {
+            quality *= T.unsafe_get(i, i)/max;
         }
 
         return Math.abs(quality);
@@ -477,17 +469,17 @@ public class SpecializedOps_FDRM {
      * @param m Matrix.
      * @return Sum of elements squared.
      */
-    public static float elementSumSq( FMatrixD1 m  ) {
+    public static float elementSumSq( FMatrixD1 m ) {
 
         // minimize round off error
         float maxAbs = CommonOps_FDRM.elementMaxAbs(m);
-        if( maxAbs == 0)
+        if (maxAbs == 0)
             return 0;
 
         float total = 0;
-        
+
         int N = m.getNumElements();
-        for( int i = 0; i < N; i++ ) {
+        for (int i = 0; i < N; i++) {
             float d = m.data[i]/maxAbs;
             total += d*d;
         }

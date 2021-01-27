@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -24,13 +24,13 @@ import org.ejml.dense.row.decomposition.qr.QRDecompositionHouseholderColumn_DDRM
 import org.ejml.dense.row.decomposition.qr.QrUpdate_DDRM;
 import org.ejml.dense.row.linsol.AdjustableLinearSolver_DDRM;
 
-
 /**
  * A solver for QR decomposition that can efficiently modify the previous decomposition when
  * data is added or removed.
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
 public class AdjLinearSolverQr_DDRM extends LinearSolverQr_DDRM implements AdjustableLinearSolver_DDRM {
 
     private QrUpdate_DDRM update;
@@ -38,18 +38,18 @@ public class AdjLinearSolverQr_DDRM extends LinearSolverQr_DDRM implements Adjus
     private DMatrixRMaj A;
 
     public AdjLinearSolverQr_DDRM() {
-        super( new QRDecompositionHouseholderColumn_DDRM() );
+        super(new QRDecompositionHouseholderColumn_DDRM());
     }
 
     @Override
-    public void setMaxSize( int maxRows , int maxCols ) {
+    public void setMaxSize( int maxRows, int maxCols ) {
         // allow it some room to grow
         maxRows += 5;
 
-        super.setMaxSize(maxRows,maxCols);
+        super.setMaxSize(maxRows, maxCols);
 
-        update = new QrUpdate_DDRM(maxRows,maxCols,true);
-        A = new DMatrixRMaj(maxRows,maxCols);
+        update = new QrUpdate_DDRM(maxRows, maxCols, true);
+        A = new DMatrixRMaj(maxRows, maxCols);
     }
 
     /**
@@ -59,38 +59,32 @@ public class AdjLinearSolverQr_DDRM extends LinearSolverQr_DDRM implements Adjus
      */
     @Override
     public DMatrixRMaj getA() {
-        if( A.data.length < numRows*numCols ) {
-            A = new DMatrixRMaj(numRows,numCols);
-        }
-        A.reshape(numRows,numCols, false);
-        CommonOps_DDRM.mult(Q,R,A);
-
+        CommonOps_DDRM.mult(Q, R, A);
         return A;
     }
 
     @Override
-    public boolean addRowToA(double[] A_row , int rowIndex ) {
+    public boolean addRowToA( double[] A_row, int rowIndex ) {
         // see if it needs to grow the data structures
-        if( numRows + 1 > maxRows) {
+        if (numRows + 1 > maxRows) {
             // grow by 10%
-            int grow = maxRows / 10;
-            if( grow < 1 ) grow = 1;
+            int grow = maxRows/10;
+            if (grow < 1) grow = 1;
             maxRows = numRows + grow;
-            Q.reshape(maxRows,maxRows,true);
-            R.reshape(maxRows,maxCols,true);
+            Q.reshape(maxRows, maxRows, true);
+            R.reshape(maxRows, maxCols, true);
         }
 
-        update.addRow(Q,R,A_row,rowIndex,true);
+        update.addRow(Q, R, A_row, rowIndex, true);
         numRows++;
 
         return true;
     }
 
     @Override
-    public boolean removeRowFromA(int index) {
-        update.deleteRow(Q,R,index,true);
+    public boolean removeRowFromA( int index ) {
+        update.deleteRow(Q, R, index, true);
         numRows--;
         return true;
     }
-
 }

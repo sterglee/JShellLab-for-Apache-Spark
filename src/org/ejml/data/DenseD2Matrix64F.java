@@ -49,11 +49,6 @@ public class DenseD2Matrix64F implements Serializable, ReshapeMatrix, DMatrix {
         this.numCols = numCols;
     }
 
-    public DenseD2Matrix64F( double [][] d) {
-        data = d;
-        this.numRows = data.length;
-        this.numCols = data[0].length;
-    }
 //    public double[][] getData() {
 //        return data;
 //    }
@@ -75,7 +70,9 @@ public class DenseD2Matrix64F implements Serializable, ReshapeMatrix, DMatrix {
 
     @Override
     public void zero() {
-        Arrays.fill(data, 0, getNumElements(), 0.0);
+        for (int i = 0; i < numRows; i++) {
+            Arrays.fill(data[i], 0, numCols, 0.0);
+        }
     }
 
     @Override
@@ -124,7 +121,7 @@ public class DenseD2Matrix64F implements Serializable, ReshapeMatrix, DMatrix {
 
     @Override
     public <T extends Matrix> T copy() {
-        return null;
+        throw new RuntimeException("Not supported");
     }
 
     @Override

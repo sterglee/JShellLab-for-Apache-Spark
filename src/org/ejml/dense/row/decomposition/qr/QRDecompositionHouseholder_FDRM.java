@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,10 +18,11 @@
 
 package org.ejml.dense.row.decomposition.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
-import org.ejml.dense.row.CommonOps_FDRM;
+import org.ejml.dense.row.decomposition.UtilDecompositons_FDRM;
 import org.ejml.interfaces.decomposition.QRDecomposition;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -48,6 +49,8 @@ import org.ejml.interfaces.decomposition.QRDecomposition;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.decomposition.qr.QRDecompositionHouseholder_DDRM")
 public class QRDecompositionHouseholder_FDRM implements QRDecomposition<FMatrixRMaj> {
 
     /**
@@ -58,17 +61,18 @@ public class QRDecompositionHouseholder_FDRM implements QRDecomposition<FMatrixR
     protected FMatrixRMaj QR;
 
     // used internally to store temporary data
-    protected float u[],v[];
+    protected float[] u;
+    protected float[] v;
 
     // dimension of the decomposed matrices
     protected int numCols; // this is 'n'
     protected int numRows; // this is 'm'
     protected int minLength;
 
-    protected float dataQR[];
+    protected float[] dataQR;
 
     // the computed gamma for Q_k matrix
-    protected float gammas[];
+    protected float[] gammas;
     // local variables
     protected float gamma;
     protected float tau;
@@ -76,32 +80,32 @@ public class QRDecompositionHouseholder_FDRM implements QRDecomposition<FMatrixR
     // did it encounter an error?
     protected boolean error;
 
-    public void setExpectedMaxSize( int numRows , int numCols ) {
+    public void setExpectedMaxSize( int numRows, int numCols ) {
         error = false;
 
         this.numCols = numCols;
         this.numRows = numRows;
-        minLength = Math.min(numRows,numCols);
-        int maxLength = Math.max(numRows,numCols);
+        minLength = Math.min(numRows, numCols);
+        int maxLength = Math.max(numRows, numCols);
 
-        if( QR == null ) {
-            QR = new FMatrixRMaj(numRows,numCols);
-            u = new float[ maxLength ];
-            v = new float[ maxLength ];
-            gammas = new float[ minLength ];
+        if (QR == null) {
+            QR = new FMatrixRMaj(numRows, numCols);
+            u = new float[maxLength];
+            v = new float[maxLength];
+            gammas = new float[minLength];
         } else {
-            QR.reshape(numRows,numCols,false);
+            QR.reshape(numRows, numCols, false);
         }
 
         dataQR = QR.data;
 
-        if( u.length < maxLength ) {
-            u = new float[ maxLength ];
-            v = new float[ maxLength ];
+        if (u.length < maxLength) {
+            u = new float[maxLength];
+            v = new float[maxLength];
         }
 
-        if( gammas.length < minLength ) {
-            gammas = new float[ minLength ];
+        if (gammas.length < minLength) {
+            gammas = new float[minLength];
         }
     }
 
@@ -122,33 +126,17 @@ public class QRDecompositionHouseholder_FDRM implements QRDecomposition<FMatrixR
      * @param Q The orthogonal Q matrix.
      */
     @Override
-    public FMatrixRMaj getQ(FMatrixRMaj Q , boolean compact ) {
-        if( compact ) {
-            if( Q == null ) {
-                Q = CommonOps_FDRM.identity(numRows,minLength);
-            } else {
-                if( Q.numRows != numRows || Q.numCols != minLength ) {
-                    throw new IllegalArgumentException("Unexpected matrix dimension.");
-                } else {
-                    CommonOps_FDRM.setIdentity(Q);
-                }
-            }
+    public FMatrixRMaj getQ( @Nullable FMatrixRMaj Q, boolean compact ) {
+        if (compact) {
+            Q = UtilDecompositons_FDRM.ensureIdentity(Q, numRows, minLength);
         } else {
-            if( Q == null ) {
-                Q = CommonOps_FDRM.identity(numRows);
-            } else {
-                if( Q.numRows != numRows || Q.numCols != numRows ) {
-                    throw new IllegalArgumentException("Unexpected matrix dimension.");
-                } else {
-                    CommonOps_FDRM.setIdentity(Q);
-                }
-            }
+            Q = UtilDecompositons_FDRM.ensureIdentity(Q, numRows, numRows);
         }
 
-        for( int j = minLength-1; j >= 0; j-- ) {
+        for (int j = minLength - 1; j >= 0; j--) {
             u[j] = 1;
-            for( int i = j+1; i < numRows; i++ ) {
-                u[i] = QR.get(i,j);
+            for (int i = j + 1; i < numRows; i++) {
+                u[i] = QR.get(i, j);
             }
             QrHelperFunctions_FDRM.rank1UpdateMultR(Q, u, gammas[j], j, j, numRows, v);
         }
@@ -160,34 +148,19 @@ public class QRDecompositionHouseholder_FDRM implements QRDecomposition<FMatrixR
      * Returns an upper triangular matrix which is the R in the QR decomposition.
      *
      * @param R An upper triangular matrix.
-     * @param compact
      */
     @Override
-    public FMatrixRMaj getR(FMatrixRMaj R, boolean compact) {
-        if( R == null ) {
-            if( compact ) {
-                R = new FMatrixRMaj(minLength,numCols);
-            } else
-                R = new FMatrixRMaj(numRows,numCols);
+    public FMatrixRMaj getR( @Nullable FMatrixRMaj R, boolean compact ) {
+        if (compact) {
+            R = UtilDecompositons_FDRM.checkZerosLT(R, minLength, numCols);
         } else {
-            if( compact ) {
-                R.reshape(minLength,numCols);
-            } else {
-                R.reshape(numRows,numCols);
-            }
-
-            for( int i = 0; i < R.numRows; i++ ) {
-                int min = Math.min(i,R.numCols);
-                for( int j = 0; j < min; j++ ) {
-                    R.set(i,j,0);
-                }
-            }
+            R = UtilDecompositons_FDRM.checkZerosLT(R, numRows, numCols);
         }
 
-        for( int i = 0; i < minLength; i++ ) {
-            for( int j = i; j < numCols; j++ ) {
-                float val = QR.get(i,j);
-                R.set(i,j,val);
+        for (int i = 0; i < minLength; i++) {
+            for (int j = i; j < numCols; j++) {
+                float val = QR.get(i, j);
+                R.set(i, j, val);
             }
         }
 
@@ -210,7 +183,7 @@ public class QRDecompositionHouseholder_FDRM implements QRDecomposition<FMatrixR
     public boolean decompose( FMatrixRMaj A ) {
         commonSetup(A);
 
-        for( int j = 0; j < minLength; j++ ) {
+        for (int j = 0; j < minLength; j++) {
             householder(j);
             updateA(j);
         }
@@ -238,43 +211,42 @@ public class QRDecompositionHouseholder_FDRM implements QRDecomposition<FMatrixR
      *
      * @param j Which submatrix to work off of.
      */
-    protected void householder( int j )
-    {
+    protected void householder( int j ) {
         // find the element with the largest absolute value in the column and make a copy
-        int index = j+j*numCols;
+        int index = j + j*numCols;
         float max = 0;
-        for( int i = j; i < numRows; i++ ) {
+        for (int i = j; i < numRows; i++) {
 
             float d = u[i] = dataQR[index];
 
             // absolute value of d
-            if( d < 0 ) d = -d;
-            if( max < d ) {
+            if (d < 0) d = -d;
+            if (max < d) {
                 max = d;
             }
             index += numCols;
         }
 
-        if( max == 0.0f ) {
+        if (max == 0.0f) {
             gamma = 0;
             error = true;
         } else {
             // compute the norm2 of the matrix, with each element
             // normalized by the max value to avoid overflow problems
             tau = 0;
-            for( int i = j; i < numRows; i++ ) {
+            for (int i = j; i < numRows; i++) {
                 u[i] /= max;
                 float d = u[i];
                 tau += d*d;
             }
             tau = (float)Math.sqrt(tau);
 
-            if( u[j] < 0 )
+            if (u[j] < 0)
                 tau = -tau;
 
             float u_0 = u[j] + tau;
             gamma = u_0/tau;
-            for( int i = j+1; i < numRows; i++ ) {
+            for (int i = j + 1; i < numRows; i++) {
                 u[i] /= u_0;
             }
             u[j] = 1;
@@ -293,8 +265,7 @@ public class QRDecompositionHouseholder_FDRM implements QRDecomposition<FMatrixR
      *
      * @param w The submatrix.
      */
-    protected void updateA( int w )
-    {
+    protected void updateA( int w ) {
         // much of the code below is equivalent to the rank1Update function
         // however, since &tau; has already been computed there is no need to
         // recompute it, saving a few multiplication operations
@@ -309,51 +280,49 @@ public class QRDecompositionHouseholder_FDRM implements QRDecomposition<FMatrixR
 
         // This is functionally the same as the above code but the order has been changed
         // to avoid jumping the cpu cache
-        for( int i = w+1; i < numCols; i++ ) {
-            v[i] = u[w]*dataQR[w*numCols +i];
+        for (int i = w + 1; i < numCols; i++) {
+            v[i] = u[w]*dataQR[w*numCols + i];
         }
 
-        for( int k = w+1; k < numRows; k++ ) {
-            int indexQR = k*numCols+w+1;
-            for( int i = w+1; i < numCols; i++ ) {
+        for (int k = w + 1; k < numRows; k++) {
+            int indexQR = k*numCols + w + 1;
+            for (int i = w + 1; i < numCols; i++) {
 //                v[i] += u[k]*dataQR[k*numCols +i];
                 v[i] += u[k]*dataQR[indexQR++];
             }
         }
 
-        for( int i = w+1; i < numCols; i++ ) {
+        for (int i = w + 1; i < numCols; i++) {
             v[i] *= gamma;
         }
 
         // end of reordered code
 
-        for( int i = w; i < numRows; i++ ) {
+        for (int i = w; i < numRows; i++) {
             float valU = u[i];
 
-            int indexQR = i*numCols+w+1;
-            for( int j = w+1; j < numCols; j++ ) {
+            int indexQR = i*numCols + w + 1;
+            for (int j = w + 1; j < numCols; j++) {
 //                dataQR[i*numCols+j] -= valU*v[j];
                 dataQR[indexQR++] -= valU*v[j];
             }
         }
 
-        if( w < numCols ) {
-            dataQR[w+w*numCols] = -tau;
+        if (w < numCols) {
+            dataQR[w + w*numCols] = -tau;
         }
 
         // save the Q matrix in the lower portion of QR
-        for( int i = w+1; i < numRows; i++ ) {
-            dataQR[w+i*numCols] = u[i];
+        for (int i = w + 1; i < numRows; i++) {
+            dataQR[w + i*numCols] = u[i];
         }
     }
 
     /**
      * This function performs sanity check on the input for decompose and sets up the QR matrix.
-     *
-     * @param A
      */
-    protected void commonSetup(FMatrixRMaj A) {
-        setExpectedMaxSize(A.numRows,A.numCols);
+    protected void commonSetup( FMatrixRMaj A ) {
+        setExpectedMaxSize(A.numRows, A.numCols);
 
         QR.set(A);
     }
@@ -361,5 +330,4 @@ public class QRDecompositionHouseholder_FDRM implements QRDecomposition<FMatrixR
     public float[] getGammas() {
         return gammas;
     }
-
 }

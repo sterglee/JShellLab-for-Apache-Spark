@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,11 +18,12 @@
 
 package org.ejml.dense.row.linsol;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.misc.UnrolledInverseFromMinor_FDRM;
 import org.ejml.interfaces.decomposition.DecompositionInterface;
 import org.ejml.interfaces.linsol.LinearSolverDense;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Solver which uses an unrolled inverse to compute the inverse.  This can only invert matrices and not solve.
@@ -30,12 +31,13 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.linsol.LinearSolverUnrolled_DDRM")
 public class LinearSolverUnrolled_FDRM implements LinearSolverDense<FMatrixRMaj> {
-    FMatrixRMaj A;
+    @Nullable FMatrixRMaj A;
 
     @Override
-    public boolean setA(FMatrixRMaj A) {
-        if( A.numRows != A.numCols)
+    public boolean setA( FMatrixRMaj A ) {
+        if (A.numRows != A.numCols)
             return false;
 
         this.A = A;
@@ -48,15 +50,17 @@ public class LinearSolverUnrolled_FDRM implements LinearSolverDense<FMatrixRMaj>
     }
 
     @Override
-    public void solve(FMatrixRMaj B, FMatrixRMaj X) {
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
         throw new RuntimeException("Not supported");
     }
 
     @Override
-    public void invert(FMatrixRMaj A_inv) {
-        if( A.numRows == 1 )
-            A_inv.set(0,  1.0f/A.get(0));
-        UnrolledInverseFromMinor_FDRM.inv(A,A_inv);
+    public void invert( FMatrixRMaj A_inv ) {
+        if (A == null)
+            throw new RuntimeException("Must call setA() first");
+        if (A.numRows == 1)
+            A_inv.set(0, 1.0f/A.get(0));
+        UnrolledInverseFromMinor_FDRM.inv(A, A_inv);
     }
 
     @Override
@@ -71,6 +75,6 @@ public class LinearSolverUnrolled_FDRM implements LinearSolverDense<FMatrixRMaj>
 
     @Override
     public <D extends DecompositionInterface> D getDecomposition() {
-        return null;
+        throw new RuntimeException("Not supported");
     }
 }

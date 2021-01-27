@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,13 +18,13 @@
 
 package org.ejml.dense.row;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.data.FMatrix1Row;
 import org.ejml.data.FMatrixD1;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.factory.DecompositionFactory_FDRM;
 import org.ejml.interfaces.decomposition.SingularValueDecomposition_F32;
-
 
 /**
  * <p>
@@ -61,6 +61,7 @@ import org.ejml.interfaces.decomposition.SingularValueDecomposition_F32;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.NormOps_DDRM")
 public class NormOps_FDRM {
 
     /**
@@ -71,13 +72,13 @@ public class NormOps_FDRM {
     public static void normalizeF( FMatrixRMaj A ) {
         float val = normF(A);
 
-        if( val == 0 )
+        if (val == 0)
             return;
 
         int size = A.getNumElements();
 
-        for( int i = 0; i < size; i++) {
-            A.div(i , val);
+        for (int i = 0; i < size; i++) {
+            A.div(i, val);
         }
     }
 
@@ -89,30 +90,30 @@ public class NormOps_FDRM {
      * &kappa;<sub>p</sub> = ||A||<sub>p</sub>||A<sup>-1</sup>||<sub>p</sub>
      * </p>
      * <p>
-     * If the matrix is not square then the condition of either A<sup>T</sup>A or AA<sup>T</sup> is computed. 
+     * If the matrix is not square then the condition of either A<sup>T</sup>A or AA<sup>T</sup> is computed.
      * <p>
+     *
      * @param A The matrix.
      * @param p p-norm
      * @return The condition number.
      */
-    public static float conditionP(FMatrixRMaj A , float p )
-    {
-        if( p == 2 ) {
+    public static float conditionP( FMatrixRMaj A, float p ) {
+        if (p == 2) {
             return conditionP2(A);
-        } else if( A.numRows == A.numCols ){
+        } else if (A.numRows == A.numCols) {
             // square matrices are the typical case
 
-            FMatrixRMaj A_inv = new FMatrixRMaj(A.numRows,A.numCols);
+            FMatrixRMaj A_inv = new FMatrixRMaj(A.numRows, A.numCols);
 
-            if( !CommonOps_FDRM.invert(A,A_inv) )
+            if (!CommonOps_FDRM.invert(A, A_inv))
                 throw new IllegalArgumentException("A can't be inverted.");
 
-            return normP(A,p) * normP(A_inv,p);
-        } else  {
-            FMatrixRMaj pinv = new FMatrixRMaj(A.numCols,A.numRows);
-            CommonOps_FDRM.pinv(A,pinv);
+            return normP(A, p)*normP(A_inv, p);
+        } else {
+            FMatrixRMaj pinv = new FMatrixRMaj(A.numCols, A.numRows);
+            CommonOps_FDRM.pinv(A, pinv);
 
-            return normP(A,p) * normP(pinv,p);
+            return normP(A, p)*normP(pinv, p);
         }
     }
 
@@ -130,25 +131,24 @@ public class NormOps_FDRM {
      * @param A The matrix.
      * @return The condition number.
      */
-    public static float conditionP2( FMatrixRMaj A )
-    {
-        SingularValueDecomposition_F32<FMatrixRMaj> svd = DecompositionFactory_FDRM.svd(A.numRows,A.numCols,false,false,true);
+    public static float conditionP2( FMatrixRMaj A ) {
+        SingularValueDecomposition_F32<FMatrixRMaj> svd = DecompositionFactory_FDRM.svd(A.numRows, A.numCols, false, false, true);
 
         svd.decompose(A);
 
         float[] singularValues = svd.getSingularValues();
 
-        int n = SingularOps_FDRM.rank(svd,UtilEjml.TEST_F32);
+        int n = SingularOps_FDRM.rank(svd, UtilEjml.TEST_F32);
 
-        if( n == 0 ) return 0;
+        if (n == 0) return 0;
 
         float smallest = Float.MAX_VALUE;
         float largest = Float.MIN_VALUE;
 
-        for( float s : singularValues ) {
-            if( s < smallest )
+        for (float s : singularValues) {
+            if (s < smallest)
                 smallest = s;
-            if( s > largest )
+            if (s > largest)
                 largest = s;
         }
 
@@ -169,7 +169,7 @@ public class NormOps_FDRM {
 
         int size = a.getNumElements();
 
-        for( int i = 0; i < size; i++ ) {
+        for (int i = 0; i < size; i++) {
             float val = a.get(i);
             total += val*val;
         }
@@ -196,12 +196,12 @@ public class NormOps_FDRM {
 
         float scale = CommonOps_FDRM.elementMaxAbs(a);
 
-        if( scale == 0.0f )
+        if (scale == 0.0f)
             return 0.0f;
 
         final int size = a.getNumElements();
 
-        for( int i = 0; i < size; i++ ) {
+        for (int i = 0; i < size; i++) {
             float val = a.get(i)/scale;
             total += val*val;
         }
@@ -224,28 +224,29 @@ public class NormOps_FDRM {
      * @param p p value.
      * @return The norm's value.
      */
-    public static float elementP(FMatrix1Row A , float p ) {
-        if( p == 1 ) {
+    public static float elementP( FMatrix1Row A, float p ) {
+        if (p == 1) {
             return CommonOps_FDRM.elementSumAbs(A);
-        } if( p == 2 ) {
+        }
+        if (p == 2) {
             return normF(A);
         } else {
             float max = CommonOps_FDRM.elementMaxAbs(A);
 
-            if( max == 0.0f )
+            if (max == 0.0f)
                 return 0.0f;
 
             float total = 0;
 
             int size = A.getNumElements();
 
-            for( int i = 0; i < size; i++ ) {
+            for (int i = 0; i < size; i++) {
                 float a = A.get(i)/max;
 
-                total += (float)Math.pow(Math.abs(a),p);
+                total += (float)Math.pow(Math.abs(a), p);
             }
 
-            return max* (float)Math.pow(total,1.0f/p);
+            return max * (float)Math.pow(total, 1.0f/p);
         }
     }
 
@@ -256,21 +257,21 @@ public class NormOps_FDRM {
      * @param p p value.
      * @return The norm's value.
      */
-    public static float fastElementP(FMatrixD1 A , float p ) {
-        if( p == 2 ) {
+    public static float fastElementP( FMatrixD1 A, float p ) {
+        if (p == 2) {
             return fastNormF(A);
         } else {
             float total = 0;
 
             int size = A.getNumElements();
 
-            for( int i = 0; i < size; i++ ) {
+            for (int i = 0; i < size; i++) {
                 float a = A.get(i);
 
-                total += (float)Math.pow(Math.abs(a),p);
+                total += (float)Math.pow(Math.abs(a), p);
             }
 
-            return (float)Math.pow(total,1.0f/p);
+            return (float)Math.pow(total, 1.0f/p);
         }
     }
 
@@ -282,16 +283,16 @@ public class NormOps_FDRM {
      * @param p The p value of the p-norm.
      * @return The computed norm.
      */
-    public static float normP(FMatrixRMaj A , float p ) {
-        if( p == 1 ) {
+    public static float normP( FMatrixRMaj A, float p ) {
+        if (p == 1) {
             return normP1(A);
-        } else if( p == 2 ) {
+        } else if (p == 2) {
             return normP2(A);
-        } else if( Float.isInfinite(p)) {
+        } else if (Float.isInfinite(p)) {
             return normPInf(A);
         }
-        if( MatrixFeatures_FDRM.isVector(A) ) {
-            return elementP(A,p);
+        if (MatrixFeatures_FDRM.isVector(A)) {
+            return elementP(A, p);
         } else {
             throw new IllegalArgumentException("Doesn't support induced norms yet.");
         }
@@ -305,16 +306,16 @@ public class NormOps_FDRM {
      * @param p The p value of the p-norm.
      * @return The computed norm.
      */
-    public static float fastNormP(FMatrixRMaj A , float p ) {
-        if( p == 1 ) {
+    public static float fastNormP( FMatrixRMaj A, float p ) {
+        if (p == 1) {
             return normP1(A);
-        } else if( p == 2 ) {
+        } else if (p == 2) {
             return fastNormP2(A);
-        } else if( Float.isInfinite(p)) {
+        } else if (Float.isInfinite(p)) {
             return normPInf(A);
         }
-        if( MatrixFeatures_FDRM.isVector(A) ) {
-            return fastElementP(A,p);
+        if (MatrixFeatures_FDRM.isVector(A)) {
+            return fastElementP(A, p);
         } else {
             throw new IllegalArgumentException("Doesn't support induced norms yet.");
         }
@@ -327,7 +328,7 @@ public class NormOps_FDRM {
      * @return The norm.
      */
     public static float normP1( FMatrixRMaj A ) {
-        if( MatrixFeatures_FDRM.isVector(A)) {
+        if (MatrixFeatures_FDRM.isVector(A)) {
             return CommonOps_FDRM.elementSumAbs(A);
         } else {
             return inducedP1(A);
@@ -341,7 +342,7 @@ public class NormOps_FDRM {
      * @return The norm.
      */
     public static float normP2( FMatrixRMaj A ) {
-        if( MatrixFeatures_FDRM.isVector(A)) {
+        if (MatrixFeatures_FDRM.isVector(A)) {
             return normF(A);
         } else {
             return inducedP2(A);
@@ -356,7 +357,7 @@ public class NormOps_FDRM {
      * @return The norm.
      */
     public static float fastNormP2( FMatrixRMaj A ) {
-        if( MatrixFeatures_FDRM.isVector(A)) {
+        if (MatrixFeatures_FDRM.isVector(A)) {
             return fastNormF(A);
         } else {
             return inducedP2(A);
@@ -370,7 +371,7 @@ public class NormOps_FDRM {
      * @return The norm.
      */
     public static float normPInf( FMatrixRMaj A ) {
-        if( MatrixFeatures_FDRM.isVector(A)) {
+        if (MatrixFeatures_FDRM.isVector(A)) {
             return CommonOps_FDRM.elementMaxAbs(A);
         } else {
             return inducedPInf(A);
@@ -393,12 +394,12 @@ public class NormOps_FDRM {
         int m = A.numRows;
         int n = A.numCols;
 
-        for( int j = 0; j < n; j++ ) {
+        for (int j = 0; j < n; j++) {
             float total = 0;
-            for( int i = 0; i < m; i++ ) {
-                total += Math.abs(A.get(i,j));
+            for (int i = 0; i < m; i++) {
+                total += Math.abs(A.get(i, j));
             }
-            if( total > max ) {
+            if (total > max) {
                 max = total;
             }
         }
@@ -415,15 +416,15 @@ public class NormOps_FDRM {
      * @return The norm.
      */
     public static float inducedP2( FMatrixRMaj A ) {
-        SingularValueDecomposition_F32<FMatrixRMaj> svd = DecompositionFactory_FDRM.svd(A.numRows,A.numCols,false,false,true);
+        SingularValueDecomposition_F32<FMatrixRMaj> svd = DecompositionFactory_FDRM.svd(A.numRows, A.numCols, false, false, true);
 
-        if( !svd.decompose(A) )
+        if (!svd.decompose(A))
             throw new RuntimeException("Decomposition failed");
 
         float[] singularValues = svd.getSingularValues();
 
         // the largest singular value is the induced p2 norm
-        return UtilEjml.max(singularValues,0,singularValues.length);
+        return UtilEjml.max(singularValues, 0, singularValues.length);
     }
 
     /**
@@ -442,17 +443,16 @@ public class NormOps_FDRM {
         int m = A.numRows;
         int n = A.numCols;
 
-        for( int i = 0; i < m; i++ ) {
+        for (int i = 0; i < m; i++) {
             float total = 0;
-            for( int j = 0; j < n; j++ ) {
-                total += Math.abs(A.get(i,j));
+            for (int j = 0; j < n; j++) {
+                total += Math.abs(A.get(i, j));
             }
-            if( total > max ) {
+            if (total > max) {
                 max = total;
             }
         }
 
         return max;
     }
-
 }

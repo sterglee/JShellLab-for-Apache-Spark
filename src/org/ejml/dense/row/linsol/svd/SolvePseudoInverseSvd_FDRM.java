@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.linsol.svd;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
@@ -25,7 +26,6 @@ import org.ejml.dense.row.factory.DecompositionFactory_FDRM;
 import org.ejml.interfaces.decomposition.SingularValueDecomposition;
 import org.ejml.interfaces.decomposition.SingularValueDecomposition_F32;
 import org.ejml.interfaces.linsol.LinearSolverDense;
-
 
 /**
  * <p>
@@ -42,19 +42,20 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.linsol.svd.SolvePseudoInverseSvd_DDRM")
 public class SolvePseudoInverseSvd_FDRM implements LinearSolverDense<FMatrixRMaj> {
 
     // Used to compute pseudo inverse
     private SingularValueDecomposition_F32<FMatrixRMaj> svd;
 
     // the results of the pseudo-inverse
-    private FMatrixRMaj pinv = new FMatrixRMaj(1,1);
+    private FMatrixRMaj pinv = new FMatrixRMaj(1, 1);
 
     // relative threshold used to select singular values
     private float threshold = UtilEjml.F_EPS;
 
     // Internal workspace
-    private FMatrixRMaj U_t=new FMatrixRMaj(1,1),V=new FMatrixRMaj(1,1);
+    private FMatrixRMaj U_t = new FMatrixRMaj(1, 1), V = new FMatrixRMaj(1, 1);
 
     /**
      * Creates a new solver targeted at the specified matrix size.
@@ -62,84 +63,84 @@ public class SolvePseudoInverseSvd_FDRM implements LinearSolverDense<FMatrixRMaj
      * @param maxRows The expected largest matrix it might have to process.  Can be larger.
      * @param maxCols The expected largest matrix it might have to process.  Can be larger.
      */
-    public SolvePseudoInverseSvd_FDRM(int maxRows, int maxCols) {
+    public SolvePseudoInverseSvd_FDRM( int maxRows, int maxCols ) {
 
-        svd = DecompositionFactory_FDRM.svd(maxRows,maxCols,true,true,true);
+        svd = DecompositionFactory_FDRM.svd(maxRows, maxCols, true, true, true);
     }
 
     /**
      * Creates a solver targeted at matrices around 100x100
      */
     public SolvePseudoInverseSvd_FDRM() {
-        this(100,100);
+        this(100, 100);
     }
 
     @Override
-    public boolean setA(FMatrixRMaj A) {
-        pinv.reshape(A.numCols,A.numRows,false);
+    public boolean setA( FMatrixRMaj A ) {
+        pinv.reshape(A.numCols, A.numRows, false);
 
-        if( !svd.decompose(A) )
+        if (!svd.decompose(A))
             return false;
 
-        svd.getU(U_t,true);
-        svd.getV(V,false);
-        float []S = svd.getSingularValues();
-        int N = Math.min(A.numRows,A.numCols);
+        svd.getU(U_t, true);
+        svd.getV(V, false);
+        float[] S = svd.getSingularValues();
+        int N = Math.min(A.numRows, A.numCols);
 
         // compute the threshold for singular values which are to be zeroed
         float maxSingular = 0;
-        for( int i = 0; i < N; i++ ) {
-            if( S[i] > maxSingular )
+        for (int i = 0; i < N; i++) {
+            if (S[i] > maxSingular)
                 maxSingular = S[i];
         }
 
-        float tau = threshold*Math.max(A.numCols,A.numRows)*maxSingular;
+        float tau = threshold*Math.max(A.numCols, A.numRows)*maxSingular;
 
         // computer the pseudo inverse of A
-        if( maxSingular != 0.0f ) {
+        if (maxSingular != 0.0f) {
             for (int i = 0; i < N; i++) {
                 float s = S[i];
                 if (s < tau)
                     S[i] = 0;
                 else
-                    S[i] = 1.0f / S[i];
+                    S[i] = 1.0f/S[i];
             }
         }
 
         // V*W
-        for( int i = 0; i < V.numRows; i++ ) {
+        for (int i = 0; i < V.numRows; i++) {
             int index = i*V.numCols;
-            for( int j = 0; j < V.numCols; j++ ) {
+            for (int j = 0; j < V.numCols; j++) {
                 V.data[index++] *= S[j];
             }
         }
 
         // V*W*U^T
-        CommonOps_FDRM.mult(V,U_t, pinv);
+        CommonOps_FDRM.mult(V, U_t, pinv);
 
         return true;
     }
 
     @Override
     public /**/double quality() {
-        float []S = svd.getSingularValues();
-        int N = Math.min(pinv.numRows,pinv.numCols);
+        float[] S = svd.getSingularValues();
+        int N = Math.min(pinv.numRows, pinv.numCols);
         float min = S[0];
         float max = min;
         for (int i = 0; i < N; i++) {
-            min = Math.min(min,S[i]);
-            max = Math.max(max,S[i]);
+            min = Math.min(min, S[i]);
+            max = Math.max(max, S[i]);
         }
         return min/max;
     }
 
     @Override
-    public void solve(FMatrixRMaj b, FMatrixRMaj x) {
-        CommonOps_FDRM.mult(pinv,b,x);
+    public void solve( FMatrixRMaj b, FMatrixRMaj x ) {
+        CommonOps_FDRM.mult(pinv, b, x);
     }
 
     @Override
-    public void invert(FMatrixRMaj A_inv) {
+    public void invert( FMatrixRMaj A_inv ) {
         A_inv.set(pinv);
     }
 
@@ -160,9 +161,10 @@ public class SolvePseudoInverseSvd_FDRM implements LinearSolverDense<FMatrixRMaj
 
     /**
      * Specify the relative threshold used to select singular values.  By default it's UtilEjml.F_EPS.
+     *
      * @param threshold The singular value threshold
      */
-    public void setThreshold(float threshold) {
+    public void setThreshold( float threshold ) {
         this.threshold = threshold;
     }
 

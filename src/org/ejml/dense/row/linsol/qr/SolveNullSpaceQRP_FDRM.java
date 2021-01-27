@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,9 +18,9 @@
 
 package org.ejml.dense.row.linsol.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
-import org.ejml.dense.row.NormOps_FDRM;
 import org.ejml.dense.row.decomposition.qr.QRColPivDecompositionHouseholderColumn_FDRM;
 import org.ejml.interfaces.SolveNullSpace;
 
@@ -32,41 +32,37 @@ import org.ejml.interfaces.SolveNullSpace;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.linsol.qr.SolveNullSpaceQRP_DDRM")
 public class SolveNullSpaceQRP_FDRM implements SolveNullSpace<FMatrixRMaj> {
     CustomizedQRP decomposition = new CustomizedQRP();
 
     // Storage for Q matrix
-    FMatrixRMaj Q = new FMatrixRMaj(1,1);
+    FMatrixRMaj Q = new FMatrixRMaj(1, 1);
 
     /**
      * Finds the null space of A
+     *
      * @param A (Input) Matrix. Modified
      * @param numSingularValues Number of singular values
      * @param nullspace Storage for null-space
      * @return true if successful or false if it failed
      */
-    public boolean process(FMatrixRMaj A , int numSingularValues, FMatrixRMaj nullspace ) {
+    @Override
+    public boolean process( FMatrixRMaj A, int numSingularValues, FMatrixRMaj nullspace ) {
         decomposition.decompose(A);
 
-        if( A.numRows > A.numCols ) {
-            Q.reshape(A.numCols,Math.min(A.numRows,A.numCols));
+        if (A.numRows > A.numCols) {
+            Q.reshape(A.numCols, Math.min(A.numRows, A.numCols));
             decomposition.getQ(Q, true);
         } else {
             Q.reshape(A.numCols, A.numCols);
             decomposition.getQ(Q, false);
         }
 
-        nullspace.reshape(Q.numRows,numSingularValues);
-        CommonOps_FDRM.extract(Q,0,Q.numRows,Q.numCols-numSingularValues,Q.numCols,nullspace,0,0);
+        nullspace.reshape(Q.numRows, numSingularValues);
+        CommonOps_FDRM.extract(Q, 0, Q.numRows, Q.numCols - numSingularValues, Q.numCols, nullspace, 0, 0);
 
         return true;
-    }
-
-    private float check(FMatrixRMaj A, FMatrixRMaj nullspace ) {
-        FMatrixRMaj r = new FMatrixRMaj(A.numRows,nullspace.numCols);
-        CommonOps_FDRM.mult(A,nullspace,r);
-
-        return NormOps_FDRM.normF(r);
     }
 
     @Override
@@ -79,9 +75,10 @@ public class SolveNullSpaceQRP_FDRM implements SolveNullSpace<FMatrixRMaj> {
      */
     private static class CustomizedQRP extends QRColPivDecompositionHouseholderColumn_FDRM {
 
-        protected void convertToColumnMajor(FMatrixRMaj A) {
-            for( int x = 0; x < numCols; x++ ) {
-                System.arraycopy(A.data,x*A.numCols,dataQR[x],0,numRows);
+        @Override
+        protected void convertToColumnMajor( FMatrixRMaj A ) {
+            for (int x = 0; x < numCols; x++) {
+                System.arraycopy(A.data, x*A.numCols, dataQR[x], 0, numRows);
             }
         }
 
@@ -94,7 +91,7 @@ public class SolveNullSpaceQRP_FDRM implements SolveNullSpace<FMatrixRMaj> {
         public boolean decompose( FMatrixRMaj A ) {
             // Unlike the QR decomposition the entire matrix has to be considered because any of the columns
             // could be pivoted in
-            setExpectedMaxSize(A.numCols,A.numRows);
+            setExpectedMaxSize(A.numCols, A.numRows);
 
             convertToColumnMajor(A);
 
@@ -115,7 +112,6 @@ public class SolveNullSpaceQRP_FDRM implements SolveNullSpace<FMatrixRMaj> {
 
             return true;
         }
-
     }
 
     public FMatrixRMaj getQ() {

@@ -18,11 +18,13 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
 /**
  * Interface for all complex 64 bit floating point rectangular matrices.
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.data.ZMatrix")
 public interface CMatrix extends Matrix {
 
     /**

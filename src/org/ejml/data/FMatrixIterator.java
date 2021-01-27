@@ -18,6 +18,7 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
 import java.util.Iterator;
 
 
@@ -28,6 +29,7 @@ import java.util.Iterator;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.data.DMatrixIterator")
 public class FMatrixIterator implements Iterator<Float> {
     // the matrix which is being iterated through
     private FMatrixD1 a;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.decomposition.lu;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.FMatrixRMaj;
@@ -26,48 +27,50 @@ import org.ejml.dense.row.SpecializedOps_FDRM;
 import org.ejml.dense.row.decomposition.TriangularSolver_FDRM;
 import org.ejml.dense.row.decomposition.UtilDecompositons_FDRM;
 import org.ejml.interfaces.decomposition.LUDecomposition_F32;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
  * Contains common data structures and operations for LU decomposition algorithms.
  * </p>
+ *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.decomposition.lu.LUDecompositionBase_DDRM")
 public abstract class LUDecompositionBase_FDRM
         implements LUDecomposition_F32<FMatrixRMaj> {
     // the decomposed matrix
     protected FMatrixRMaj LU;
 
     // it can decompose a matrix up to this size
-    protected int maxWidth=-1;
+    protected int maxWidth = -1;
 
     // the shape of the matrix
-    protected int m,n;
+    protected int m, n;
     // data in the matrix
-    protected float dataLU[];
+    protected float[] dataLU;
 
     // used in set, solve, invert
-    protected float vv[];
+    protected float[] vv;
     // used in set
-    protected int indx[];
-    protected int pivot[];
+    protected int[] indx;
+    protected int[] pivot;
 
     // used by determinant
     protected float pivsign;
 
     Complex_F32 det = new Complex_F32();
 
-    public void setExpectedMaxSize( int numRows , int numCols )
-    {
-        LU = new FMatrixRMaj(numRows,numCols);
+    public void setExpectedMaxSize( int numRows, int numCols ) {
+        LU = new FMatrixRMaj(numRows, numCols);
 
         this.dataLU = LU.data;
-        maxWidth = Math.max(numRows,numCols);
+        maxWidth = Math.max(numRows, numCols);
 
-        vv = new float[ maxWidth ];
-        indx = new int[ maxWidth ];
-        pivot = new int[ maxWidth ];
+        vv = new float[maxWidth];
+        indx = new int[maxWidth];
+        pivot = new int[maxWidth];
     }
 
     public FMatrixRMaj getLU() {
@@ -93,25 +96,24 @@ public abstract class LUDecompositionBase_FDRM
      * @param lower Where the lower triangular matrix is written to.
      */
     @Override
-    public FMatrixRMaj getLower(FMatrixRMaj lower )
-    {
+    public FMatrixRMaj getLower( @Nullable FMatrixRMaj lower ) {
         int numRows = LU.numRows;
         int numCols = LU.numRows < LU.numCols ? LU.numRows : LU.numCols;
 
-        lower = UtilDecompositons_FDRM.checkZerosUT(lower,numRows,numCols);
+        lower = UtilDecompositons_FDRM.checkZerosUT(lower, numRows, numCols);
 
-        for( int i = 0; i < numCols; i++ ) {
-            lower.unsafe_set(i,i,1.0f);
+        for (int i = 0; i < numCols; i++) {
+            lower.unsafe_set(i, i, 1.0f);
 
-            for( int j = 0; j < i; j++ ) {
-                lower.unsafe_set(i,j, LU.unsafe_get(i,j));
+            for (int j = 0; j < i; j++) {
+                lower.unsafe_set(i, j, LU.unsafe_get(i, j));
             }
         }
 
-        if( numRows > numCols ) {
-            for( int i = numCols; i < numRows; i++ ) {
-                for( int j = 0; j < numCols; j++ ) {
-                    lower.unsafe_set(i,j, LU.unsafe_get(i,j));
+        if (numRows > numCols) {
+            for (int i = numCols; i < numRows; i++) {
+                for (int j = 0; j < numCols; j++) {
+                    lower.unsafe_set(i, j, LU.unsafe_get(i, j));
                 }
             }
         }
@@ -124,16 +126,15 @@ public abstract class LUDecompositionBase_FDRM
      * @param upper Where the upper triangular matrix is writen to.
      */
     @Override
-    public FMatrixRMaj getUpper(FMatrixRMaj upper )
-    {
+    public FMatrixRMaj getUpper( @Nullable FMatrixRMaj upper ) {
         int numRows = LU.numRows < LU.numCols ? LU.numRows : LU.numCols;
         int numCols = LU.numCols;
 
-        upper = UtilDecompositons_FDRM.checkZerosLT(upper,numRows,numCols);
+        upper = UtilDecompositons_FDRM.checkZerosLT(upper, numRows, numCols);
 
-        for( int i = 0; i < numRows; i++ ) {
-            for( int j = i; j < numCols; j++ ) {
-                upper.unsafe_set(i,j, LU.unsafe_get(i,j));
+        for (int i = 0; i < numRows; i++) {
+            for (int j = i; j < numCols; j++) {
+                upper.unsafe_set(i, j, LU.unsafe_get(i, j));
             }
         }
 
@@ -141,18 +142,18 @@ public abstract class LUDecompositionBase_FDRM
     }
 
     @Override
-    public FMatrixRMaj getRowPivot(FMatrixRMaj pivot ) {
+    public FMatrixRMaj getRowPivot( @Nullable FMatrixRMaj pivot ) {
         return SpecializedOps_FDRM.pivotMatrix(pivot, this.pivot, LU.numRows, false);
     }
 
     @Override
-    public int[] getRowPivotV(IGrowArray pivot) {
-        return UtilEjml.pivotVector(this.pivot,LU.numRows,pivot);
+    public int[] getRowPivotV( @Nullable IGrowArray pivot ) {
+        return UtilEjml.pivotVector(this.pivot, LU.numRows, pivot);
     }
 
-    protected void decomposeCommonInit(FMatrixRMaj a) {
-        if( a.numRows > maxWidth || a.numCols > maxWidth ) {
-            setExpectedMaxSize(a.numRows,a.numCols);
+    protected void decomposeCommonInit( FMatrixRMaj a ) {
+        if (a.numRows > maxWidth || a.numCols > maxWidth) {
+            setExpectedMaxSize(a.numRows, a.numCols);
         }
 
         m = a.numRows;
@@ -173,8 +174,8 @@ public abstract class LUDecompositionBase_FDRM
      */
     @Override
     public boolean isSingular() {
-        for( int i = 0; i < m; i++ ) {
-            if( Math.abs(dataLU[i* n +i]) < UtilEjml.F_EPS )
+        for (int i = 0; i < m; i++) {
+            if (Math.abs(dataLU[i*n + i]) < UtilEjml.F_EPS)
                 return true;
         }
         return false;
@@ -187,13 +188,13 @@ public abstract class LUDecompositionBase_FDRM
      */
     @Override
     public Complex_F32 computeDeterminant() {
-        if( m != n )
+        if (m != n)
             throw new IllegalArgumentException("Must be a square matrix.");
 
         float ret = pivsign;
 
         int total = m*n;
-        for( int i = 0; i < total; i += n + 1 ) {
+        for (int i = 0; i < total; i += n + 1) {
             ret *= dataLU[i];
         }
 
@@ -210,29 +211,28 @@ public abstract class LUDecompositionBase_FDRM
     /**
      * a specialized version of solve that avoid additional checks that are not needed.
      */
-    public void _solveVectorInternal( float []vv )
-    {
+    public void _solveVectorInternal( float[] vv ) {
         // Solve L*Y = B
         int ii = 0;
 
-        for( int i = 0; i < n; i++ ) {
+        for (int i = 0; i < n; i++) {
             int ip = indx[i];
             float sum = vv[ip];
             vv[ip] = vv[i];
-            if( ii != 0 ) {
+            if (ii != 0) {
 //                for( int j = ii-1; j < i; j++ )
 //                    sum -= dataLU[i* n +j]*vv[j];
-                int index = i*n + ii-1;
-                for( int j = ii-1; j < i; j++ )
+                int index = i*n + ii - 1;
+                for (int j = ii - 1; j < i; j++)
                     sum -= dataLU[index++]*vv[j];
-            } else if( sum != 0.0f ) {
-                ii=i+1;
+            } else if (sum != 0.0f) {
+                ii = i + 1;
             }
             vv[i] = sum;
         }
 
         // Solve U*X = Y;
-        TriangularSolver_FDRM.solveU(dataLU,vv,n);
+        TriangularSolver_FDRM.solveU(dataLU, vv, n);
     }
 
     public float[] _getVV() {

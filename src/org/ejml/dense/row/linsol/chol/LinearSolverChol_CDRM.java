@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.linsol.chol;
 
+import javax.annotation.Generated;
 import org.ejml.data.CMatrixRMaj;
 import org.ejml.dense.row.SpecializedOps_CDRM;
 import org.ejml.dense.row.decompose.TriangularSolver_CDRM;
@@ -27,31 +28,32 @@ import org.ejml.interfaces.decomposition.CholeskyDecomposition_F32;
 
 import java.util.Arrays;
 
-
 /**
-* @author Peter Abeles
-*/
+ * @author Peter Abeles
+ */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.linsol.chol.LinearSolverChol_ZDRM")
 public class LinearSolverChol_CDRM extends LinearSolverAbstract_CDRM {
 
     CholeskyDecompositionCommon_CDRM decomposer;
     int n;
-    float vv[] = new float[0];
-    float t[];
+    float[] vv = new float[0];
+    float[] t;
 
-    public LinearSolverChol_CDRM(CholeskyDecompositionCommon_CDRM decomposer) {
+    public LinearSolverChol_CDRM( CholeskyDecompositionCommon_CDRM decomposer ) {
         this.decomposer = decomposer;
     }
 
     @Override
-    public boolean setA(CMatrixRMaj A) {
-        if( A.numRows != A.numCols )
+    public boolean setA( CMatrixRMaj A ) {
+        if (A.numRows != A.numCols)
             throw new IllegalArgumentException("Matrix must be square");
 
         _setA(A);
 
-        if( decomposer.decompose(A) ){
+        if (decomposer.decompose(A)) {
             n = A.numCols;
-            if( vv.length < n*2 )
+            if (vv.length < n*2)
                 vv = new float[n*2];
             t = decomposer._getT().data;
             return true;
@@ -81,26 +83,26 @@ public class LinearSolverChol_CDRM extends LinearSolverAbstract_CDRM {
      * @param X An n by m matrix where the solution is writen to.  Modified.
      */
     @Override
-    public void solve(CMatrixRMaj B , CMatrixRMaj X ) {
-        if( B.numCols != X.numCols || B.numRows != n || X.numRows != n) {
-            throw new IllegalArgumentException("Unexpected matrix size");
-        }
+    public void solve( CMatrixRMaj B, CMatrixRMaj X ) {
+        if (B.numRows != numRows)
+            throw new IllegalArgumentException("Unexpected dimensions for B");
+        X.reshape(numCols, B.numCols);
 
         int numCols = B.numCols;
 
-        float dataB[] = B.data;
-        float dataX[] = X.data;
+        float[] dataB = B.data;
+        float[] dataX = X.data;
 
-        if(decomposer.isLower()) {
-            for( int j = 0; j < numCols; j++ ) {
-                for( int i = 0; i < n; i++ ) {
-                    vv[i*2]   = dataB[(i*numCols+j)*2];
-                    vv[i*2+1] = dataB[(i*numCols+j)*2+1];
+        if (decomposer.isLower()) {
+            for (int j = 0; j < numCols; j++) {
+                for (int i = 0; i < n; i++) {
+                    vv[i*2] = dataB[(i*numCols + j)*2];
+                    vv[i*2 + 1] = dataB[(i*numCols + j)*2 + 1];
                 }
                 solveInternalL();
-                for( int i = 0; i < n; i++ ) {
-                    dataX[(i*numCols+j)*2  ] = vv[i*2];
-                    dataX[(i*numCols+j)*2+1] = vv[i*2+1];
+                for (int i = 0; i < n; i++) {
+                    dataX[(i*numCols + j)*2] = vv[i*2];
+                    dataX[(i*numCols + j)*2 + 1] = vv[i*2 + 1];
                 }
             }
         } else {
@@ -128,14 +130,14 @@ public class LinearSolverChol_CDRM extends LinearSolverAbstract_CDRM {
      */
     @Override
     public void invert( CMatrixRMaj inv ) {
-        if( inv.numRows != n || inv.numCols != n ) {
+        if (inv.numRows != n || inv.numCols != n) {
             throw new RuntimeException("Unexpected matrix dimension");
         }
-        if( inv.data == t ) {
+        if (inv.data == t) {
             throw new IllegalArgumentException("Passing in the same matrix that was decomposed.");
         }
 
-        if(decomposer.isLower()) {
+        if (decomposer.isLower()) {
             setToInverseL(inv.data);
         } else {
             throw new RuntimeException("Implement");
@@ -145,19 +147,19 @@ public class LinearSolverChol_CDRM extends LinearSolverAbstract_CDRM {
     /**
      * Sets the matrix to the inverse using a lower triangular matrix.
      */
-    public void setToInverseL( float a[] ) {
+    public void setToInverseL( float[] a ) {
 
         // the more direct method which takes full advantage of the sparsity of the data structures proved to
         // be difficult to get right due to the conjugates and reordering.
         // See comparable real number code for an example.
         for (int col = 0; col < n; col++) {
-            Arrays.fill(vv,0);
+            Arrays.fill(vv, 0);
             vv[col*2] = 1;
             TriangularSolver_CDRM.solveL_diagReal(t, vv, n);
             TriangularSolver_CDRM.solveConjTranL_diagReal(t, vv, n);
-            for( int i = 0; i < n; i++ ) {
-                a[(i*numCols+col)*2  ] = vv[i*2];
-                a[(i*numCols+col)*2+1] = vv[i*2+1];
+            for (int i = 0; i < n; i++) {
+                a[(i*numCols + col)*2] = vv[i*2];
+                a[(i*numCols + col)*2 + 1] = vv[i*2 + 1];
             }
         }
         // NOTE: If you want to make inverse faster take advantage of the sparsity

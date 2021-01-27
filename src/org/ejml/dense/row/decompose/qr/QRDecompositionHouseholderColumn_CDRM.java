@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,11 +18,12 @@
 
 package org.ejml.dense.row.decompose.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.CMatrixRMaj;
 import org.ejml.dense.row.decompose.UtilDecompositons_CDRM;
 import org.ejml.interfaces.decomposition.QRDecomposition;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -31,10 +32,11 @@ import org.ejml.interfaces.decomposition.QRDecomposition;
  * of CPU cache misses and the number of copies that are performed.
  * </p>
  *
- * @see QRDecompositionHouseholder_CDRM
- *
  * @author Peter Abeles
+ * @see QRDecompositionHouseholder_CDRM
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.decompose.qr.QRDecompositionHouseholderColumn_ZDRM")
 public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CMatrixRMaj> {
 
     /**
@@ -42,10 +44,10 @@ public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CM
      * upper triangular portion and Q on the lower bit.  Lower columns
      * are where u is stored.  Q_k = (I - gamma_k*u_k*u_k^T).
      */
-    protected float dataQR[][]; // [ column][ row ]
+    protected float[][] dataQR; // [ column][ row ]
 
     // used internally to store temporary data
-    protected float v[];
+    protected float[] v;
 
     // dimension of the decomposed matrices
     protected int numCols; // this is 'n'
@@ -53,7 +55,7 @@ public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CM
     protected int minLength;
 
     // the computed gamma for Q_k matrix
-    protected float gammas[];
+    protected float[] gammas;
     // local variables
     protected float gamma;
     protected Complex_F32 tau = new Complex_F32();
@@ -61,23 +63,23 @@ public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CM
     // did it encounter an error?
     protected boolean error;
 
-    public void setExpectedMaxSize( int numRows , int numCols ) {
+    public void setExpectedMaxSize( int numRows, int numCols ) {
         this.numCols = numCols;
         this.numRows = numRows;
-        minLength = Math.min(numCols,numRows);
-        int maxLength = Math.max(numCols,numRows);
+        minLength = Math.min(numCols, numRows);
+        int maxLength = Math.max(numCols, numRows);
 
-        if( dataQR == null || dataQR.length < numCols || dataQR[0].length < numRows*2 ) {
-            dataQR = new float[ numCols ][  numRows*2 ];
-            v = new float[ maxLength*2 ];
-            gammas = new float[ minLength ];
+        if (dataQR == null || dataQR.length < numCols || dataQR[0].length < numRows*2) {
+            dataQR = new float[numCols][numRows*2];
+            v = new float[maxLength*2];
+            gammas = new float[minLength];
         }
 
-        if( v.length < maxLength*2 ) {
-            v = new float[ maxLength*2 ];
+        if (v.length < maxLength*2) {
+            v = new float[maxLength*2];
         }
-        if( gammas.length < minLength ) {
-            gammas = new float[ minLength ];
+        if (gammas.length < minLength) {
+            gammas = new float[minLength];
         }
     }
 
@@ -97,26 +99,26 @@ public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CM
      * @param Q The orthogonal Q matrix.
      */
     @Override
-    public CMatrixRMaj getQ(CMatrixRMaj Q , boolean compact ) {
-        if( compact )
-            Q = UtilDecompositons_CDRM.checkIdentity(Q,numRows,minLength);
+    public CMatrixRMaj getQ( @Nullable CMatrixRMaj Q, boolean compact ) {
+        if (compact)
+            Q = UtilDecompositons_CDRM.checkIdentity(Q, numRows, minLength);
         else
-            Q = UtilDecompositons_CDRM.checkIdentity(Q,numRows,numRows);
+            Q = UtilDecompositons_CDRM.checkIdentity(Q, numRows, numRows);
 
-        for( int j = minLength-1; j >= 0; j-- ) {
-            float u[] = dataQR[j];
+        for (int j = minLength - 1; j >= 0; j--) {
+            float[] u = dataQR[j];
 
             float vvReal = u[j*2];
-            float vvImag = u[j*2+1];
+            float vvImag = u[j*2 + 1];
 
-            u[j*2]   = 1;
-            u[j*2+1] = 0;
+            u[j*2] = 1;
+            u[j*2 + 1] = 0;
             float gammaReal = gammas[j];
 
-            QrHelperFunctions_CDRM.rank1UpdateMultR(Q, u,0, gammaReal,j, j, numRows, v);
+            QrHelperFunctions_CDRM.rank1UpdateMultR(Q, u, 0, gammaReal, j, j, numRows, v);
 
-            u[j*2]   = vvReal;
-            u[j*2+1] = vvImag;
+            u[j*2] = vvReal;
+            u[j*2 + 1] = vvImag;
         }
 
         return Q;
@@ -130,17 +132,17 @@ public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CM
      * @param compact If true then a compact matrix is expected.
      */
     @Override
-    public CMatrixRMaj getR(CMatrixRMaj R, boolean compact) {
-        if( compact )
-            R = UtilDecompositons_CDRM.checkZerosLT(R,minLength,numCols);
+    public CMatrixRMaj getR( @Nullable CMatrixRMaj R, boolean compact ) {
+        if (compact)
+            R = UtilDecompositons_CDRM.checkZerosLT(R, minLength, numCols);
         else
-            R = UtilDecompositons_CDRM.checkZerosLT(R,numRows,numCols);
+            R = UtilDecompositons_CDRM.checkZerosLT(R, numRows, numCols);
 
-        for( int j = 0; j < numCols; j++ ) {
-            float colR[] = dataQR[j];
-            int l = Math.min(j,numRows-1);
-            for( int i = 0; i <= l; i++ ) {
-                R.set(i,j,colR[i*2],colR[i*2+1]);
+        for (int j = 0; j < numCols; j++) {
+            float[] colR = dataQR[j];
+            int l = Math.min(j, numRows - 1);
+            for (int i = 0; i <= l; i++) {
+                R.set(i, j, colR[i*2], colR[i*2 + 1]);
             }
         }
 
@@ -167,7 +169,7 @@ public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CM
 
         error = false;
 
-        for( int j = 0; j < minLength; j++ ) {
+        for (int j = 0; j < minLength; j++) {
             householder(j);
             updateA(j);
         }
@@ -186,14 +188,14 @@ public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CM
      *
      * @param A original matrix that is to be decomposed.
      */
-    protected void convertToColumnMajor(CMatrixRMaj A) {
-        for( int x = 0; x < numCols; x++ ) {
-            float colQ[] = dataQR[x];
+    protected void convertToColumnMajor( CMatrixRMaj A ) {
+        for (int x = 0; x < numCols; x++) {
+            float[] colQ = dataQR[x];
             int indexCol = 0;
-            for( int y = 0; y < numRows; y++ ) {
-                int index = (y*numCols+x)*2;
+            for (int y = 0; y < numRows; y++) {
+                int index = (y*numCols + x)*2;
                 colQ[indexCol++] = A.data[index];
-                colQ[indexCol++] = A.data[index+1];
+                colQ[indexCol++] = A.data[index + 1];
             }
         }
     }
@@ -213,15 +215,14 @@ public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CM
      *
      * @param j Which submatrix to work off of.
      */
-    protected void householder( int j )
-    {
-        final float u[] = dataQR[j];
+    protected void householder( int j ) {
+        final float[] u = dataQR[j];
 
         // find the largest value in this column
         // this is used to normalize the column and mitigate overflow/underflow
         final float max = QrHelperFunctions_CDRM.findMax(u, j, numRows - j);
 
-        if( max == 0.0f ) {
+        if (max == 0.0f) {
             gamma = 0;
             error = true;
         } else {
@@ -231,14 +232,14 @@ public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CM
             // divide u by u_0
 //            float u_0 = u[j] + tau;
             float real_u_0 = u[j*2] + tau.real;
-            float imag_u_0 = u[j*2+1] + tau.imaginary;
-            QrHelperFunctions_CDRM.divideElements(j + 1, numRows, u, 0, real_u_0,imag_u_0 );
+            float imag_u_0 = u[j*2 + 1] + tau.imaginary;
+            QrHelperFunctions_CDRM.divideElements(j + 1, numRows, u, 0, real_u_0, imag_u_0);
 
             tau.real *= max;
             tau.imaginary *= max;
 
-            u[j*2]   = -tau.real;
-            u[j*2+1] = -tau.imaginary;
+            u[j*2] = -tau.real;
+            u[j*2 + 1] = -tau.imaginary;
         }
 
         gammas[j] = gamma;
@@ -253,23 +254,22 @@ public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CM
      *
      * @param w The submatrix.
      */
-    protected void updateA( int w )
-    {
-        final float u[] = dataQR[w];
+    protected void updateA( int w ) {
+        final float[] u = dataQR[w];
 
-        for( int j = w+1; j < numCols; j++ ) {
+        for (int j = w + 1; j < numCols; j++) {
 
-            final float colQ[] = dataQR[j];
+            final float[] colQ = dataQR[j];
             // first element in u is assumed to be 1.0f + 0*i
             float realSum = colQ[w*2];
-            float imagSum = colQ[w*2+1];
+            float imagSum = colQ[w*2 + 1];
 
-            for( int k = w+1; k < numRows; k++ ) {
+            for (int k = w + 1; k < numRows; k++) {
                 float realU = u[k*2];
-                float imagU = -u[k*2+1];
+                float imagU = -u[k*2 + 1];
 
                 float realQ = colQ[k*2];
-                float imagQ = colQ[k*2+1];
+                float imagQ = colQ[k*2 + 1];
 
                 realSum += realU*realQ - imagU*imagQ;
                 imagSum += imagU*realQ + realU*imagQ;
@@ -277,15 +277,15 @@ public class QRDecompositionHouseholderColumn_CDRM implements QRDecomposition<CM
             realSum *= gamma;
             imagSum *= gamma;
 
-            colQ[w*2  ] -= realSum;
-            colQ[w*2+1] -= imagSum;
+            colQ[w*2] -= realSum;
+            colQ[w*2 + 1] -= imagSum;
 
-            for( int i = w+1; i < numRows; i++ ) {
+            for (int i = w + 1; i < numRows; i++) {
                 float realU = u[i*2];
-                float imagU = u[i*2+1];
+                float imagU = u[i*2 + 1];
 
-                colQ[i*2]  -= realU*realSum - imagU*imagSum;
-                colQ[i*2+1]-= imagU*realSum + realU*imagSum;
+                colQ[i*2] -= realU*realSum - imagU*imagSum;
+                colQ[i*2 + 1] -= imagU*realSum + realU*imagSum;
             }
         }
     }

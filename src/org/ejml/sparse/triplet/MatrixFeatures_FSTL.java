@@ -18,11 +18,13 @@
 
 package org.ejml.sparse.triplet;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixSparseTriplet;
 
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.sparse.triplet.MatrixFeatures_DSTL")
 public class MatrixFeatures_FSTL {
 
     public static boolean isEquals(FMatrixSparseTriplet a , FMatrixSparseTriplet b ) {

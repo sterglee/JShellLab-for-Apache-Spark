@@ -18,11 +18,13 @@
 
 package org.ejml.sparse.csc;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixSparseCSC;
 
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.sparse.csc.NormOps_DSCC")
 public class NormOps_FSCC {
 
     public static float fastNormF(FMatrixSparseCSC A ) {

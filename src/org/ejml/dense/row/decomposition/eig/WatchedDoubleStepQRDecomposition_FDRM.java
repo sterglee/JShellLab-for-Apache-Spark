@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,13 +18,14 @@
 
 package org.ejml.dense.row.decomposition.eig;
 
+import javax.annotation.Generated;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.FMatrixRMaj;
+import org.ejml.dense.row.decomposition.eig.watched.WatchedDoubleStepQREigen_FDRM;
 import org.ejml.dense.row.decomposition.eig.watched.WatchedDoubleStepQREigenvalue_FDRM;
 import org.ejml.dense.row.decomposition.eig.watched.WatchedDoubleStepQREigenvector_FDRM;
 import org.ejml.dense.row.decomposition.hessenberg.HessenbergSimilarDecomposition_FDRM;
 import org.ejml.interfaces.decomposition.EigenDecomposition_F32;
-
 
 /**
  * <p>
@@ -41,6 +42,8 @@ import org.ejml.interfaces.decomposition.EigenDecomposition_F32;
  * @author Peter Abeles
  */
 //TODO looks like there might be some pointless copying of arrays going on
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.decomposition.eig.WatchedDoubleStepQRDecomposition_DDRM")
 public class WatchedDoubleStepQRDecomposition_FDRM
         implements EigenDecomposition_F32<FMatrixRMaj> {
 
@@ -53,18 +56,26 @@ public class WatchedDoubleStepQRDecomposition_FDRM
     // should it compute eigenvectors or just eigenvalues
     boolean computeVectors;
 
-    public WatchedDoubleStepQRDecomposition_FDRM(boolean computeVectors) {
-        hessenberg = new HessenbergSimilarDecomposition_FDRM(10);
-        algValue = new WatchedDoubleStepQREigenvalue_FDRM();
-        algVector = new WatchedDoubleStepQREigenvector_FDRM();
+    public WatchedDoubleStepQRDecomposition_FDRM( boolean computeVectors ) {
+        this(new HessenbergSimilarDecomposition_FDRM(10),
+                new WatchedDoubleStepQREigen_FDRM(),
+                computeVectors);
+    }
+
+    public WatchedDoubleStepQRDecomposition_FDRM( HessenbergSimilarDecomposition_FDRM hessenberg,
+                                                  WatchedDoubleStepQREigen_FDRM eigenQR,
+                                                  boolean computeVectors ) {
+        this.hessenberg = hessenberg;
+        this.algValue = new WatchedDoubleStepQREigenvalue_FDRM(eigenQR);
+        this.algVector = new WatchedDoubleStepQREigenvector_FDRM();
 
         this.computeVectors = computeVectors;
     }
 
     @Override
-    public boolean decompose(FMatrixRMaj A) {
+    public boolean decompose( FMatrixRMaj A ) {
 
-        if( !hessenberg.decompose(A) )
+        if (!hessenberg.decompose(A))
             return false;
 
         H = hessenberg.getH(null);
@@ -72,7 +83,7 @@ public class WatchedDoubleStepQRDecomposition_FDRM
         algValue.getImplicitQR().createR = false;
 //        algValue.getImplicitQR().setChecks(true,true,true);
 
-        if( !algValue.process(H) )
+        if (!algValue.process(H))
             return false;
 
 //        for( int i = 0; i < A.numRows; i++ ) {
@@ -81,7 +92,7 @@ public class WatchedDoubleStepQRDecomposition_FDRM
 
         algValue.getImplicitQR().createR = true;
 
-        if( computeVectors )
+        if (computeVectors)
             return algVector.process(algValue.getImplicitQR(), H, hessenberg.getQ(null));
         else
             return true;
@@ -98,12 +109,12 @@ public class WatchedDoubleStepQRDecomposition_FDRM
     }
 
     @Override
-    public Complex_F32 getEigenvalue(int index) {
+    public Complex_F32 getEigenvalue( int index ) {
         return algValue.getEigenvalues()[index];
     }
 
     @Override
-    public FMatrixRMaj getEigenVector(int index) {
+    public FMatrixRMaj getEigenVector( int index ) {
         return algVector.getEigenvectors()[index];
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.decomposition.chol;
 
+import javax.annotation.Generated;
 import org.ejml.EjmlParameters;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.FMatrixRBlock;
@@ -26,7 +27,8 @@ import org.ejml.dense.block.MatrixOps_FDRB;
 import org.ejml.dense.block.decomposition.chol.CholeskyOuterForm_FDRB;
 import org.ejml.dense.row.decomposition.BaseDecomposition_FDRB_to_FDRM;
 import org.ejml.interfaces.decomposition.CholeskyDecomposition_F32;
-
+import org.ejml.interfaces.decomposition.DecompositionInterface;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wrapper around {@link org.ejml.dense.block.decomposition.chol.CholeskyOuterForm_FDRB} that allows
@@ -34,11 +36,16 @@ import org.ejml.interfaces.decomposition.CholeskyDecomposition_F32;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.decomposition.chol.CholeskyDecomposition_DDRB_to_DDRM")
 public class CholeskyDecomposition_FDRB_to_FDRM
         extends BaseDecomposition_FDRB_to_FDRM implements CholeskyDecomposition_F32<FMatrixRMaj> {
 
-    public CholeskyDecomposition_FDRB_to_FDRM(boolean lower) {
+    public CholeskyDecomposition_FDRB_to_FDRM( boolean lower ) {
         super(new CholeskyOuterForm_FDRB(lower), EjmlParameters.BLOCK_WIDTH);
+    }
+
+    public CholeskyDecomposition_FDRB_to_FDRM( DecompositionInterface<FMatrixRBlock> alg, int blockLength ) {
+        super(alg, blockLength);
     }
 
     @Override
@@ -47,14 +54,14 @@ public class CholeskyDecomposition_FDRB_to_FDRM
     }
 
     @Override
-    public FMatrixRMaj getT(FMatrixRMaj T) {
+    public FMatrixRMaj getT( @Nullable FMatrixRMaj T ) {
         FMatrixRBlock T_block = ((CholeskyOuterForm_FDRB)alg).getT(null);
 
-        if( T == null ) {
-            T = new FMatrixRMaj(T_block.numRows,T_block.numCols);
+        if (T == null) {
+            T = new FMatrixRMaj(T_block.numRows, T_block.numCols);
         }
 
-        MatrixOps_FDRB.convert(T_block,T);
+        MatrixOps_FDRB.convert(T_block, T);
         // todo set zeros
         return T;
     }

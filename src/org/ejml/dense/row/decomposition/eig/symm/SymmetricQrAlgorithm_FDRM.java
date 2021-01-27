@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,9 +18,11 @@
 
 package org.ejml.dense.row.decomposition.eig.symm;
 
+import javax.annotation.Generated;
+import org.ejml.UtilEjml;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -30,18 +32,21 @@ import org.ejml.dense.row.CommonOps_FDRM;
  * This implementation is based on the algorithm is sketched out in:<br>
  * David S. Watkins, "Fundamentals of Matrix Computations," Second Edition. page 377-385
  * </p>
+ *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.decomposition.eig.symm.SymmetricQrAlgorithm_DDRM")
 public class SymmetricQrAlgorithm_FDRM {
 
     // performs many of the low level calculations
-    private SymmetricQREigenHelper_FDRM helper;
+    private final SymmetricQREigenHelper_FDRM helper;
 
     // transpose of the orthogonal matrix
-    private FMatrixRMaj Q;
+    private @Nullable FMatrixRMaj Q;
 
     // the eigenvalues previously computed
-    private float eigenvalues[];
+    private float[] eigenvalues = UtilEjml.ZERO_LENGTH_F32;
 
     private int exceptionalThresh = 15;
     private int maxIterations = exceptionalThresh*15;
@@ -53,7 +58,7 @@ public class SymmetricQrAlgorithm_FDRM {
     // is it following a script or not
     private boolean followingScript;
 
-    public SymmetricQrAlgorithm_FDRM(SymmetricQREigenHelper_FDRM helper ) {
+    public SymmetricQrAlgorithm_FDRM( SymmetricQREigenHelper_FDRM helper ) {
         this.helper = helper;
     }
 
@@ -64,19 +69,19 @@ public class SymmetricQrAlgorithm_FDRM {
         this.helper = new SymmetricQREigenHelper_FDRM();
     }
 
-    public void setMaxIterations(int maxIterations) {
+    public void setMaxIterations( int maxIterations ) {
         this.maxIterations = maxIterations;
     }
 
-    public FMatrixRMaj getQ() {
+    public @Nullable FMatrixRMaj getQ() {
         return Q;
     }
 
-    public void setQ(FMatrixRMaj q) {
+    public void setQ( @Nullable FMatrixRMaj q ) {
         Q = q;
     }
 
-    public void setFastEigenvalues(boolean fastEigenvalues) {
+    public void setFastEigenvalues( boolean fastEigenvalues ) {
         this.fastEigenvalues = fastEigenvalues;
     }
 
@@ -87,7 +92,7 @@ public class SymmetricQrAlgorithm_FDRM {
      * @return The eigenvalue.
      */
     public float getEigenvalue( int index ) {
-       return helper.diag[index];
+        return helper.diag[index];
     }
 
     /**
@@ -109,12 +114,12 @@ public class SymmetricQrAlgorithm_FDRM {
      * @return true if it succeeds and false if it fails.
      */
     public boolean process( int sideLength,
-                            float diag[] ,
-                            float off[] ,
-                            float eigenvalues[] ) {
-        if( diag != null )
-            helper.init(diag,off,sideLength);
-        if( Q == null )
+                            @Nullable float[] diag,
+                            @Nullable float[] off,
+                            float[] eigenvalues ) {
+        if (diag != null && off != null)
+            helper.init(diag, off, sideLength);
+        if (Q == null)
             Q = CommonOps_FDRM.identity(helper.N);
         helper.setQ(Q);
 
@@ -126,38 +131,37 @@ public class SymmetricQrAlgorithm_FDRM {
     }
 
     public boolean process( int sideLength,
-                            float diag[] ,
-                            float off[] ) {
-        if( diag != null )
-            helper.init(diag,off,sideLength);
+                            @Nullable float[] diag,
+                            @Nullable float[] off ) {
+        if (diag != null && off != null)
+            helper.init(diag, off, sideLength);
 
         this.followingScript = false;
-        this.eigenvalues = null;
+        this.eigenvalues = UtilEjml.ZERO_LENGTH_F32;
 
         return _process();
     }
 
-
     private boolean _process() {
-        while( helper.x2 >= 0 ) {
+        while (helper.x2 >= 0) {
             // if it has cycled too many times give up
-            if( helper.steps > maxIterations ) {
+            if (helper.steps > maxIterations) {
                 return false;
             }
 
-            if( helper.x1 == helper.x2 ) {
+            if (helper.x1 == helper.x2) {
 //                System.out.println("Steps = "+helper.steps);
                 // see if it is done processing this submatrix
                 helper.resetSteps();
-                if( !helper.nextSplit() )
+                if (!helper.nextSplit())
                     break;
-            } else if( fastEigenvalues && helper.x2-helper.x1 == 1 ) {
+            } else if (fastEigenvalues && helper.x2 - helper.x1 == 1) {
                 // There are analytical solutions to this case. Just compute them directly.
                 // TODO might be able to speed this up by doing the 3 by 3 case also
                 helper.resetSteps();
                 helper.eigenvalue2by2(helper.x1);
-                helper.setSubmatrix(helper.x2,helper.x2);
-            } else if( helper.steps-helper.lastExceptional > exceptionalThresh ){
+                helper.setSubmatrix(helper.x2, helper.x2);
+            } else if (helper.steps - helper.lastExceptional > exceptionalThresh) {
                 // it isn't a good sign if exceptional shifts are being done here
                 helper.exceptionalShift();
             } else {
@@ -176,18 +180,18 @@ public class SymmetricQrAlgorithm_FDRM {
      */
     public void performStep() {
         // check for zeros
-        for( int i = helper.x2-1; i >= helper.x1; i-- ) {
-            if( helper.isZero(i) ) {
+        for (int i = helper.x2 - 1; i >= helper.x1; i--) {
+            if (helper.isZero(i)) {
                 helper.splits[helper.numSplits++] = i;
-                helper.x1 = i+1;
+                helper.x1 = i + 1;
                 return;
             }
         }
 
         float lambda;
 
-        if( followingScript ) {
-            if( helper.steps > 10 ) {
+        if (followingScript) {
+            if (helper.steps > 10) {
                 followingScript = false;
                 return;
             } else {
@@ -201,6 +205,6 @@ public class SymmetricQrAlgorithm_FDRM {
         }
 
         // similar transforms
-        helper.performImplicitSingleStep(lambda,false);
+        helper.performImplicitSingleStep(lambda, false);
     }
 }

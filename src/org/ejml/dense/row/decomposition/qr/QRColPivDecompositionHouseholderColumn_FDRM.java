@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,10 +18,13 @@
 
 package org.ejml.dense.row.decomposition.qr;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
+import org.ejml.dense.row.decomposition.UtilDecompositons_FDRM;
 import org.ejml.interfaces.decomposition.QRPDecomposition_F32;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -42,14 +45,15 @@ import org.ejml.interfaces.decomposition.QRPDecomposition_F32;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.decomposition.qr.QRColPivDecompositionHouseholderColumn_DDRM")
 public class QRColPivDecompositionHouseholderColumn_FDRM
         extends QRDecompositionHouseholderColumn_FDRM
-        implements QRPDecomposition_F32<FMatrixRMaj>
-{
+        implements QRPDecomposition_F32<FMatrixRMaj> {
     // the ordering of each column, the current column i is the original column pivots[i]
-    protected int pivots[];
+    protected int[] pivots;
     // F-norm  squared for each column
-    protected float normsCol[];
+    protected float[] normsCol;
 
     // threshold used to determine when a column is considered to be singular
     // Threshold is relative to the maxAbs
@@ -66,7 +70,7 @@ public class QRColPivDecompositionHouseholderColumn_FDRM
      *
      * @param singularThreshold The singular threshold.
      */
-    public QRColPivDecompositionHouseholderColumn_FDRM(float singularThreshold) {
+    public QRColPivDecompositionHouseholderColumn_FDRM( float singularThreshold ) {
         this.singularThreshold = singularThreshold;
     }
 
@@ -79,10 +83,10 @@ public class QRColPivDecompositionHouseholderColumn_FDRM
     }
 
     @Override
-    public void setExpectedMaxSize( int numRows , int numCols ) {
-        super.setExpectedMaxSize(numRows,numCols);
+    public void setExpectedMaxSize( int numRows, int numCols ) {
+        super.setExpectedMaxSize(numRows, numCols);
 
-        if( pivots == null || pivots.length < numCols  ) {
+        if (pivots == null || pivots.length < numCols) {
             pivots = new int[numCols];
             normsCol = new float[numCols];
         }
@@ -95,31 +99,15 @@ public class QRColPivDecompositionHouseholderColumn_FDRM
      * @param Q The orthogonal Q matrix.
      */
     @Override
-    public FMatrixRMaj getQ(FMatrixRMaj Q , boolean compact ) {
-        if( compact ) {
-            if( Q == null ) {
-                Q = CommonOps_FDRM.identity(numRows,minLength);
-            } else {
-                if( Q.numRows != numRows || Q.numCols != minLength ) {
-                    throw new IllegalArgumentException("Unexpected matrix dimension.");
-                } else {
-                    CommonOps_FDRM.setIdentity(Q);
-                }
-            }
+    public FMatrixRMaj getQ( @Nullable FMatrixRMaj Q, boolean compact ) {
+        if (compact) {
+            Q = UtilDecompositons_FDRM.ensureIdentity(Q, numRows, minLength);
         } else {
-            if( Q == null ) {
-                Q = CommonOps_FDRM.identity(numRows);
-            } else {
-                if( Q.numRows != numRows || Q.numCols != numRows ) {
-                    throw new IllegalArgumentException("Unexpected matrix dimension.");
-                } else {
-                    CommonOps_FDRM.setIdentity(Q);
-                }
-            }
+            Q = UtilDecompositons_FDRM.ensureIdentity(Q, numRows, numRows);
         }
 
-        for( int j = rank-1; j >= 0; j-- ) {
-            float u[] = dataQR[j];
+        for (int j = rank - 1; j >= 0; j--) {
+            float[] u = dataQR[j];
 
             float vv = u[j];
             u[j] = 1;
@@ -153,15 +141,15 @@ public class QRColPivDecompositionHouseholderColumn_FDRM
         setupPivotInfo();
 
         // go through each column and perform the decomposition
-        for( int j = 0; j < minLength; j++ ) {
-            if( j > 0 )
+        for (int j = 0; j < minLength; j++) {
+            if (j > 0)
                 updateNorms(j);
             swapColumns(j);
             // if its degenerate stop processing
-            if( !householderPivot(j) )
+            if (!householderPivot(j))
                 break;
             updateA(j);
-            rank = j+1;
+            rank = j + 1;
         }
 
         return true;
@@ -171,11 +159,11 @@ public class QRColPivDecompositionHouseholderColumn_FDRM
      * Sets the initial pivot ordering and compute the F-norm squared for each column
      */
     protected void setupPivotInfo() {
-        for( int col = 0; col < numCols; col++ ) {
+        for (int col = 0; col < numCols; col++) {
             pivots[col] = col;
-            float c[] = dataQR[col];
+            float[] c = dataQR[col];
             float norm = 0;
-            for( int row = 0; row < numRows; row++ ) {
+            for (int row = 0; row < numRows; row++) {
                 float element = c[row];
                 norm += element*element;
             }
@@ -183,17 +171,16 @@ public class QRColPivDecompositionHouseholderColumn_FDRM
         }
     }
 
-
     /**
      * Performs an efficient update of each columns' norm
      */
     protected void updateNorms( int j ) {
         boolean foundNegative = false;
-        for( int col = j; col < numCols; col++ ) {
-            float e = dataQR[col][j-1];
+        for (int col = j; col < numCols; col++) {
+            float e = dataQR[col][j - 1];
             float v = normsCol[col] -= e*e;
 
-            if( v < 0 ) {
+            if (v < 0) {
                 foundNegative = true;
                 break;
             }
@@ -201,11 +188,11 @@ public class QRColPivDecompositionHouseholderColumn_FDRM
 
         // if a negative sum has been found then clearly too much precision has been lost
         // and it should recompute the column norms from scratch
-        if( foundNegative ) {
-            for( int col = j; col < numCols; col++ ) {
-                float u[] = dataQR[col];
+        if (foundNegative) {
+            for (int col = j; col < numCols; col++) {
+                float[] u = dataQR[col];
                 float actual = 0;
-                for( int i=j; i < numRows; i++ ) {
+                for (int i = j; i < numRows; i++) {
                     float v = u[i];
                     actual += v*v;
                 }
@@ -224,15 +211,15 @@ public class QRColPivDecompositionHouseholderColumn_FDRM
         // find the column with the largest norm
         int largestIndex = j;
         float largestNorm = normsCol[j];
-        for( int col = j+1; col < numCols; col++ ) {
+        for (int col = j + 1; col < numCols; col++) {
             float n = normsCol[col];
-            if( n > largestNorm ) {
+            if (n > largestNorm) {
                 largestNorm = n;
                 largestIndex = col;
             }
         }
         // swap the columns
-        float []tempC = dataQR[j];
+        float[] tempC = dataQR[j];
         dataQR[j] = dataQR[largestIndex];
         dataQR[largestIndex] = tempC;
         float tempN = normsCol[j];
@@ -258,20 +245,19 @@ public class QRColPivDecompositionHouseholderColumn_FDRM
      * @param j Which submatrix to work off of.
      * @return false if it is degenerate
      */
-    protected boolean householderPivot(int j)
-    {
-        final float u[] = dataQR[j];
+    protected boolean householderPivot( int j ) {
+        final float[] u = dataQR[j];
 
         // find the largest value in this column
         // this is used to normalize the column and mitigate overflow/underflow
         final float max = QrHelperFunctions_FDRM.findMax(u, j, numRows - j);
 
-        if( max <= singularThreshold*maxValueAbs ) {
+        if (max <= singularThreshold*maxValueAbs) {
             return false;
         } else {
             // computes tau and normalizes u by max
             tau = QrHelperFunctions_FDRM.computeTauAndDivide(j, numRows, u, max);
-            
+
             // divide u by u_0
             float u_0 = u[j] + tau;
             QrHelperFunctions_FDRM.divideElements(j + 1, numRows, u, u_0);
@@ -298,19 +284,19 @@ public class QRColPivDecompositionHouseholderColumn_FDRM
     }
 
     @Override
-    public FMatrixRMaj getColPivotMatrix(FMatrixRMaj P) {
-        if( P == null )
-            P = new FMatrixRMaj(numCols,numCols);
-        else if( P.numRows != numCols )
-            throw new IllegalArgumentException("Number of rows must be "+numCols);
-        else if( P.numCols != numCols )
-            throw new IllegalArgumentException("Number of columns must be "+numCols);
+    public FMatrixRMaj getColPivotMatrix( @Nullable FMatrixRMaj P ) {
+        if (P == null)
+            P = new FMatrixRMaj(numCols, numCols);
+        else if (P.numRows != numCols)
+            throw new IllegalArgumentException("Number of rows must be " + numCols);
+        else if (P.numCols != numCols)
+            throw new IllegalArgumentException("Number of columns must be " + numCols);
         else {
             P.zero();
         }
 
-        for( int i = 0; i < numCols; i++ ) {
-            P.set(pivots[i],i,1);
+        for (int i = 0; i < numCols; i++) {
+            P.set(pivots[i], i, 1);
         }
 
         return P;

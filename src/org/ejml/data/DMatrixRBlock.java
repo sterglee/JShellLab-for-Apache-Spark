@@ -157,12 +157,12 @@ public class DMatrixRBlock extends DMatrixD1 {
 
     @Override
     public <T extends Matrix> T createLike() {
-        return (T)new DMatrixRBlock(numRows,numCols);
+        return (T)new DMatrixRBlock(numRows,numCols,blockLength);
     }
 
     @Override
     public <T extends Matrix> T create(int numRows, int numCols) {
-        return (T)new DMatrixRBlock(numRows,numCols);
+        return (T)new DMatrixRBlock(numRows,numCols,blockLength);
     }
 
     @Override
@@ -185,6 +185,7 @@ public class DMatrixRBlock extends DMatrixD1 {
         return numRows*numCols;
     }
 
+    @Override
     public DMatrixRBlock copy() {
         DMatrixRBlock A = new DMatrixRBlock(numRows,numCols,blockLength);
         A.set(this);

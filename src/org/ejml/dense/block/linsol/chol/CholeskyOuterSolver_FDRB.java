@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,8 @@
 
 package org.ejml.dense.block.linsol.chol;
 
+import javax.annotation.Generated;
+import org.ejml.data.FGrowArray;
 import org.ejml.data.FMatrixRBlock;
 import org.ejml.data.FSubmatrixD1;
 import org.ejml.dense.block.MatrixOps_FDRB;
@@ -26,10 +28,19 @@ import org.ejml.dense.block.decomposition.chol.CholeskyOuterForm_FDRB;
 import org.ejml.dense.row.SpecializedOps_FDRM;
 import org.ejml.interfaces.decomposition.CholeskyDecomposition_F32;
 import org.ejml.interfaces.linsol.LinearSolverDense;
+import org.jetbrains.annotations.Nullable;
+import pabeles.concurrency.GrowArray;
 
+//CONCURRENT_INLINE import org.ejml.dense.block.decomposition.chol.CholeskyOuterForm_MT_FDRB;
+//CONCURRENT_INLINE import org.ejml.dense.block.TriangularSolver_MT_FDRB;
+//CONCURRENT_INLINE import org.ejml.concurrency.EjmlConcurrency;
+
+//CONCURRENT_MACRO MatrixMult_FDRB MatrixMult_MT_FDRB
+//CONCURRENT_MACRO TriangularSolver_FDRB TriangularSolver_MT_FDRB
+//CONCURRENT_MACRO CholeskyOuterForm_FDRB CholeskyOuterForm_MT_FDRB
 
 /**
- * <p> Linear solver that uses a block cholesky decomposition. </p>
+ * <p> Linear solver that uses a block cholesky decomposition.</p>
  *
  * <p>
  * Solver works by using the standard Cholesky solving strategy:<br>
@@ -47,27 +58,29 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.block.linsol.chol.CholeskyOuterSolver_DDRB")
 public class CholeskyOuterSolver_FDRB implements LinearSolverDense<FMatrixRBlock> {
 
     // cholesky decomposition
-    private CholeskyOuterForm_FDRB decomposer = new CholeskyOuterForm_FDRB(true);
+    private final CholeskyOuterForm_FDRB decomposer = new CholeskyOuterForm_FDRB(true);
 
     // size of a block take from input matrix
     private int blockLength;
 
     // temporary data structure used in some calculation.
-    private float temp[];
+    private final GrowArray<FGrowArray> workspace = new GrowArray<>(FGrowArray::new);
 
     /**
      * Decomposes and overwrites the input matrix.
      *
      * @param A Semi-Positive Definite (SPD) system matrix. Modified. Reference saved.
-     * @return If the matrix can be decomposed.  Will always return false of not SPD.
+     * @return If the matrix can be decomposed. Will always return false of not SPD.
      */
     @Override
-    public boolean setA(FMatrixRBlock A) {
+    public boolean setA( FMatrixRBlock A ) {
         // Extract a lower triangular solution
-        if( !decomposer.decompose(A) )
+        if (!decomposer.decompose(A))
             return false;
 
         blockLength = A.blockLength;
@@ -81,51 +94,44 @@ public class CholeskyOuterSolver_FDRB implements LinearSolverDense<FMatrixRBlock
     }
 
     /**
-     * If X == null then the solution is written into B.  Otherwise the solution is copied
+     * If X == null then the solution is written into B. Otherwise the solution is copied
      * from B into X.
      */
     @Override
-    public void solve(FMatrixRBlock B, FMatrixRBlock X) {
-        if( B.blockLength != blockLength )
+    public void solve( FMatrixRBlock B, @Nullable FMatrixRBlock X ) {
+        if (B.blockLength != blockLength)
             throw new IllegalArgumentException("Unexpected blocklength in B.");
 
         FSubmatrixD1 L = new FSubmatrixD1(decomposer.getT(null));
 
-        if( X != null ) {
-            if( X.blockLength != blockLength )
-                throw new IllegalArgumentException("Unexpected blocklength in X.");
-            if( X.numRows != L.col1 ) throw new IllegalArgumentException("Not enough rows in X");
+        if (X == null) {
+            X = B.create(L.col1, B.numCols);
+        } else {
+            X.reshape(L.col1, B.numCols, blockLength, false);
         }
-        
-        if( B.numRows != L.col1 ) throw new IllegalArgumentException("Not enough rows in B");
 
         //  L * L^T*X = B
 
         // Solve for Y:  L*Y = B
-        TriangularSolver_FDRB.solve(blockLength,false,L,new FSubmatrixD1(B),false);
+        TriangularSolver_FDRB.solve(blockLength, false, L, new FSubmatrixD1(B), false);
 
         // L^T * X = Y
-        TriangularSolver_FDRB.solve(blockLength,false,L,new FSubmatrixD1(B),true);
+        TriangularSolver_FDRB.solve(blockLength, false, L, new FSubmatrixD1(B), true);
 
-        if( X != null ) {
+        if (X != null) {
             // copy the solution from B into X
-            MatrixOps_FDRB.extractAligned(B,X);
+            MatrixOps_FDRB.extractAligned(B, X);
         }
-
     }
 
     @Override
-    public void invert(FMatrixRBlock A_inv) {
+    public void invert( FMatrixRBlock A_inv ) {
         FMatrixRBlock T = decomposer.getT(null);
-        if( A_inv.numRows != T.numRows || A_inv.numCols != T.numCols )
+        if (A_inv.numRows != T.numRows || A_inv.numCols != T.numCols)
             throw new IllegalArgumentException("Unexpected number or rows and/or columns");
 
-
-        if( temp == null || temp.length < blockLength*blockLength )
-            temp = new float[ blockLength* blockLength ];
-
         // zero the upper triangular portion of A_inv
-        MatrixOps_FDRB.zeroTriangle(true,A_inv);
+        MatrixOps_FDRB.zeroTriangle(true, A_inv);
 
         FSubmatrixD1 L = new FSubmatrixD1(T);
         FSubmatrixD1 B = new FSubmatrixD1(A_inv);
@@ -133,12 +139,12 @@ public class CholeskyOuterSolver_FDRB implements LinearSolverDense<FMatrixRBlock
         // invert L from cholesky decomposition and write the solution into the lower
         // triangular portion of A_inv
         // B = inv(L)
-        TriangularSolver_FDRB.invert(blockLength,false,L,B,temp);
+        TriangularSolver_FDRB.invert(blockLength, false, L, B, workspace);
 
         // B = L^-T * B
         // todo could speed up by taking advantage of B being lower triangular
         // todo take advantage of symmetry
-        TriangularSolver_FDRB.solveL(blockLength,L,B,true);
+        TriangularSolver_FDRB.solveL(blockLength, L, B, true);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.linsol.svd;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
 import org.ejml.dense.row.SingularOps_FDRM;
@@ -28,36 +29,38 @@ import org.ejml.interfaces.decomposition.SingularValueDecomposition_F32;
 /**
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.linsol.svd.SolveNullSpaceSvd_DDRM")
 public class SolveNullSpaceSvd_FDRM implements SolveNullSpace<FMatrixRMaj> {
 
     boolean compact = true;
-    SingularValueDecomposition_F32<FMatrixRMaj> svd = DecompositionFactory_FDRM.svd(1,1,false,true,compact);
+    SingularValueDecomposition_F32<FMatrixRMaj> svd = DecompositionFactory_FDRM.svd(1, 1, false, true, compact);
     FMatrixRMaj V;
 
     @Override
-    public boolean process(FMatrixRMaj input, int numberOfSingular, FMatrixRMaj nullspace) {
-        if( input.numCols > input.numRows ) {
-            if( compact ) {
+    public boolean process( FMatrixRMaj input, int numberOfSingular, FMatrixRMaj nullspace ) {
+        if (input.numCols > input.numRows) {
+            if (compact) {
                 svd = DecompositionFactory_FDRM.svd(1, 1, false, true, false);
                 compact = false;
             }
         } else {
-            if( !compact ) {
+            if (!compact) {
                 svd = DecompositionFactory_FDRM.svd(1, 1, false, true, true);
                 compact = true;
             }
         }
 
-        if( !svd.decompose(input))
+        if (!svd.decompose(input))
             return false;
 
-        float []singularValues = svd.getSingularValues();
-        V = svd.getV(V,false);
+        float[] singularValues = svd.getSingularValues();
+        V = svd.getV(V, false);
 
-        SingularOps_FDRM.descendingOrder(null,false,singularValues,svd.numberOfSingularValues(),V,false);
+        SingularOps_FDRM.descendingOrder(null, false, singularValues, svd.numberOfSingularValues(), V, false);
 
-        nullspace.reshape(V.numRows,numberOfSingular);
-        CommonOps_FDRM.extract(V,0,V.numRows,V.numCols-numberOfSingular,V.numCols,nullspace,0,0);
+        nullspace.reshape(V.numRows, numberOfSingular);
+        CommonOps_FDRM.extract(V, 0, V.numRows, V.numCols - numberOfSingular, V.numCols, nullspace, 0, 0);
 
         return true;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,13 +18,13 @@
 
 package org.ejml.dense.row.linsol.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.CMatrixRMaj;
 import org.ejml.dense.row.SpecializedOps_CDRM;
 import org.ejml.dense.row.decompose.TriangularSolver_CDRM;
 import org.ejml.dense.row.decompose.qr.QRDecompositionHouseholderTran_CDRM;
 import org.ejml.dense.row.linsol.LinearSolverAbstract_CDRM;
 import org.ejml.interfaces.decomposition.QRDecomposition;
-
 
 /**
  * <p>
@@ -44,11 +44,13 @@ import org.ejml.interfaces.decomposition.QRDecomposition;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.linsol.qr.LinearSolverQrHouseTran_ZDRM")
 public class LinearSolverQrHouseTran_CDRM extends LinearSolverAbstract_CDRM {
 
-    private QRDecompositionHouseholderTran_CDRM decomposer;
+    private final QRDecompositionHouseholderTran_CDRM decomposer;
 
-    private float []a;
+    private float[] a;
 
     protected int maxRows = -1;
     protected int maxCols = -1;
@@ -63,11 +65,11 @@ public class LinearSolverQrHouseTran_CDRM extends LinearSolverAbstract_CDRM {
         decomposer = new QRDecompositionHouseholderTran_CDRM();
     }
 
-    public void setMaxSize( int maxRows , int maxCols )
-    {
-        this.maxRows = maxRows; this.maxCols = maxCols;
+    public void setMaxSize( int maxRows, int maxCols ) {
+        this.maxRows = maxRows;
+        this.maxCols = maxCols;
 
-        a = new float[ maxRows*2 ];
+        a = new float[maxRows*2];
     }
 
     /**
@@ -76,12 +78,12 @@ public class LinearSolverQrHouseTran_CDRM extends LinearSolverAbstract_CDRM {
      * @param A not modified.
      */
     @Override
-    public boolean setA(CMatrixRMaj A) {
-        if( A.numRows > maxRows || A.numCols > maxCols )
-            setMaxSize(A.numRows,A.numCols);
+    public boolean setA( CMatrixRMaj A ) {
+        if (A.numRows > maxRows || A.numCols > maxCols)
+            setMaxSize(A.numRows, A.numCols);
 
         _setA(A);
-        if( !decomposer.decompose(A) )
+        if (!decomposer.decompose(A))
             return false;
 
         QR = decomposer.getQR();
@@ -102,26 +104,25 @@ public class LinearSolverQrHouseTran_CDRM extends LinearSolverAbstract_CDRM {
      * @param X An n by m matrix where the solution is written to.  Modified.
      */
     @Override
-    public void solve(CMatrixRMaj B, CMatrixRMaj X) {
-        if( X.numRows != numCols )
-            throw new IllegalArgumentException("Unexpected dimensions for X: X rows = "+X.numRows+" expected = "+numCols);
-        else if( B.numRows != numRows || B.numCols != X.numCols )
+    public void solve( CMatrixRMaj B, CMatrixRMaj X ) {
+        if (B.numRows != numRows)
             throw new IllegalArgumentException("Unexpected dimensions for B");
+        X.reshape(numCols, B.numCols);
 
-        U = decomposer.getR(U,true);
-        final float gammas[] = decomposer.getGammas();
-        final float dataQR[] = QR.data;
+        U = decomposer.getR(U, true);
+        final float[] gammas = decomposer.getGammas();
+        final float[] dataQR = QR.data;
 
         final int BnumCols = B.numCols;
 
         // solve each column one by one
-        for( int colB = 0; colB < BnumCols; colB++ ) {
+        for (int colB = 0; colB < BnumCols; colB++) {
 
             // make a copy of this column in the vector
-            for( int i = 0; i < numRows; i++ ) {
+            for (int i = 0; i < numRows; i++) {
                 int indexB = (i*BnumCols + colB)*2;
-                a[i*2]   = B.data[indexB];
-                a[i*2+1] = B.data[indexB+1];
+                a[i*2] = B.data[indexB];
+                a[i*2 + 1] = B.data[indexB + 1];
             }
 
             // Solve Qa=b
@@ -129,19 +130,19 @@ public class LinearSolverQrHouseTran_CDRM extends LinearSolverAbstract_CDRM {
             // a = Q_{n-1}...Q_2*Q_1*b
             //
             // Q_n*b = (I-gamma*u*u^H)*b = b - u*(gamma*U^H*b)
-            for( int n = 0; n < numCols; n++ ) {
+            for (int n = 0; n < numCols; n++) {
                 int indexU = (n*numRows + n + 1)*2;
 
                 float realUb = a[n*2];
-                float imagUb = a[n*2+1];
+                float imagUb = a[n*2 + 1];
 
                 // U^H*b
-                for( int i = n+1; i < numRows; i++ ) {
+                for (int i = n + 1; i < numRows; i++) {
                     float realU = dataQR[indexU++];
                     float imagU = -dataQR[indexU++];
 
                     float realB = a[i*2];
-                    float imagB = a[i*2+1];
+                    float imagB = a[i*2 + 1];
 
                     realUb += realU*realB - imagU*imagB;
                     imagUb += realU*imagB + imagU*realB;
@@ -151,16 +152,16 @@ public class LinearSolverQrHouseTran_CDRM extends LinearSolverAbstract_CDRM {
                 realUb *= gammas[n];
                 imagUb *= gammas[n];
 
-                a[n*2]   -= realUb;
-                a[n*2+1] -= imagUb;
+                a[n*2] -= realUb;
+                a[n*2 + 1] -= imagUb;
 
                 indexU = (n*numRows + n + 1)*2;
-                for( int i = n+1; i < numRows; i++) {
+                for (int i = n + 1; i < numRows; i++) {
                     float realU = dataQR[indexU++];
                     float imagU = dataQR[indexU++];
 
-                    a[i*2]   -= realU*realUb - imagU*imagUb;
-                    a[i*2+1] -= realU*imagUb + imagU*realUb;
+                    a[i*2] -= realU*realUb - imagU*imagUb;
+                    a[i*2 + 1] -= realU*imagUb + imagU*realUb;
                 }
             }
 
@@ -169,11 +170,11 @@ public class LinearSolverQrHouseTran_CDRM extends LinearSolverAbstract_CDRM {
 
             // save the results
 
-            for( int i = 0; i < numCols; i++ ) {
-                int indexX = (i*X.numCols+colB)*2;
+            for (int i = 0; i < numCols; i++) {
+                int indexX = (i*X.numCols + colB)*2;
 
-                X.data[indexX]   = a[i*2];
-                X.data[indexX+1] = a[i*2+1];
+                X.data[indexX] = a[i*2];
+                X.data[indexX + 1] = a[i*2 + 1];
             }
         }
     }

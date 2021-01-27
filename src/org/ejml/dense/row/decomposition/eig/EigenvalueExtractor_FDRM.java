@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,18 +18,19 @@
 
 package org.ejml.dense.row.decomposition.eig;
 
+import javax.annotation.Generated;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.FMatrixRMaj;
-
 
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.decomposition.eig.EigenvalueExtractor_DDRM")
 public interface EigenvalueExtractor_FDRM {
 
-    public boolean process( FMatrixRMaj A );
+    boolean process( FMatrixRMaj A );
 
-    public int getNumberOfEigenvalues();
+    int getNumberOfEigenvalues();
 
-    public Complex_F32[] getEigenvalues();
+    Complex_F32[] getEigenvalues();
 }

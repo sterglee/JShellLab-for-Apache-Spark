@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.linsol.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.SpecializedOps_FDRM;
 import org.ejml.dense.row.decomposition.TriangularSolver_FDRM;
@@ -25,7 +26,6 @@ import org.ejml.dense.row.decomposition.qr.QRDecompositionHouseholderColumn_FDRM
 import org.ejml.dense.row.decomposition.qr.QrHelperFunctions_FDRM;
 import org.ejml.dense.row.linsol.LinearSolverAbstract_FDRM;
 import org.ejml.interfaces.decomposition.QRDecomposition;
-
 
 /**
  * <p>
@@ -45,30 +45,36 @@ import org.ejml.interfaces.decomposition.QRDecomposition;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.linsol.qr.LinearSolverQrHouseCol_DDRM")
 public class LinearSolverQrHouseCol_FDRM extends LinearSolverAbstract_FDRM {
 
-    private QRDecompositionHouseholderColumn_FDRM decomposer;
+    protected final QRDecompositionHouseholderColumn_FDRM decomposer;
 
-    private FMatrixRMaj a = new FMatrixRMaj(1,1);
-    private FMatrixRMaj temp = new FMatrixRMaj(1,1);
+    protected final FMatrixRMaj a = new FMatrixRMaj(1, 1);
+    protected final FMatrixRMaj temp = new FMatrixRMaj(1, 1);
 
     protected int maxRows = -1;
     protected int maxCols = -1;
 
-    private float[][] QR; // a column major QR matrix
-    private FMatrixRMaj R = new FMatrixRMaj(1,1);
-    private float gammas[];
+    protected float[][] QR; // a column major QR matrix
+    protected final FMatrixRMaj R = new FMatrixRMaj(1, 1);
+    protected float[] gammas;
 
     /**
      * Creates a linear solver that uses QR decomposition.
      */
     public LinearSolverQrHouseCol_FDRM() {
-        decomposer = new QRDecompositionHouseholderColumn_FDRM();
+        this(new QRDecompositionHouseholderColumn_FDRM());
     }
 
-    public void setMaxSize( int maxRows , int maxCols )
-    {
-        this.maxRows = maxRows; this.maxCols = maxCols;
+    protected LinearSolverQrHouseCol_FDRM( QRDecompositionHouseholderColumn_FDRM decomposer ) {
+        this.decomposer = decomposer;
+    }
+
+    public void setMaxSize( int maxRows, int maxCols ) {
+        this.maxRows = maxRows;
+        this.maxCols = maxCols;
     }
 
     /**
@@ -77,23 +83,23 @@ public class LinearSolverQrHouseCol_FDRM extends LinearSolverAbstract_FDRM {
      * @param A not modified.
      */
     @Override
-    public boolean setA(FMatrixRMaj A) {
-        if( A.numRows < A.numCols )
+    public boolean setA( FMatrixRMaj A ) {
+        if (A.numRows < A.numCols)
             throw new IllegalArgumentException("Can't solve for wide systems.  More variables than equations.");
-        if( A.numRows > maxRows || A.numCols > maxCols )
-            setMaxSize(A.numRows,A.numCols);
+        if (A.numRows > maxRows || A.numCols > maxCols)
+            setMaxSize(A.numRows, A.numCols);
 
-        R.reshape(A.numCols,A.numCols);
-        a.reshape(A.numRows,1);
-        temp.reshape(A.numRows,1);
+        R.reshape(A.numCols, A.numCols);
+        a.reshape(A.numRows, 1);
+        temp.reshape(A.numRows, 1);
 
         _setA(A);
-        if( !decomposer.decompose(A) )
+        if (!decomposer.decompose(A))
             return false;
 
         gammas = decomposer.getGammas();
         QR = decomposer.getQR();
-        decomposer.getR(R,true);
+        decomposer.getR(R, true);
         return true;
     }
 
@@ -109,18 +115,18 @@ public class LinearSolverQrHouseCol_FDRM extends LinearSolverAbstract_FDRM {
      * @param X An n by m matrix where the solution is written to.  Modified.
      */
     @Override
-    public void solve(FMatrixRMaj B, FMatrixRMaj X) {
-        if( B.numRows != numRows )
-            throw new IllegalArgumentException("Unexpected dimensions for X: X rows = "+X.numRows+" expected = "+numRows);
-        X.reshape(numCols,B.numCols);
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
+        if (B.numRows != numRows)
+            throw new IllegalArgumentException("Unexpected dimensions for X: X rows = " + X.numRows + " expected = " + numRows);
+        X.reshape(numCols, B.numCols);
 
         int BnumCols = B.numCols;
-        
+
         // solve each column one by one
-        for( int colB = 0; colB < BnumCols; colB++ ) {
+        for (int colB = 0; colB < BnumCols; colB++) {
 
             // make a copy of this column in the vector
-            for( int i = 0; i < numRows; i++ ) {
+            for (int i = 0; i < numRows; i++) {
                 a.data[i] = B.data[i*BnumCols + colB];
             }
 
@@ -129,21 +135,17 @@ public class LinearSolverQrHouseCol_FDRM extends LinearSolverAbstract_FDRM {
             // a = Q_{n-1}...Q_2*Q_1*b
             //
             // Q_n*b = (I-gamma*u*u^T)*b = b - u*(gamma*U^T*b)
-            for( int n = 0; n < numCols; n++ ) {
-                float []u = QR[n];
-
-                float vv = u[n];
-                u[n] = 1;
-                QrHelperFunctions_FDRM.rank1UpdateMultR(a, u, gammas[n], 0, n, numRows, temp.data);
-                u[n] = vv;
+            for (int n = 0; n < numCols; n++) {
+                float[] u = QR[n];
+                QrHelperFunctions_FDRM.rank1UpdateMultR_u0(a, u, 1.0f, gammas[n], 0, n, numRows, temp.data);
             }
 
             // solve for Rx = b using the standard upper triangular solver
-            TriangularSolver_FDRM.solveU(R.data,a.data,numCols);
+            TriangularSolver_FDRM.solveU(R.data, a.data, numCols);
 
             // save the results
-            for( int i = 0; i < numCols; i++ ) {
-                X.data[i*X.numCols+colB] = a.data[i];
+            for (int i = 0; i < numCols; i++) {
+                X.data[i*X.numCols + colB] = a.data[i];
             }
         }
     }

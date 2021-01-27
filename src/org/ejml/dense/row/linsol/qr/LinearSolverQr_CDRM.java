@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,13 +18,13 @@
 
 package org.ejml.dense.row.linsol.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.CMatrixRMaj;
 import org.ejml.dense.row.CommonOps_CDRM;
 import org.ejml.dense.row.SpecializedOps_CDRM;
 import org.ejml.dense.row.decompose.TriangularSolver_CDRM;
 import org.ejml.dense.row.linsol.LinearSolverAbstract_CDRM;
 import org.ejml.interfaces.decomposition.QRDecomposition;
-
 
 /**
  * <p>
@@ -40,9 +40,11 @@ import org.ejml.interfaces.decomposition.QRDecomposition;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.linsol.qr.LinearSolverQr_ZDRM")
 public class LinearSolverQr_CDRM extends LinearSolverAbstract_CDRM {
 
-    private QRDecomposition<CMatrixRMaj> decomposer;
+    private final QRDecomposition<CMatrixRMaj> decomposer;
 
     protected int maxRows = -1;
     protected int maxCols = -1;
@@ -51,13 +53,12 @@ public class LinearSolverQr_CDRM extends LinearSolverAbstract_CDRM {
     protected CMatrixRMaj Qt;
     protected CMatrixRMaj R;
 
-    private CMatrixRMaj Y,Z;
+    private CMatrixRMaj Y, Z;
 
     /**
      * Creates a linear solver that uses QR decomposition.
-     *
      */
-    public LinearSolverQr_CDRM(QRDecomposition<CMatrixRMaj> decomposer) {
+    public LinearSolverQr_CDRM( QRDecomposition<CMatrixRMaj> decomposer ) {
         this.decomposer = decomposer;
     }
 
@@ -67,16 +68,16 @@ public class LinearSolverQr_CDRM extends LinearSolverAbstract_CDRM {
      * @param maxRows Maximum number of rows in the matrix it will decompose.
      * @param maxCols Maximum number of columns in the matrix it will decompose.
      */
-    public void setMaxSize( int maxRows , int maxCols )
-    {
-        this.maxRows = maxRows; this.maxCols = maxCols;
+    public void setMaxSize( int maxRows, int maxCols ) {
+        this.maxRows = maxRows;
+        this.maxCols = maxCols;
 
-        Q = new CMatrixRMaj(maxRows,maxRows);
-        Qt = new CMatrixRMaj(maxRows,maxRows);
-        R = new CMatrixRMaj(maxRows,maxCols);
+        Q = new CMatrixRMaj(maxRows, maxRows);
+        Qt = new CMatrixRMaj(maxRows, maxRows);
+        R = new CMatrixRMaj(maxRows, maxCols);
 
-        Y = new CMatrixRMaj(maxRows,1);
-        Z = new CMatrixRMaj(maxRows,1);
+        Y = new CMatrixRMaj(maxRows, 1);
+        Z = new CMatrixRMaj(maxRows, 1);
     }
 
     /**
@@ -85,20 +86,20 @@ public class LinearSolverQr_CDRM extends LinearSolverAbstract_CDRM {
      * @param A not modified.
      */
     @Override
-    public boolean setA(CMatrixRMaj A) {
-        if( A.numRows > maxRows || A.numCols > maxCols ) {
-            setMaxSize(A.numRows,A.numCols);
+    public boolean setA( CMatrixRMaj A ) {
+        if (A.numRows > maxRows || A.numCols > maxCols) {
+            setMaxSize(A.numRows, A.numCols);
         }
 
         _setA(A);
-        if( !decomposer.decompose(A) )
+        if (!decomposer.decompose(A))
             return false;
 
-        Q.reshape(numRows,numRows);
-        R.reshape(numRows,numCols);
-        decomposer.getQ(Q,false);
-        decomposer.getR(R,false);
-        CommonOps_CDRM.transposeConjugate(Q,Qt);
+        Q.reshape(numRows, numRows);
+        R.reshape(numRows, numCols);
+        decomposer.getQ(Q, false);
+        decomposer.getR(R, false);
+        CommonOps_CDRM.transposeConjugate(Q, Qt);
 
         return true;
     }
@@ -115,25 +116,24 @@ public class LinearSolverQr_CDRM extends LinearSolverAbstract_CDRM {
      * @param X An n by m matrix where the solution is written to.  Modified.
      */
     @Override
-    public void solve(CMatrixRMaj B, CMatrixRMaj X) {
-        if( X.numRows != numCols )
-            throw new IllegalArgumentException("Unexpected dimensions for X");
-        else if( B.numRows != numRows || B.numCols != X.numCols )
+    public void solve( CMatrixRMaj B, CMatrixRMaj X ) {
+        if (B.numRows != numRows)
             throw new IllegalArgumentException("Unexpected dimensions for B");
+        X.reshape(numCols, B.numCols);
 
         int BnumCols = B.numCols;
 
-        Y.reshape(numRows,1);
-        Z.reshape(numRows,1);
+        Y.reshape(numRows, 1);
+        Z.reshape(numRows, 1);
 
         // solve each column one by one
-        for( int colB = 0; colB < BnumCols; colB++ ) {
+        for (int colB = 0; colB < BnumCols; colB++) {
 
             // make a copy of this column in the vector
-            for( int i = 0; i < numRows; i++ ) {
-                int indexB = B.getIndex(i,colB);
-                Y.data[i*2]   = B.data[indexB];
-                Y.data[i*2+1] = B.data[indexB+1];
+            for (int i = 0; i < numRows; i++) {
+                int indexB = B.getIndex(i, colB);
+                Y.data[i*2] = B.data[indexB];
+                Y.data[i*2 + 1] = B.data[indexB + 1];
             }
 
             // Solve Qa=b
@@ -144,8 +144,8 @@ public class LinearSolverQr_CDRM extends LinearSolverAbstract_CDRM {
             TriangularSolver_CDRM.solveU(R.data, Z.data, numCols);
 
             // save the results
-            for( int i = 0; i < numCols; i++ ) {
-                X.set(i,colB,Z.data[i*2],Z.data[i*2+1]);
+            for (int i = 0; i < numCols; i++) {
+                X.set(i, colB, Z.data[i*2], Z.data[i*2 + 1]);
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,9 +18,10 @@
 
 package org.ejml.dense.row.linsol;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.interfaces.linsol.LinearSolverDense;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -32,27 +33,30 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
  * The extending class must explicity call {@link #_setA(FMatrixRMaj)}
  * inside of its {@link #setA} function.
  * </p>
- * 
+ *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.linsol.LinearSolverAbstract_DDRM")
 public abstract class LinearSolverAbstract_FDRM implements LinearSolverDense<FMatrixRMaj> {
 
-    protected FMatrixRMaj A;
+    protected @Nullable FMatrixRMaj A;
     protected int numRows;
     protected int numCols;
 
-    public FMatrixRMaj getA() {
+    public @Nullable FMatrixRMaj getA() {
         return A;
     }
 
-    protected void _setA(FMatrixRMaj A) {
+    protected void _setA( FMatrixRMaj A ) {
         this.A = A;
         this.numRows = A.numRows;
         this.numCols = A.numCols;
     }
 
     @Override
-    public void invert(FMatrixRMaj A_inv) {
-        InvertUsingSolve_FDRM.invert(this,A,A_inv);
+    public void invert( FMatrixRMaj A_inv ) {
+        if (A == null)
+            throw new RuntimeException("Must call setA() first");
+        InvertUsingSolve_FDRM.invert(this, A, A_inv);
     }
 }

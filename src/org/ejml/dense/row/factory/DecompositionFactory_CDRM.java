@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.factory;
 
+import javax.annotation.Generated;
 import org.ejml.data.CMatrixRMaj;
 import org.ejml.dense.row.decompose.chol.CholeskyDecompositionInner_CDRM;
 import org.ejml.dense.row.decompose.lu.LUDecompositionAlt_CDRM;
@@ -37,6 +38,7 @@ import org.ejml.interfaces.decomposition.QRDecomposition;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.factory.DecompositionFactory_ZDRM")
 public class DecompositionFactory_CDRM {
     /**
      * <p>
@@ -47,7 +49,7 @@ public class DecompositionFactory_CDRM {
      * @param numCols Number of columns that the returned decomposition is optimized for.
      * @return LUDecomposition
      */
-    public static LUDecomposition_F32<CMatrixRMaj> lu(int numRows , int numCols ) {
+    public static LUDecomposition_F32<CMatrixRMaj> lu( int numRows, int numCols ) {
         return new LUDecompositionAlt_CDRM();
     }
 
@@ -60,7 +62,7 @@ public class DecompositionFactory_CDRM {
      * @param numCols Number of columns that the returned decomposition is optimized for.
      * @return QRDecomposition
      */
-    public static QRDecomposition<CMatrixRMaj> qr(int numRows , int numCols ) {
+    public static QRDecomposition<CMatrixRMaj> qr( int numRows, int numCols ) {
         return new QRDecompositionHouseholderColumn_CDRM();
     }
 
@@ -73,16 +75,16 @@ public class DecompositionFactory_CDRM {
      * @param lower if true then it will be a lower cholesky.  false for upper.  Try lower.
      * @return QRDecomposition
      */
-    public static CholeskyDecomposition_F32<CMatrixRMaj> chol(int size , boolean lower ) {
+    public static CholeskyDecomposition_F32<CMatrixRMaj> chol( int size, boolean lower ) {
         return new CholeskyDecompositionInner_CDRM(lower);
     }
 
     /**
      * Decomposes the input matrix 'a' and makes sure it isn't modified.
      */
-    public static boolean decomposeSafe(DecompositionInterface<CMatrixRMaj> decomposition, CMatrixRMaj a) {
+    public static boolean decomposeSafe( DecompositionInterface<CMatrixRMaj> decomposition, CMatrixRMaj a ) {
 
-        if( decomposition.inputModified() ) {
+        if (decomposition.inputModified()) {
             a = a.copy();
         }
         return decomposition.decompose(a);

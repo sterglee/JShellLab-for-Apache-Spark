@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -20,7 +20,7 @@ package org.ejml.dense.row.linsol;
 
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.interfaces.linsol.LinearSolverDense;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -32,27 +32,29 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
  * The extending class must explicity call {@link #_setA(DMatrixRMaj)}
  * inside of its {@link #setA} function.
  * </p>
- * 
+ *
  * @author Peter Abeles
  */
 public abstract class LinearSolverAbstract_DDRM implements LinearSolverDense<DMatrixRMaj> {
 
-    protected DMatrixRMaj A;
+    protected @Nullable DMatrixRMaj A;
     protected int numRows;
     protected int numCols;
 
-    public DMatrixRMaj getA() {
+    public @Nullable DMatrixRMaj getA() {
         return A;
     }
 
-    protected void _setA(DMatrixRMaj A) {
+    protected void _setA( DMatrixRMaj A ) {
         this.A = A;
         this.numRows = A.numRows;
         this.numCols = A.numCols;
     }
 
     @Override
-    public void invert(DMatrixRMaj A_inv) {
-        InvertUsingSolve_DDRM.invert(this,A,A_inv);
+    public void invert( DMatrixRMaj A_inv ) {
+        if (A == null)
+            throw new RuntimeException("Must call setA() first");
+        InvertUsingSolve_DDRM.invert(this, A, A_inv);
     }
 }

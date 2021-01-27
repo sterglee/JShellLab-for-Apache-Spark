@@ -18,11 +18,13 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
 /**
  * Interface for a row-major matrix that uses a single array internally.
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.data.DMatrix1Row")
 public abstract class FMatrix1Row extends FMatrixD1 {
 
 }

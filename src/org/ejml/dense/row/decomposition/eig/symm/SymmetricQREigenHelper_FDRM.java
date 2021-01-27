@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,12 +18,13 @@
 
 package org.ejml.dense.row.decomposition.eig.symm;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.decomposition.eig.EigenvalueSmall_F32;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
-
 
 /**
  * A helper class for the symmetric matrix implicit QR algorithm for eigenvalue decomposition.
@@ -31,6 +32,8 @@ import java.util.Random;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("ConstantConditions")
+@Generated("org.ejml.dense.row.decomposition.eig.symm.SymmetricQREigenHelper_DDRM")
 public class SymmetricQREigenHelper_FDRM {
 
     // used in exceptional shifts
@@ -48,28 +51,28 @@ public class SymmetricQREigenHelper_FDRM {
     protected EigenvalueSmall_F32 eigenSmall = new EigenvalueSmall_F32();
 
     // orthogonal matrix used in similar transform.  optional
-    protected FMatrixRMaj Q;
+    protected @Nullable FMatrixRMaj Q;
 
     // size of the matrix being processed
     protected int N;
     // diagonal elements in the matrix
-    protected float diag[];
+    protected float[] diag = UtilEjml.ZERO_LENGTH_F32;
     // the off diagonal elements
-    protected float off[];
+    protected float[] off = UtilEjml.ZERO_LENGTH_F32;
 
     // which submatrix is being processed
     protected int x1;
     protected int x2;
 
     // where splits are performed
-    protected int splits[];
+    protected int[] splits;
     protected int numSplits;
 
     // current value of the bulge
     private float bulge;
 
     // local helper functions
-    private float c,s,c2,s2,cs;
+    private float c, s, c2, s2, cs;
 
     public SymmetricQREigenHelper_FDRM() {
         splits = new int[1];
@@ -77,18 +80,18 @@ public class SymmetricQREigenHelper_FDRM {
 
     public void printMatrix() {
         System.out.print("Off Diag[ ");
-        for( int j = 0; j < N-1; j++ ) {
-            System.out.printf("%5.2ff ",off[j]);
+        for (int j = 0; j < N - 1; j++) {
+            System.out.printf("%5.2ff ", off[j]);
         }
         System.out.println();
         System.out.print("    Diag[ ");
-        for( int j = 0; j < N; j++ ) {
-            System.out.printf("%5.2ff ",diag[j]);
+        for (int j = 0; j < N; j++) {
+            System.out.printf("%5.2ff ", diag[j]);
         }
         System.out.println();
     }
 
-    public void setQ(FMatrixRMaj q) {
+    public void setQ( FMatrixRMaj q ) {
         Q = q;
     }
 
@@ -103,8 +106,8 @@ public class SymmetricQREigenHelper_FDRM {
      * @param off Off diagonal elements from tridiagonal matrix. Modified.
      * @param numCols number of columns (and rows) in the matrix.
      */
-    public void init( float diag[] ,
-                      float off[],
+    public void init( float[] diag,
+                      float[] off,
                       int numCols ) {
         reset(numCols);
 
@@ -115,7 +118,7 @@ public class SymmetricQREigenHelper_FDRM {
     /**
      * Exchanges the internal array of the diagonal elements for the provided one.
      */
-    public float[] swapDiag( float diag[] ) {
+    public float[] swapDiag( float[] diag ) {
         float[] ret = this.diag;
         this.diag = diag;
 
@@ -125,7 +128,7 @@ public class SymmetricQREigenHelper_FDRM {
     /**
      * Exchanges the internal array of the off diagonal elements for the provided one.
      */
-    public float[] swapOff( float off[] ) {
+    public float[] swapOff( float[] off ) {
         float[] ret = this.off;
         this.off = off;
 
@@ -139,59 +142,60 @@ public class SymmetricQREigenHelper_FDRM {
     public void reset( int N ) {
         this.N = N;
 
-        this.diag = null;
-        this.off = null;
+        this.diag = UtilEjml.ZERO_LENGTH_F32;
+        this.off = UtilEjml.ZERO_LENGTH_F32;
 
-        if( splits.length < N ) {
+        if (splits.length < N) {
             splits = new int[N];
         }
 
         numSplits = 0;
 
         x1 = 0;
-        x2 = N-1;
+        x2 = N - 1;
 
         steps = numExceptional = lastExceptional = 0;
 
         this.Q = null;
     }
 
-    public float[] copyDiag( float []ret ) {
-        if( ret == null || ret.length < N ) {
+    public float[] copyDiag( float[] ret ) {
+        if (ret == null || ret.length < N) {
             ret = new float[N];
         }
 
-        System.arraycopy(diag,0,ret,0,N);
+        System.arraycopy(diag, 0, ret, 0, N);
 
         return ret;
     }
 
-    public float[] copyOff( float []ret ) {
-        if( ret == null || ret.length < N-1 ) {
-            ret = new float[N-1];
+    public float[] copyOff( float[] ret ) {
+        if (ret == null || ret.length < N - 1) {
+            ret = new float[N - 1];
         }
 
-        System.arraycopy(off,0,ret,0,N-1);
+        System.arraycopy(off, 0, ret, 0, N - 1);
 
         return ret;
     }
 
-    public float[] copyEigenvalues( float []ret ) {
-        if( ret == null || ret.length < N ) {
+    public float[] copyEigenvalues( float[] ret ) {
+        if (ret == null || ret.length < N) {
             ret = new float[N];
         }
 
-        System.arraycopy(diag,0,ret,0,N);
+        System.arraycopy(diag, 0, ret, 0, N);
 
         return ret;
     }
 
     /**
      * Sets which submatrix is being processed.
+     *
      * @param x1 Lower bound, inclusive.
      * @param x2 Upper bound, inclusive.
      */
-    public void setSubmatrix( int x1 , int x2 ) {
+    public void setSubmatrix( int x1, int x2 ) {
         this.x1 = x1;
         this.x2 = x2;
     }
@@ -200,29 +204,27 @@ public class SymmetricQREigenHelper_FDRM {
      * Checks to see if the specified off diagonal element is zero using a relative metric.
      */
     protected boolean isZero( int index ) {
-        float bottom = Math.abs(diag[index])+Math.abs(diag[index+1]);
+        float bottom = Math.abs(diag[index]) + Math.abs(diag[index + 1]);
 
-        return( Math.abs(off[index]) <= bottom*UtilEjml.F_EPS);
+        return (Math.abs(off[index]) <= bottom*UtilEjml.F_EPS);
     }
 
-    protected void performImplicitSingleStep( float lambda , boolean byAngle )
-    {
-        if( x2-x1 == 1  ) {
-            createBulge2by2(x1,lambda,byAngle);
+    protected void performImplicitSingleStep( float lambda, boolean byAngle ) {
+        if (x2 - x1 == 1) {
+            createBulge2by2(x1, lambda, byAngle);
         } else {
-            createBulge(x1,lambda,byAngle);
+            createBulge(x1, lambda, byAngle);
 
-            for( int i = x1; i < x2-2 && bulge != 0.0f; i++ ) {
+            for (int i = x1; i < x2 - 2 && bulge != 0.0f; i++) {
                 removeBulge(i);
-
             }
-            if( bulge != 0.0f )
-                removeBulgeEnd(x2-2);
+            if (bulge != 0.0f)
+                removeBulgeEnd(x2 - 2);
         }
     }
 
-    protected void updateQ( int m , int n , float c ,  float s )
-    {
+    @SuppressWarnings("NullAway")
+    protected void updateQ( int m, int n, float c, float s ) {
         int rowA = m*N;
         int rowB = n*N;
 
@@ -233,7 +235,7 @@ public class SymmetricQREigenHelper_FDRM {
 //            Q.data[rowB+i] = -s*a + c*b;
 //        }
         int endA = rowA + N;
-        while( rowA < endA ) {
+        while (rowA < endA) {
             float a = Q.data[rowA];
             float b = Q.data[rowB];
             Q.data[rowA++] = c*a + s*b;
@@ -244,13 +246,13 @@ public class SymmetricQREigenHelper_FDRM {
     /**
      * Performs a similar transform on A-pI
      */
-    protected void createBulge( int x1 , float p , boolean byAngle ) {
+    protected void createBulge( int x1, float p, boolean byAngle ) {
         float a11 = diag[x1];
-        float a22 = diag[x1+1];
+        float a22 = diag[x1 + 1];
         float a12 = off[x1];
-        float a23 = off[x1+1];
+        float a23 = off[x1 + 1];
 
-        if( byAngle ) {
+        if (byAngle) {
             c = (float)Math.cos(p);
             s = (float)Math.sin(p);
 
@@ -258,26 +260,26 @@ public class SymmetricQREigenHelper_FDRM {
             s2 = s*s;
             cs = c*s;
         } else {
-            computeRotation(a11-p, a12);
+            computeRotation(a11 - p, a12);
         }
 
         // multiply the rotator on the top left.
-        diag[x1]   = c2*a11 + 2.0f*cs*a12 + s2*a22;
-        diag[x1+1] = c2*a22 - 2.0f*cs*a12 + s2*a11;
-        off[x1]    = a12*(c2-s2) + cs*(a22 - a11);
-        off[x1+1]  = c*a23;
+        diag[x1] = c2*a11 + 2.0f*cs*a12 + s2*a22;
+        diag[x1 + 1] = c2*a22 - 2.0f*cs*a12 + s2*a11;
+        off[x1] = a12*(c2 - s2) + cs*(a22 - a11);
+        off[x1 + 1] = c*a23;
         bulge = s*a23;
 
-        if( Q != null )
-            updateQ(x1,x1+1,c,s);
+        if (Q != null)
+            updateQ(x1, x1 + 1, c, s);
     }
 
-    protected void createBulge2by2( int x1 , float p , boolean byAngle ) {
+    protected void createBulge2by2( int x1, float p, boolean byAngle ) {
         float a11 = diag[x1];
-        float a22 = diag[x1+1];
+        float a22 = diag[x1 + 1];
         float a12 = off[x1];
 
-        if( byAngle ) {
+        if (byAngle) {
             c = (float)Math.cos(p);
             s = (float)Math.sin(p);
 
@@ -285,27 +287,27 @@ public class SymmetricQREigenHelper_FDRM {
             s2 = s*s;
             cs = c*s;
         } else {
-            computeRotation(a11-p, a12);
+            computeRotation(a11 - p, a12);
         }
 
         // multiply the rotator on the top left.
-        diag[x1]   = c2*a11 + 2.0f*cs*a12 + s2*a22;
-        diag[x1+1] = c2*a22 - 2.0f*cs*a12 + s2*a11;
-        off[x1]    = a12*(c2-s2) + cs*(a22 - a11);
+        diag[x1] = c2*a11 + 2.0f*cs*a12 + s2*a22;
+        diag[x1 + 1] = c2*a22 - 2.0f*cs*a12 + s2*a11;
+        off[x1] = a12*(c2 - s2) + cs*(a22 - a11);
 
-        if( Q != null )
-            updateQ(x1,x1+1,c,s);
+        if (Q != null)
+            updateQ(x1, x1 + 1, c, s);
     }
 
     /**
      * Computes the rotation and stores it in (c,s)
      */
-    private void computeRotation(float run, float rise) {
+    private void computeRotation( float run, float rise ) {
 //        float alpha = (float)Math.sqrt(run*run + rise*rise);
 //        c = run/alpha;
 //        s = rise/alpha;
 
-        if( Math.abs(rise) > Math.abs(run)) {
+        if (Math.abs(rise) > Math.abs(run)) {
             float k = run/rise;
 
             float bottom = 1.0f + k*k;
@@ -331,45 +333,45 @@ public class SymmetricQREigenHelper_FDRM {
     }
 
     protected void removeBulge( int x1 ) {
-        float a22 = diag[x1+1];
-        float a33 = diag[x1+2];
+        float a22 = diag[x1 + 1];
+        float a33 = diag[x1 + 2];
         float a12 = off[x1];
-        float a23 = off[x1+1];
-        float a34 = off[x1+2];
+        float a23 = off[x1 + 1];
+        float a34 = off[x1 + 2];
 
         computeRotation(a12, bulge);
 
         // multiply the rotator on the top left.
-        diag[x1+1] = c2*a22 + 2.0f*cs*a23 + s2*a33;
-        diag[x1+2] = c2*a33 - 2.0f*cs*a23 + s2*a22;
+        diag[x1 + 1] = c2*a22 + 2.0f*cs*a23 + s2*a33;
+        diag[x1 + 2] = c2*a33 - 2.0f*cs*a23 + s2*a22;
         off[x1] = c*a12 + s*bulge;
-        off[x1+1] = a23*(c2-s2) + cs*(a33 - a22);
-        off[x1+2] = c*a34;
+        off[x1 + 1] = a23*(c2 - s2) + cs*(a33 - a22);
+        off[x1 + 2] = c*a34;
         bulge = s*a34;
 
-        if( Q != null )
-            updateQ(x1+1,x1+2,c,s);
+        if (Q != null)
+            updateQ(x1 + 1, x1 + 2, c, s);
     }
 
     /**
      * Rotator to remove the bulge
      */
     protected void removeBulgeEnd( int x1 ) {
-        float a22 = diag[x1+1];
+        float a22 = diag[x1 + 1];
         float a12 = off[x1];
-        float a23 = off[x1+1];
-        float a33 = diag[x1+2];
+        float a23 = off[x1 + 1];
+        float a33 = diag[x1 + 2];
 
         computeRotation(a12, bulge);
 
         // multiply the rotator on the top left.
-        diag[x1+1] = c2*a22 + 2.0f*cs*a23 + s2*a33;
-        diag[x1+2] = c2*a33 - 2.0f*cs*a23 + s2*a22;
+        diag[x1 + 1] = c2*a22 + 2.0f*cs*a23 + s2*a33;
+        diag[x1 + 2] = c2*a33 - 2.0f*cs*a23 + s2*a22;
         off[x1] = c*a12 + s*bulge;
-        off[x1+1] = a23*(c2-s2) + cs*(a33 - a22);
+        off[x1 + 1] = a23*(c2 - s2) + cs*(a33 - a22);
 
-        if( Q != null )
-            updateQ(x1+1,x1+2,c,s);
+        if (Q != null)
+            updateQ(x1 + 1, x1 + 2, c, s);
     }
 
     /**
@@ -378,7 +380,7 @@ public class SymmetricQREigenHelper_FDRM {
     protected void eigenvalue2by2( int x1 ) {
         float a = diag[x1];
         float b = off[x1];
-        float c = diag[x1+1];
+        float c = diag[x1 + 1];
 
         // normalize to reduce overflow
         float absA = Math.abs(a);
@@ -386,14 +388,14 @@ public class SymmetricQREigenHelper_FDRM {
         float absC = Math.abs(c);
 
         float scale = absA > absB ? absA : absB;
-        if( absC > scale ) scale = absC;
+        if (absC > scale) scale = absC;
 
         // see if it is a pathological case.  the diagonal must already be zero
         // and the eigenvalues are all zero.  so just return
-        if( scale == 0 ) {
+        if (scale == 0) {
             off[x1] = 0;
             diag[x1] = 0;
-            diag[x1+1] = 0;
+            diag[x1 + 1] = 0;
             return;
         }
 
@@ -401,11 +403,11 @@ public class SymmetricQREigenHelper_FDRM {
         b /= scale;
         c /= scale;
 
-        eigenSmall.symm2x2_fast(a,b,c);
+        eigenSmall.symm2x2_fast(a, b, c);
 
         off[x1] = 0;
         diag[x1] = scale*eigenSmall.value0.real;
-        diag[x1+1] = scale*eigenSmall.value1.real;
+        diag[x1 + 1] = scale*eigenSmall.value1.real;
     }
 
     /**
@@ -417,10 +419,10 @@ public class SymmetricQREigenHelper_FDRM {
         // - two identical eigenvalues are next to each other and a very small diagonal element
         numExceptional++;
         float mag = 0.05f*numExceptional;
-        if( mag > 1.0f ) mag = 1.0f;
+        if (mag > 1.0f) mag = 1.0f;
 
-        float theta = 2.0f*(rand.nextFloat()-0.5f)*mag;
-        performImplicitSingleStep(theta,true);
+        float theta = 2.0f*(rand.nextFloat() - 0.5f)*mag;
+        performImplicitSingleStep(theta, true);
 
         lastExceptional = steps;
     }
@@ -430,11 +432,11 @@ public class SymmetricQREigenHelper_FDRM {
      * current submatrix has been processed.
      */
     public boolean nextSplit() {
-        if( numSplits == 0 )
+        if (numSplits == 0)
             return false;
         x2 = splits[--numSplits];
-        if( numSplits > 0 )
-            x1 = splits[numSplits-1]+1;
+        if (numSplits > 0)
+            x1 = splits[numSplits - 1] + 1;
         else
             x1 = 0;
 
@@ -442,15 +444,15 @@ public class SymmetricQREigenHelper_FDRM {
     }
 
     public float computeShift() {
-        if( x2-x1 >= 1 )
+        if (x2 - x1 >= 1)
             return computeWilkinsonShift();
         else
             return diag[x2];
     }
 
     public float computeWilkinsonShift() {
-        float a = diag[x2-1];
-        float b = off[x2-1];
+        float a = diag[x2 - 1];
+        float b = off[x2 - 1];
         float c = diag[x2];
 
         // normalize to reduce overflow
@@ -459,9 +461,9 @@ public class SymmetricQREigenHelper_FDRM {
         float absC = Math.abs(c);
 
         float scale = absA > absB ? absA : absB;
-        if( absC > scale ) scale = absC;
+        if (absC > scale) scale = absC;
 
-        if( scale == 0 ) {
+        if (scale == 0) {
             throw new RuntimeException("this should never happen");
         }
 
@@ -471,13 +473,13 @@ public class SymmetricQREigenHelper_FDRM {
 
         // TODO see 385
 
-        eigenSmall.symm2x2_fast(a,b,c);
+        eigenSmall.symm2x2_fast(a, b, c);
 
         // return the eigenvalue closest to c
-        float diff0 = Math.abs(eigenSmall.value0.real-c);
-        float diff1 = Math.abs(eigenSmall.value1.real-c);
+        float diff0 = Math.abs(eigenSmall.value0.real - c);
+        float diff1 = Math.abs(eigenSmall.value1.real - c);
 
-        if( diff0 < diff1 )
+        if (diff0 < diff1)
             return scale*eigenSmall.value0.real;
         else
             return scale*eigenSmall.value1.real;

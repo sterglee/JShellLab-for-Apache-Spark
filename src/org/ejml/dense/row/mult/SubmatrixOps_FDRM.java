@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,24 +18,24 @@
 
 package org.ejml.dense.row.mult;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrix1Row;
-
 
 /**
  * Operations that are performed on a submatrix inside a larger matrix.
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.mult.SubmatrixOps_DDRM")
 public class SubmatrixOps_FDRM {
 
-    public static void setSubMatrix(FMatrix1Row src , FMatrix1Row dst ,
-                                    int srcRow , int srcCol , int dstRow , int dstCol ,
-                                    int numSubRows, int numSubCols )
-    {
-        for( int i = 0; i < numSubRows; i++ ) {
-            for( int j = 0; j < numSubCols; j++ ) {
-                float val = src.get(i+srcRow,j+srcCol);
-                dst.set(i+dstRow,j+dstCol,val);
+    public static void setSubMatrix( FMatrix1Row src, FMatrix1Row dst,
+                                     int srcRow, int srcCol, int dstRow, int dstCol,
+                                     int numSubRows, int numSubCols ) {
+        for (int i = 0; i < numSubRows; i++) {
+            for (int j = 0; j < numSubCols; j++) {
+                float val = src.get(i + srcRow, j + srcCol);
+                dst.set(i + dstRow, j + dstCol, val);
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,7 +18,9 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
 import org.ejml.MatrixDimensionException;
+import org.ejml.UtilEjml;
 
 
 /**
@@ -28,11 +30,12 @@ import org.ejml.MatrixDimensionException;
  *
  * @author Peter Abeles
  */
-public abstract class CMatrixD1 implements CMatrix, ReshapeMatrix{
+@Generated("org.ejml.data.ZMatrixD1")
+public abstract class CMatrixD1 implements CMatrix, ReshapeMatrix {
     /**
      * Where the raw data for the matrix is stored.  The format is type dependent.
      */
-    public float[] data;
+    public float[] data = UtilEjml.ZERO_LENGTH_F32;
 
     /**
      * Number of rows in the matrix.

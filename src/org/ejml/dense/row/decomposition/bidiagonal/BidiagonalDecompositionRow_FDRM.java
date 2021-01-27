@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,22 +18,24 @@
 
 package org.ejml.dense.row.decomposition.bidiagonal;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
 import org.ejml.dense.row.decomposition.qr.QrHelperFunctions_FDRM;
 import org.ejml.interfaces.decomposition.BidiagonalDecomposition_F32;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
  * Performs a {@link BidiagonalDecomposition_F32} using
- * householder reflectors.  This is efficient on wide or square matrices.
+ * householder reflectors. This is efficient on wide or square matrices.
  * </p>
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.decomposition.bidiagonal.BidiagonalDecompositionRow_DDRM")
 public class BidiagonalDecompositionRow_FDRM
-        implements BidiagonalDecomposition_F32<FMatrixRMaj>
-{
+        implements BidiagonalDecomposition_F32<FMatrixRMaj> {
     // A combined matrix that stores te upper Hessenberg matrix and the orthogonal matrix.
     private FMatrixRMaj UBV;
 
@@ -45,24 +47,24 @@ public class BidiagonalDecompositionRow_FDRM
     private int min;
 
     // the first element in the orthogonal vectors
-    private float gammasU[];
-    private float gammasV[];
+    private float[] gammasU;
+    private float[] gammasV;
     // temporary storage
-    private float b[];
-    private float u[];
+    protected float[] b;
+    protected float[] u;
 
     /**
      * Creates a decompose that defines the specified amount of memory.
      *
      * @param numElements number of elements in the matrix.
      */
-    public BidiagonalDecompositionRow_FDRM(int numElements) {
+    public BidiagonalDecompositionRow_FDRM( int numElements ) {
 
         UBV = new FMatrixRMaj(numElements);
-        gammasU = new float[ numElements ];
-        gammasV = new float[ numElements ];
-        b = new float[ numElements ];
-        u = new float[ numElements ];
+        gammasU = new float[numElements];
+        gammasV = new float[numElements];
+        b = new float[numElements];
+        u = new float[numElements];
     }
 
     public BidiagonalDecompositionRow_FDRM() {
@@ -70,15 +72,14 @@ public class BidiagonalDecompositionRow_FDRM
     }
 
     /**
-     * Computes the decomposition of the provided matrix.  If no errors are detected then true is returned,
+     * Computes the decomposition of the provided matrix. If no errors are detected then true is returned,
      * false otherwise.
      *
-     * @param A  The matrix that is being decomposed.  Not modified.
+     * @param A The matrix that is being decomposed. Not modified.
      * @return If it detects any errors or not.
      */
     @Override
-    public boolean decompose( FMatrixRMaj A  )
-    {
+    public boolean decompose( FMatrixRMaj A ) {
         init(A);
         return _decompose();
     }
@@ -86,26 +87,26 @@ public class BidiagonalDecompositionRow_FDRM
     /**
      * Sets up internal data structures and creates a copy of the input matrix.
      *
-     * @param A The input matrix.  Not modified.
+     * @param A The input matrix. Not modified.
      */
-    protected void init(FMatrixRMaj A ) {
+    protected void init( FMatrixRMaj A ) {
         UBV = A;
 
         m = UBV.numRows;
         n = UBV.numCols;
 
-        min = Math.min(m,n);
-        int max = Math.max(m,n);
+        min = Math.min(m, n);
+        int max = Math.max(m, n);
 
-        if( b.length < max+1 ) {
-            b = new float[ max+1 ];
-            u = new float[ max+1 ];
+        if (b.length < max + 1) {
+            b = new float[max + 1];
+            u = new float[max + 1];
         }
-        if( gammasU.length < m ) {
-            gammasU = new float[ m ];
+        if (gammasU.length < m) {
+            gammasU = new float[m];
         }
-        if( gammasV.length < n ) {
-            gammasV = new float[ n ];
+        if (gammasV.length < n) {
+            gammasV = new float[n];
         }
     }
 
@@ -119,11 +120,11 @@ public class BidiagonalDecompositionRow_FDRM
     }
 
     @Override
-    public void getDiagonal(float[] diag, float[] off) {
+    public void getDiagonal( float[] diag, float[] off ) {
         diag[0] = UBV.get(0);
-        for( int i = 1; i < n; i++ ) {
-            diag[i] = UBV.unsafe_get(i,i);
-            off[i-1] = UBV.unsafe_get(i-1,i);
+        for (int i = 1; i < n; i++) {
+            diag[i] = UBV.unsafe_get(i, i);
+            off[i - 1] = UBV.unsafe_get(i - 1, i);
         }
     }
 
@@ -134,38 +135,38 @@ public class BidiagonalDecompositionRow_FDRM
      * @return The bidiagonal matrix.
      */
     @Override
-    public FMatrixRMaj getB(FMatrixRMaj B , boolean compact ) {
-        B = handleB(B, compact,m,n,min);
+    public FMatrixRMaj getB( @Nullable FMatrixRMaj B, boolean compact ) {
+        B = handleB(B, compact, m, n, min);
 
         //System.arraycopy(UBV.data, 0, B.data, 0, UBV.getNumElements());
 
-        B.set(0,0,UBV.get(0,0));
-        for( int i = 1; i < min; i++ ) {
-            B.set(i,i, UBV.get(i,i));
-            B.set(i-1,i, UBV.get(i-1,i));
+        B.set(0, 0, UBV.get(0, 0));
+        for (int i = 1; i < min; i++) {
+            B.set(i, i, UBV.get(i, i));
+            B.set(i - 1, i, UBV.get(i - 1, i));
         }
-        if( n > m )
-            B.set(min-1,min,UBV.get(min-1,min));
+        if (n > m)
+            B.set(min - 1, min, UBV.get(min - 1, min));
 
         return B;
     }
 
-    public static FMatrixRMaj handleB(FMatrixRMaj B, boolean compact,
-                                        int m , int n , int min ) {
+    public static FMatrixRMaj handleB( @Nullable FMatrixRMaj B, boolean compact,
+                                       int m, int n, int min ) {
         int w = n > m ? min + 1 : min;
 
-        if( compact ) {
-            if( B == null ) {
-                B = new FMatrixRMaj(min,w);
+        if (compact) {
+            if (B == null) {
+                B = new FMatrixRMaj(min, w);
             } else {
-                B.reshape(min,w, false);
+                B.reshape(min, w, false);
                 B.zero();
             }
         } else {
-            if( B == null ) {
-                B = new FMatrixRMaj(m,n);
+            if (B == null) {
+                B = new FMatrixRMaj(m, n);
             } else {
-                B.reshape(m,n, false);
+                B.reshape(m, n, false);
                 B.zero();
             }
         }
@@ -175,51 +176,53 @@ public class BidiagonalDecompositionRow_FDRM
     /**
      * Returns the orthogonal U matrix.
      *
-     * @param U If not null then the results will be stored here.  Otherwise a new matrix will be created.
+     * @param U If not null then the results will be stored here. Otherwise a new matrix will be created.
      * @return The extracted Q matrix.
      */
     @Override
-    public FMatrixRMaj getU(FMatrixRMaj U , boolean transpose , boolean compact ) {
-        U = handleU(U, transpose, compact,m,n,min);
+    public FMatrixRMaj getU( @Nullable FMatrixRMaj U, boolean transpose, boolean compact ) {
+        U = handleU(U, transpose, compact, m, n, min);
         CommonOps_FDRM.setIdentity(U);
 
-        for( int i = 0; i < m; i++ ) u[i] = 0;
+        for (int i = 0; i < m; i++) u[i] = 0;
 
-        for( int j = min-1; j >= 0; j-- ) {
+        for (int j = min - 1; j >= 0; j--) {
             u[j] = 1;
-            for( int i = j+1; i < m; i++ ) {
-                u[i] = UBV.get(i,j);
+            for (int i = j + 1; i < m; i++) {
+                u[i] = UBV.get(i, j);
             }
-            if( transpose )
-                QrHelperFunctions_FDRM.rank1UpdateMultL(U, u, gammasU[j], j, j, m);
-            else
-                QrHelperFunctions_FDRM.rank1UpdateMultR(U, u, gammasU[j], j, j, m, this.b);
+
+            if (transpose) {
+                rank1UpdateMultL(U, gammasU[j], j, j, m);
+            } else {
+                rank1UpdateMultR(U, gammasU[j], j, j, m);
+            }
         }
 
         return U;
     }
 
-    public static FMatrixRMaj handleU(FMatrixRMaj U,
-                                        boolean transpose, boolean compact,
-                                        int m, int n , int min ) {
-        if( compact ){
-            if( transpose ) {
-                if( U == null )
-                    U = new FMatrixRMaj(min,m);
+    public static FMatrixRMaj handleU( @Nullable FMatrixRMaj U,
+                                       boolean transpose, boolean compact,
+                                       int m, int n, int min ) {
+        if (compact) {
+            if (transpose) {
+                if (U == null)
+                    U = new FMatrixRMaj(min, m);
                 else {
-                    U.reshape(min,m, false);
+                    U.reshape(min, m, false);
                 }
             } else {
-                if( U == null )
-                    U = new FMatrixRMaj(m,min);
+                if (U == null)
+                    U = new FMatrixRMaj(m, min);
                 else
-                    U.reshape(m,min, false);
+                    U.reshape(m, min, false);
             }
-        } else  {
-            if( U == null )
-                U = new FMatrixRMaj(m,m);
+        } else {
+            if (U == null)
+                U = new FMatrixRMaj(m, m);
             else
-                U.reshape(m,m, false);
+                U.reshape(m, m, false);
         }
 
         return U;
@@ -228,52 +231,53 @@ public class BidiagonalDecompositionRow_FDRM
     /**
      * Returns the orthogonal V matrix.
      *
-     * @param V If not null then the results will be stored here.  Otherwise a new matrix will be created.
+     * @param V If not null then the results will be stored here. Otherwise a new matrix will be created.
      * @return The extracted Q matrix.
      */
     @Override
-    public FMatrixRMaj getV(FMatrixRMaj V , boolean transpose , boolean compact ) {
-        V = handleV(V, transpose, compact,m,n,min);
+    public FMatrixRMaj getV( @Nullable FMatrixRMaj V, boolean transpose, boolean compact ) {
+        V = handleV(V, transpose, compact, m, n, min);
         CommonOps_FDRM.setIdentity(V);
 
 //        UBV.print();
 
         // todo the very first multiplication can be avoided by setting to the rank1update output
-        for( int j = min-1; j >= 0; j-- ) {
-            u[j+1] = 1;
-            for( int i = j+2; i < n; i++ ) {
-                u[i] = UBV.get(j,i);
+        for (int j = min - 1; j >= 0; j--) {
+            u[j + 1] = 1;
+            for (int i = j + 2; i < n; i++) {
+                u[i] = UBV.get(j, i);
             }
-            if( transpose )
-                QrHelperFunctions_FDRM.rank1UpdateMultL(V, u, gammasV[j], j + 1, j + 1, n);
-            else
-                QrHelperFunctions_FDRM.rank1UpdateMultR(V, u, gammasV[j], j + 1, j + 1, n, this.b);
+            if (transpose) {
+                rank1UpdateMultL(V, gammasV[j], j + 1, j + 1, n);
+            } else {
+                rank1UpdateMultR(V, gammasV[j], j + 1, j + 1, n);
+            }
         }
 
         return V;
     }
 
-    public static FMatrixRMaj handleV(FMatrixRMaj V, boolean transpose, boolean compact,
-                                        int m , int n , int min ) {
+    public static FMatrixRMaj handleV( @Nullable FMatrixRMaj V, boolean transpose, boolean compact,
+                                       int m, int n, int min ) {
         int w = n > m ? min + 1 : min;
 
-        if( compact ) {
-            if( transpose ) {
-                if( V == null ) {
-                    V = new FMatrixRMaj(w,n);
+        if (compact) {
+            if (transpose) {
+                if (V == null) {
+                    V = new FMatrixRMaj(w, n);
                 } else
-                    V.reshape(w,n, false);
+                    V.reshape(w, n, false);
             } else {
-                if( V == null ) {
-                    V = new FMatrixRMaj(n,w);
+                if (V == null) {
+                    V = new FMatrixRMaj(n, w);
                 } else
-                    V.reshape(n,w, false);
+                    V.reshape(n, w, false);
             }
         } else {
-            if( V == null ) {
-                V = new FMatrixRMaj(n,n);
+            if (V == null) {
+                V = new FMatrixRMaj(n, n);
             } else
-                V.reshape(n,n, false);
+                V.reshape(n, n, false);
         }
 
         return V;
@@ -283,7 +287,7 @@ public class BidiagonalDecompositionRow_FDRM
      * Internal function for computing the decomposition.
      */
     private boolean _decompose() {
-        for( int k = 0; k < min; k++ ) {
+        for (int k = 0; k < min; k++) {
 //            UBV.print();
             computeU(k);
 //            System.out.println("--- after U");
@@ -296,23 +300,23 @@ public class BidiagonalDecompositionRow_FDRM
         return true;
     }
 
-    protected void computeU( int k) {
-        float b[] = UBV.data;
+    protected void computeU( int k ) {
+        float[] b = UBV.data;
 
         // find the largest value in this column
         // this is used to normalize the column and mitigate overflow/underflow
         float max = 0;
 
-        for( int i = k; i < m; i++ ) {
+        for (int i = k; i < m; i++) {
             // copy the householder vector to vector outside of the matrix to reduce caching issues
             // big improvement on larger matrices and a relatively small performance hit on small matrices.
-            float val = u[i] = b[i*n+k];
+            float val = u[i] = b[i*n + k];
             val = Math.abs(val);
-            if( val > max )
+            if (val > max)
                 max = val;
         }
 
-        if( max > 0 ) {
+        if (max > 0) {
             // -------- set up the reflector Q_k
             float tau = QrHelperFunctions_FDRM.computeTauAndDivide(k, m, u, max);
 
@@ -326,16 +330,24 @@ public class BidiagonalDecompositionRow_FDRM
             gammasU[k] = gamma;
 
             // ---------- multiply on the left by Q_k
-            QrHelperFunctions_FDRM.rank1UpdateMultR(UBV, u, gamma, k + 1, k, m, this.b);
+            rank1UpdateMultR(UBV, gamma, k + 1, k, m);
 
-            b[k*n+k] = -tau*max;
+            b[k*n + k] = -tau*max;
         } else {
             gammasU[k] = 0;
         }
     }
 
-    protected void computeV(int k) {
-        float b[] = UBV.data;
+    protected void rank1UpdateMultL( FMatrixRMaj A, float gamma, int colA0, int w0, int w1 ) {
+        QrHelperFunctions_FDRM.rank1UpdateMultL(A, u, gamma, colA0, w0, w1);
+    }
+
+    protected void rank1UpdateMultR( FMatrixRMaj A, float gamma, int colA0, int w0, int w1 ) {
+        QrHelperFunctions_FDRM.rank1UpdateMultR(A, u, gamma, colA0, w0, w1, this.b);
+    }
+
+    protected void computeV( int k ) {
+        float[] b = UBV.data;
 
         int row = k*n;
 
@@ -343,16 +355,16 @@ public class BidiagonalDecompositionRow_FDRM
         // this is used to normalize the column and mitigate overflow/underflow
         float max = QrHelperFunctions_FDRM.findMax(b, row + k + 1, n - k - 1);
 
-        if( max > 0 ) {
+        if (max > 0) {
             // -------- set up the reflector Q_k
 
             float tau = QrHelperFunctions_FDRM.computeTauAndDivide(k + 1, n, b, row, max);
 
             // write the reflector into the lower left column of the matrix
-            float nu = b[row+k+1] + tau;
+            float nu = b[row + k + 1] + tau;
             QrHelperFunctions_FDRM.divideElements_Brow(k + 2, n, u, b, row, nu);
 
-            u[k+1] = 1.0f;
+            u[k + 1] = 1.0f;
 
             float gamma = nu/tau;
             gammasV[k] = gamma;
@@ -360,9 +372,9 @@ public class BidiagonalDecompositionRow_FDRM
             // writing to u could be avoided by working directly with b.
             // requires writing a custom rank1Update function
             // ---------- multiply on the left by Q_k
-            QrHelperFunctions_FDRM.rank1UpdateMultL(UBV, u, gamma, k + 1, k + 1, n);
+            rank1UpdateMultL(UBV, gamma, k + 1, k + 1, n);
 
-            b[row+k+1] = -tau*max;
+            b[row + k + 1] = -tau*max;
         } else {
             gammasV[k] = 0;
         }
@@ -370,8 +382,6 @@ public class BidiagonalDecompositionRow_FDRM
 
     /**
      * Returns gammas from the householder operations for the U matrix.
-     *
-     * @return gammas for householder operations
      */
     public float[] getGammasU() {
         return gammasU;
@@ -379,8 +389,6 @@ public class BidiagonalDecompositionRow_FDRM
 
     /**
      * Returns gammas from the householder operations for the V matrix.
-     *
-     * @return gammas for householder operations
      */
     public float[] getGammasV() {
         return gammasV;

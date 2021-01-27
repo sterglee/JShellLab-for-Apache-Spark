@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,24 +18,26 @@
 
 package org.ejml.dense.row.decomposition.svd;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.interfaces.decomposition.SingularValueDecomposition;
 import org.ejml.interfaces.decomposition.SingularValueDecomposition_F32;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wraps around a {@link SingularValueDecomposition} and ensures that the input is not modified.
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.decomposition.svd.SafeSvd_DDRM")
 public class SafeSvd_FDRM
-        implements SingularValueDecomposition_F32<FMatrixRMaj>
-{
+        implements SingularValueDecomposition_F32<FMatrixRMaj> {
     // the decomposition algorithm
     SingularValueDecomposition_F32<FMatrixRMaj> alg;
     // storage for the input if it would be modified
-    FMatrixRMaj work = new FMatrixRMaj(1,1);
+    FMatrixRMaj work = new FMatrixRMaj(1, 1);
 
-    public SafeSvd_FDRM(SingularValueDecomposition_F32<FMatrixRMaj> alg) {
+    public SafeSvd_FDRM( SingularValueDecomposition_F32<FMatrixRMaj> alg ) {
         this.alg = alg;
     }
 
@@ -55,17 +57,17 @@ public class SafeSvd_FDRM
     }
 
     @Override
-    public FMatrixRMaj getU(FMatrixRMaj U, boolean transposed) {
-        return alg.getU(U,transposed);
+    public FMatrixRMaj getU( @Nullable FMatrixRMaj U, boolean transposed ) {
+        return alg.getU(U, transposed);
     }
 
     @Override
-    public FMatrixRMaj getV(FMatrixRMaj V, boolean transposed) {
-        return alg.getV(V,transposed);
+    public FMatrixRMaj getV( @Nullable FMatrixRMaj V, boolean transposed ) {
+        return alg.getV(V, transposed);
     }
 
     @Override
-    public FMatrixRMaj getW(FMatrixRMaj W) {
+    public FMatrixRMaj getW( @Nullable FMatrixRMaj W ) {
         return alg.getW(W);
     }
 
@@ -80,9 +82,9 @@ public class SafeSvd_FDRM
     }
 
     @Override
-    public boolean decompose(FMatrixRMaj orig) {
-        if( alg.inputModified() ) {
-            work.reshape(orig.numRows,orig.numCols);
+    public boolean decompose( FMatrixRMaj orig ) {
+        if (alg.inputModified()) {
+            work.reshape(orig.numRows, orig.numCols);
             work.set(orig);
             return alg.decompose(work);
         } else {

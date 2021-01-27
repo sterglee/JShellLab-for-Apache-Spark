@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,10 +18,12 @@
 
 package org.ejml.dense.row.decomposition.hessenberg;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.decomposition.UtilDecompositons_FDRM;
 import org.ejml.dense.row.decomposition.qr.QrHelperFunctions_FDRM;
 import org.ejml.interfaces.decomposition.TridiagonalSimilarDecomposition_F32;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -44,6 +46,7 @@ import org.ejml.interfaces.decomposition.TridiagonalSimilarDecomposition_F32;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.decomposition.hessenberg.TridiagonalDecompositionHouseholder_DDRM")
 public class TridiagonalDecompositionHouseholder_FDRM
         implements TridiagonalSimilarDecomposition_F32<FMatrixRMaj> {
 
@@ -51,17 +54,18 @@ public class TridiagonalDecompositionHouseholder_FDRM
      * Only the upper right triangle is used.  The Tridiagonal portion stores
      * the tridiagonal matrix.  The rows store householder vectors.
      */
-    private FMatrixRMaj QT;
+    @SuppressWarnings("NullAway.Init")
+    protected FMatrixRMaj QT;
 
     // The size of the matrix
-    private int N;
+    protected int N;
 
     // temporary storage
-    private float w[];
+    protected float[] w;
     // gammas for the householder operations
-    private float gammas[];
+    protected float[] gammas;
     // temporary storage
-    private float b[];
+    protected float[] b;
 
     public TridiagonalDecompositionHouseholder_FDRM() {
         N = 1;
@@ -72,19 +76,18 @@ public class TridiagonalDecompositionHouseholder_FDRM
 
     /**
      * Returns the internal matrix where the decomposed results are stored.
-     * @return
      */
     public FMatrixRMaj getQT() {
         return QT;
     }
 
     @Override
-    public void getDiagonal(float[] diag, float[] off) {
-        for( int i = 0; i < N; i++ ) {
-            diag[i] = QT.data[i*N+i];
+    public void getDiagonal( float[] diag, float[] off ) {
+        for (int i = 0; i < N; i++) {
+            diag[i] = QT.data[i*N + i];
 
-            if( i+1 < N ) {
-                off[i] = QT.data[i*N+i+1];
+            if (i + 1 < N) {
+                off[i] = QT.data[i*N + i + 1];
             }
         }
     }
@@ -96,23 +99,23 @@ public class TridiagonalDecompositionHouseholder_FDRM
      * @return The extracted T matrix.
      */
     @Override
-    public FMatrixRMaj getT(FMatrixRMaj T ) {
-        T = UtilDecompositons_FDRM.checkZeros(T,N,N);
+    public FMatrixRMaj getT( @Nullable FMatrixRMaj T ) {
+        T = UtilDecompositons_FDRM.ensureZeros(T, N, N);
 
         T.data[0] = QT.data[0];
 
-        for( int i = 1; i < N; i++ ) {
-            T.set(i,i, QT.get(i,i));
-            float a = QT.get(i-1,i);
-            T.set(i-1,i,a);
-            T.set(i,i-1,a);
+        for (int i = 1; i < N; i++) {
+            T.set(i, i, QT.get(i, i));
+            float a = QT.get(i - 1, i);
+            T.set(i - 1, i, a);
+            T.set(i, i - 1, a);
         }
 
-        if( N > 1 ) {
-            T.data[(N-1)*N+N-1] = QT.data[(N-1)*N+N-1];
-            T.data[(N-1)*N+N-2] = QT.data[(N-2)*N+N-1];
+        if (N > 1) {
+            T.data[(N - 1)*N + N - 1] = QT.data[(N - 1)*N + N - 1];
+            T.data[(N - 1)*N + N - 2] = QT.data[(N - 2)*N + N - 1];
         }
-            
+
         return T;
     }
 
@@ -123,26 +126,26 @@ public class TridiagonalDecompositionHouseholder_FDRM
      * @return The extracted Q matrix.
      */
     @Override
-    public FMatrixRMaj getQ(FMatrixRMaj Q , boolean transposed ) {
-        Q = UtilDecompositons_FDRM.checkIdentity(Q,N,N);
+    public FMatrixRMaj getQ( @Nullable FMatrixRMaj Q, boolean transposed ) {
+        Q = UtilDecompositons_FDRM.ensureIdentity(Q, N, N);
 
-        for( int i = 0; i < N; i++ ) w[i] = 0;
+        for (int i = 0; i < N; i++) w[i] = 0;
 
-        if( transposed ) {
-            for( int j = N-2; j >= 0; j-- ) {
-                w[j+1] = 1;
-                for( int i = j+2; i < N; i++ ) {
-                    w[i] = QT.data[j*N+i];
+        if (transposed) {
+            for (int j = N - 2; j >= 0; j--) {
+                w[j + 1] = 1;
+                for (int i = j + 2; i < N; i++) {
+                    w[i] = QT.data[j*N + i];
                 }
-                QrHelperFunctions_FDRM.rank1UpdateMultL(Q, w, gammas[j + 1], j + 1, j + 1, N);
+                rank1UpdateMultL(Q, gammas[j + 1], j + 1, j + 1, N);
             }
         } else {
-            for( int j = N-2; j >= 0; j-- ) {
-                w[j+1] = 1;
-                for( int i = j+2; i < N; i++ ) {
-                    w[i] = QT.get(j,i);
+            for (int j = N - 2; j >= 0; j--) {
+                w[j + 1] = 1;
+                for (int i = j + 2; i < N; i++) {
+                    w[i] = QT.get(j, i);
                 }
-                QrHelperFunctions_FDRM.rank1UpdateMultR(Q, w, gammas[j + 1], j + 1, j + 1, N, b);
+                rank1UpdateMultR(Q, gammas[j + 1], j + 1, j + 1, N);
             }
         }
 
@@ -158,7 +161,7 @@ public class TridiagonalDecompositionHouseholder_FDRM
     public boolean decompose( FMatrixRMaj A ) {
         init(A);
 
-        for( int k = 1; k < N; k++ ) {
+        for (int k = 1; k < N; k++) {
             similarTransform(k);
         }
 
@@ -168,40 +171,40 @@ public class TridiagonalDecompositionHouseholder_FDRM
     /**
      * Computes and performs the similar a transform for submatrix k.
      */
-    private void similarTransform( int k) {
-        float t[] = QT.data;
+    private void similarTransform( int k ) {
+        float[] t = QT.data;
 
         // find the largest value in this column
         // this is used to normalize the column and mitigate overflow/underflow
         float max = 0;
 
-        int rowU = (k-1)*N;
+        int rowU = (k - 1)*N;
 
-        for( int i = k; i < N; i++ ) {
-            float val = Math.abs(t[rowU+i]);
-            if( val > max )
+        for (int i = k; i < N; i++) {
+            float val = Math.abs(t[rowU + i]);
+            if (val > max)
                 max = val;
         }
 
-        if( max > 0 ) {
+        if (max > 0) {
             // -------- set up the reflector Q_k
 
             float tau = QrHelperFunctions_FDRM.computeTauAndDivide(k, N, t, rowU, max);
 
             // write the reflector into the lower left column of the matrix
-            float nu = t[rowU+k] + tau;
+            float nu = t[rowU + k] + tau;
             QrHelperFunctions_FDRM.divideElements(k + 1, N, t, rowU, nu);
-            t[rowU+k] = 1.0f;
+            t[rowU + k] = 1.0f;
 
             float gamma = nu/tau;
             gammas[k] = gamma;
 
             // ---------- Specialized householder that takes advantage of the symmetry
-            householderSymmetric(k,gamma);
+            householderSymmetric(k, gamma);
 
             // since the first element in the householder vector is known to be 1
             // store the full upper hessenberg
-            t[rowU+k] = -tau*max;
+            t[rowU + k] = -tau*max;
         } else {
             gammas[k] = 0;
         }
@@ -209,55 +212,53 @@ public class TridiagonalDecompositionHouseholder_FDRM
 
     /**
      * Performs the householder operations on left and right and side of the matrix.  Q<sup>T</sup>AQ
-     * @param row Specifies the submatrix.
      *
+     * @param row Specifies the submatrix.
      * @param gamma The gamma for the householder operation
      */
-    public void householderSymmetric( int row , float gamma )
-    {
-        int startU = (row-1)*N;
+    public void householderSymmetric( int row, float gamma ) {
+        int startU = (row - 1)*N;
 
         // compute v = -gamma*A*u
-        for( int i = row; i < N; i++ ) {
+        for (int i = row; i < N; i++) {
             float total = 0;
             // the lower triangle is not written to so it needs to traverse upwards
             // to get the information.  Reduces the number of matrix writes need
             // improving large matrix performance
-            for( int j = row; j < i; j++ ) {
-                total += QT.data[j*N+i]*QT.data[startU+j];
+            for (int j = row; j < i; j++) {
+                total += QT.data[j*N + i]*QT.data[startU + j];
             }
-            for( int j = i; j < N; j++ ) {
-                total += QT.data[i*N+j]*QT.data[startU+j];
+            for (int j = i; j < N; j++) {
+                total += QT.data[i*N + j]*QT.data[startU + j];
             }
             w[i] = -gamma*total;
         }
         // alpha = -0.5f*gamma*u^T*v
         float alpha = 0;
 
-        for( int i = row; i < N; i++ ) {
-            alpha += QT.data[startU+i]*w[i];
+        for (int i = row; i < N; i++) {
+            alpha += QT.data[startU + i]*w[i];
         }
         alpha *= -0.5f*gamma;
 
         // w = v + alpha*u
-        for( int i = row; i < N; i++ ) {
-            w[i] += alpha*QT.data[startU+i];
+        for (int i = row; i < N; i++) {
+            w[i] += alpha*QT.data[startU + i];
         }
         // A = A + w*u^T + u*w^T
-        for( int i = row; i < N; i++ ) {
+        for (int i = row; i < N; i++) {
 
             float ww = w[i];
-            float uu = QT.data[startU+i];
+            float uu = QT.data[startU + i];
 
             int rowA = i*N;
-            for( int j = i; j < N; j++ ) {
+            for (int j = i; j < N; j++) {
                 // only write to the upper portion of the matrix
                 // this reduces the number of cache misses
-                QT.data[rowA+j] += ww*QT.data[startU+j] + w[j]*uu;
+                QT.data[rowA + j] += ww*QT.data[startU + j] + w[j]*uu;
             }
         }
     }
-
 
     /**
      * If needed declares and sets up internal data structures.
@@ -265,20 +266,28 @@ public class TridiagonalDecompositionHouseholder_FDRM
      * @param A Matrix being decomposed.
      */
     public void init( FMatrixRMaj A ) {
-        if( A.numRows != A.numCols)
+        if (A.numRows != A.numCols)
             throw new IllegalArgumentException("Must be square");
 
-        if( A.numCols != N ) {
+        if (A.numCols != N) {
             N = A.numCols;
 
-            if( w.length < N ) {
-                w = new float[ N ];
+            if (w.length < N) {
+                w = new float[N];
                 gammas = new float[N];
                 b = new float[N];
             }
         }
 
         QT = A;
+    }
+
+    protected void rank1UpdateMultL( FMatrixRMaj A, float gamma, int colA0, int w0, int w1 ) {
+        QrHelperFunctions_FDRM.rank1UpdateMultL(A, w, gamma, colA0, w0, w1);
+    }
+
+    protected void rank1UpdateMultR( FMatrixRMaj A, float gamma, int colA0, int w0, int w1 ) {
+        QrHelperFunctions_FDRM.rank1UpdateMultR(A, w, gamma, colA0, w0, w1, this.b);
     }
 
     @Override

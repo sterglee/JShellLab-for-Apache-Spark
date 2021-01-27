@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row;
 
+import javax.annotation.Generated;
 import org.ejml.data.CMatrixD1;
 import org.ejml.data.CMatrixRMaj;
 
@@ -28,6 +29,7 @@ import java.util.Random;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.RandomMatrices_ZDRM")
 public class RandomMatrices_CDRM {
     /**
      * <p>
@@ -40,8 +42,8 @@ public class RandomMatrices_CDRM {
      * @param rand Random number generator used to fill the matrix.
      * @return The randomly generated matrix.
      */
-    public static CMatrixRMaj rectangle(int numRow , int numCol , Random rand ) {
-        return rectangle(numRow,numCol,-1,1,rand);
+    public static CMatrixRMaj rectangle( int numRow, int numCol, Random rand ) {
+        return rectangle(numRow, numCol, -1, 1, rand);
     }
 
     /**
@@ -57,10 +59,10 @@ public class RandomMatrices_CDRM {
      * @param rand Random number generator used to fill the matrix.
      * @return The randomly generated matrix.
      */
-    public static CMatrixRMaj rectangle(int numRow , int numCol , float min , float max , Random rand ) {
-        CMatrixRMaj mat = new CMatrixRMaj(numRow,numCol);
+    public static CMatrixRMaj rectangle( int numRow, int numCol, float min, float max, Random rand ) {
+        CMatrixRMaj mat = new CMatrixRMaj(numRow, numCol);
 
-        fillUniform(mat,min,max,rand);
+        fillUniform(mat, min, max, rand);
 
         return mat;
     }
@@ -73,9 +75,8 @@ public class RandomMatrices_CDRM {
      * @param mat The matrix who is to be randomized. Modified.
      * @param rand Random number generator used to fill the matrix.
      */
-    public static void fillUniform(CMatrixRMaj mat , Random rand )
-    {
-        fillUniform(mat,0,1,rand);
+    public static void fillUniform( CMatrixRMaj mat, Random rand ) {
+        fillUniform(mat, 0, 1, rand);
     }
 
     /**
@@ -88,15 +89,14 @@ public class RandomMatrices_CDRM {
      * @param mat The matrix who is to be randomized. Modified.
      * @param rand Random number generator used to fill the matrix.
      */
-    public static void fillUniform(CMatrixD1 mat , float min , float max , Random rand )
-    {
+    public static void fillUniform( CMatrixD1 mat, float min, float max, Random rand ) {
         float d[] = mat.getData();
         int size = mat.getDataLength();
 
-        float r = max-min;
+        float r = max - min;
 
-        for( int i = 0; i < size; i++ ) {
-            d[i] = r*rand.nextFloat()+min;
+        for (int i = 0; i < size; i++) {
+            d[i] = r*rand.nextFloat() + min;
         }
     }
 
@@ -107,17 +107,17 @@ public class RandomMatrices_CDRM {
      * @param rand Random number generator used to make the matrix.
      * @return The random symmetric  positive definite matrix.
      */
-    public static CMatrixRMaj hermitianPosDef(int width, Random rand) {
+    public static CMatrixRMaj hermitianPosDef( int width, Random rand ) {
         // This is not formally proven to work.  It just seems to work.
-        CMatrixRMaj a = RandomMatrices_CDRM.rectangle(width,1,rand);
-        CMatrixRMaj b = new CMatrixRMaj(1,width);
-        CMatrixRMaj c = new CMatrixRMaj(width,width);
+        CMatrixRMaj a = RandomMatrices_CDRM.rectangle(width, 1, rand);
+        CMatrixRMaj b = new CMatrixRMaj(1, width);
+        CMatrixRMaj c = new CMatrixRMaj(width, width);
 
-        CommonOps_CDRM.transposeConjugate(a,b);
+        CommonOps_CDRM.transposeConjugate(a, b);
         CommonOps_CDRM.mult(a, b, c);
 
-        for( int i = 0; i < width; i++ ) {
-            c.data[2*(i*width+i)] += 1;
+        for (int i = 0; i < width; i++) {
+            c.data[2*(i*width + i)] += 1;
         }
 
         return c;
@@ -132,8 +132,8 @@ public class RandomMatrices_CDRM {
      * @param rand Random number generator.
      * @return A symmetric matrix.
      */
-    public static CMatrixRMaj hermitian(int length, float min, float max, Random rand) {
-        CMatrixRMaj A = new CMatrixRMaj(length,length);
+    public static CMatrixRMaj hermitian( int length, float min, float max, Random rand ) {
+        CMatrixRMaj A = new CMatrixRMaj(length, length);
 
         fillHermitian(A, min, max, rand);
 
@@ -148,22 +148,22 @@ public class RandomMatrices_CDRM {
      * @param max Maximum value an element can have.
      * @param rand Random number generator.
      */
-    public static void fillHermitian(CMatrixRMaj A, float min, float max, Random rand) {
-        if( A.numRows != A.numCols )
+    public static void fillHermitian( CMatrixRMaj A, float min, float max, Random rand ) {
+        if (A.numRows != A.numCols)
             throw new IllegalArgumentException("A must be a square matrix");
 
-        float range = max-min;
+        float range = max - min;
 
         int length = A.numRows;
 
-        for( int i = 0; i < length; i++ ) {
-            A.set(i,i,rand.nextFloat()*range + min,0);
+        for (int i = 0; i < length; i++) {
+            A.set(i, i, rand.nextFloat()*range + min, 0);
 
-            for( int j = i+1; j < length; j++ ) {
+            for (int j = i + 1; j < length; j++) {
                 float real = rand.nextFloat()*range + min;
                 float imaginary = rand.nextFloat()*range + min;
-                A.set(i,j,real,imaginary);
-                A.set(j,i,real,-imaginary);
+                A.set(i, j, real, imaginary);
+                A.set(j, i, real, -imaginary);
             }
         }
     }

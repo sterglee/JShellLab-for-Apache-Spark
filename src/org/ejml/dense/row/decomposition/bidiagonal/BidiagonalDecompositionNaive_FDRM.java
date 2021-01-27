@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.decomposition.bidiagonal;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.SpecializedOps_FDRM;
 import org.ejml.simple.SimpleMatrix;
@@ -30,6 +31,8 @@ import org.ejml.simple.SimpleMatrix;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.decomposition.bidiagonal.BidiagonalDecompositionNaive_DDRM")
 public class BidiagonalDecompositionNaive_FDRM {
     private SimpleMatrix U;
     private SimpleMatrix B;
@@ -41,7 +44,6 @@ public class BidiagonalDecompositionNaive_FDRM {
     private int n;
     // smallest of m and n
     private int min;
-
 
     FMatrixRMaj u;
 

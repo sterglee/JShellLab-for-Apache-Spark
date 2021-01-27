@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,8 +18,9 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
-import org.ejml.ops.ConvertFArrays;
+import org.ejml.ops.FConvertArrays;
 import org.ejml.ops.MatrixIO;
 
 import java.io.ByteArrayOutputStream;
@@ -51,6 +52,7 @@ import java.util.Arrays;
  * </pre>
  * @author Peter Abeles
  */
+@Generated("org.ejml.data.DMatrixRMaj")
 public class FMatrixRMaj extends FMatrix1Row {
 
     /**
@@ -334,11 +336,19 @@ public class FMatrixRMaj extends FMatrix1Row {
     }
 
     /**
+     * Sets all elements equal to the specified value.
+     */
+    public void fill(float value) {
+        Arrays.fill(data, 0, getNumElements(), value);
+    }
+
+    /**
      * Creates and returns a matrix which is idential to this one.
      *
      * @return A new identical matrix.
      */
     @SuppressWarnings({"unchecked"})
+    @Override
     public FMatrixRMaj copy() {
         return new FMatrixRMaj(this);
     }
@@ -398,6 +408,6 @@ public class FMatrixRMaj extends FMatrix1Row {
      * @param input 2D array which this matrix will be set to
      */
     public void set( float[][]input ) {
-        ConvertFArrays.convert(input,this);
+        FConvertArrays.convert(input,this);
     }
 }

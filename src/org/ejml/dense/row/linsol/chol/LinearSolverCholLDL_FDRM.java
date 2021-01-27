@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.linsol.chol;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.SpecializedOps_FDRM;
 import org.ejml.dense.row.decomposition.TriangularSolver_FDRM;
@@ -25,19 +26,20 @@ import org.ejml.dense.row.decomposition.chol.CholeskyDecompositionLDL_FDRM;
 import org.ejml.dense.row.linsol.LinearSolverAbstract_FDRM;
 import org.ejml.interfaces.decomposition.CholeskyLDLDecomposition_F32;
 
-
 /**
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.linsol.chol.LinearSolverCholLDL_DDRM")
 public class LinearSolverCholLDL_FDRM extends LinearSolverAbstract_FDRM {
 
-    private CholeskyDecompositionLDL_FDRM decomposer;
+    private final CholeskyDecompositionLDL_FDRM decomposer;
     private int n;
-    private float vv[];
-    private float el[];
-    private float d[];
+    private float[] vv;
+    private float[] el;
+    private float[] d;
 
-    public LinearSolverCholLDL_FDRM(CholeskyDecompositionLDL_FDRM decomposer) {
+    public LinearSolverCholLDL_FDRM( CholeskyDecompositionLDL_FDRM decomposer ) {
         this.decomposer = decomposer;
     }
 
@@ -46,10 +48,10 @@ public class LinearSolverCholLDL_FDRM extends LinearSolverAbstract_FDRM {
     }
 
     @Override
-    public boolean setA(FMatrixRMaj A) {
+    public boolean setA( FMatrixRMaj A ) {
         _setA(A);
 
-        if( decomposer.decompose(A) ){
+        if (decomposer.decompose(A)) {
             n = A.numCols;
             vv = decomposer._getVV();
             el = decomposer.getL().data;
@@ -81,20 +83,20 @@ public class LinearSolverCholLDL_FDRM extends LinearSolverAbstract_FDRM {
      * @param X An n by m matrix where the solution is writen to.  Modified.
      */
     @Override
-    public void solve(FMatrixRMaj B , FMatrixRMaj X ) {
-        if( B.numCols != X.numCols && B.numRows != n && X.numRows != n) {
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
+        if (B.numCols != X.numCols && B.numRows != n && X.numRows != n) {
             throw new IllegalArgumentException("Unexpected matrix size");
         }
 
         int numCols = B.numCols;
 
-        float dataB[] = B.data;
-        float dataX[] = X.data;
+        float[] dataB = B.data;
+        float[] dataX = X.data;
 
-        for( int j = 0; j < numCols; j++ ) {
-            for( int i = 0; i < n; i++ ) vv[i] = dataB[i*numCols+j];
+        for (int j = 0; j < numCols; j++) {
+            for (int i = 0; i < n; i++) vv[i] = dataB[i*numCols + j];
             solveInternal();
-            for( int i = 0; i < n; i++ ) dataX[i*numCols+j] = vv[i];
+            for (int i = 0; i < n; i++) dataX[i*numCols + j] = vv[i];
         }
     }
 
@@ -103,15 +105,15 @@ public class LinearSolverCholLDL_FDRM extends LinearSolverAbstract_FDRM {
      */
     private void solveInternal() {
         // solve L*s=b storing y in x
-        TriangularSolver_FDRM.solveL(el,vv,n);
+        TriangularSolver_FDRM.solveL(el, vv, n);
 
         // solve D*y=s
-        for( int i = 0; i < n; i++ ) {
+        for (int i = 0; i < n; i++) {
             vv[i] /= d[i];
         }
 
         // solve L^T*x=y
-        TriangularSolver_FDRM.solveTranL(el,vv,n);
+        TriangularSolver_FDRM.solveTranL(el, vv, n);
     }
 
     /**
@@ -121,39 +123,39 @@ public class LinearSolverCholLDL_FDRM extends LinearSolverAbstract_FDRM {
      */
     @Override
     public void invert( FMatrixRMaj inv ) {
-        if( inv.numRows != n || inv.numCols != n ) {
+        if (inv.numRows != n || inv.numCols != n) {
             throw new RuntimeException("Unexpected matrix dimension");
         }
 
-        float a[] = inv.data;
+        float[] a = inv.data;
 
         // solve L*z = b
-        for( int i =0; i < n; i++ ) {
-            for( int j = 0; j <= i; j++ ) {
-                float sum = (i==j) ? 1.0f : 0.0f;
-                for( int k=i-1; k >=j; k-- ) {
-                    sum -= el[i*n+k]*a[j*n+k];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j <= i; j++) {
+                float sum = (i == j) ? 1.0f : 0.0f;
+                for (int k = i - 1; k >= j; k--) {
+                    sum -= el[i*n + k]*a[j*n + k];
                 }
-                a[j*n+i] = sum;
+                a[j*n + i] = sum;
             }
         }
 
         // solve D*y=z
-        for( int i =0; i < n; i++ ) {
+        for (int i = 0; i < n; i++) {
             float inv_d = 1.0f/d[i];
-            for( int j = 0; j <= i; j++ ) {
-                a[j*n+i] *= inv_d;
+            for (int j = 0; j <= i; j++) {
+                a[j*n + i] *= inv_d;
             }
         }
 
         // solve L^T*x = y
-        for( int i=n-1; i>=0; i-- ) {
-            for( int j = 0; j <= i; j++ ) {
-                float sum = (i<j) ? 0 : a[j*n+i];
-                for( int k=i+1;k<n;k++) {
-                    sum -= el[k*n+i]*a[j*n+k];
+        for (int i = n - 1; i >= 0; i--) {
+            for (int j = 0; j <= i; j++) {
+                float sum = (i < j) ? 0 : a[j*n + i];
+                for (int k = i + 1; k < n; k++) {
+                    sum -= el[k*n + i]*a[j*n + k];
                 }
-                a[i*n+j] = a[j*n+i] = sum;
+                a[i*n + j] = a[j*n + i] = sum;
             }
         }
     }

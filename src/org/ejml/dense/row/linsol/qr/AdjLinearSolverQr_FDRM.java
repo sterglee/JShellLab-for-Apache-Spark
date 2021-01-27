@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,12 +18,12 @@
 
 package org.ejml.dense.row.linsol.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
 import org.ejml.dense.row.decomposition.qr.QRDecompositionHouseholderColumn_FDRM;
 import org.ejml.dense.row.decomposition.qr.QrUpdate_FDRM;
 import org.ejml.dense.row.linsol.AdjustableLinearSolver_FDRM;
-
 
 /**
  * A solver for QR decomposition that can efficiently modify the previous decomposition when
@@ -31,6 +31,8 @@ import org.ejml.dense.row.linsol.AdjustableLinearSolver_FDRM;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.linsol.qr.AdjLinearSolverQr_DDRM")
 public class AdjLinearSolverQr_FDRM extends LinearSolverQr_FDRM implements AdjustableLinearSolver_FDRM {
 
     private QrUpdate_FDRM update;
@@ -38,18 +40,18 @@ public class AdjLinearSolverQr_FDRM extends LinearSolverQr_FDRM implements Adjus
     private FMatrixRMaj A;
 
     public AdjLinearSolverQr_FDRM() {
-        super( new QRDecompositionHouseholderColumn_FDRM() );
+        super(new QRDecompositionHouseholderColumn_FDRM());
     }
 
     @Override
-    public void setMaxSize( int maxRows , int maxCols ) {
+    public void setMaxSize( int maxRows, int maxCols ) {
         // allow it some room to grow
         maxRows += 5;
 
-        super.setMaxSize(maxRows,maxCols);
+        super.setMaxSize(maxRows, maxCols);
 
-        update = new QrUpdate_FDRM(maxRows,maxCols,true);
-        A = new FMatrixRMaj(maxRows,maxCols);
+        update = new QrUpdate_FDRM(maxRows, maxCols, true);
+        A = new FMatrixRMaj(maxRows, maxCols);
     }
 
     /**
@@ -59,38 +61,32 @@ public class AdjLinearSolverQr_FDRM extends LinearSolverQr_FDRM implements Adjus
      */
     @Override
     public FMatrixRMaj getA() {
-        if( A.data.length < numRows*numCols ) {
-            A = new FMatrixRMaj(numRows,numCols);
-        }
-        A.reshape(numRows,numCols, false);
-        CommonOps_FDRM.mult(Q,R,A);
-
+        CommonOps_FDRM.mult(Q, R, A);
         return A;
     }
 
     @Override
-    public boolean addRowToA(float[] A_row , int rowIndex ) {
+    public boolean addRowToA( float[] A_row, int rowIndex ) {
         // see if it needs to grow the data structures
-        if( numRows + 1 > maxRows) {
+        if (numRows + 1 > maxRows) {
             // grow by 10%
-            int grow = maxRows / 10;
-            if( grow < 1 ) grow = 1;
+            int grow = maxRows/10;
+            if (grow < 1) grow = 1;
             maxRows = numRows + grow;
-            Q.reshape(maxRows,maxRows,true);
-            R.reshape(maxRows,maxCols,true);
+            Q.reshape(maxRows, maxRows, true);
+            R.reshape(maxRows, maxCols, true);
         }
 
-        update.addRow(Q,R,A_row,rowIndex,true);
+        update.addRow(Q, R, A_row, rowIndex, true);
         numRows++;
 
         return true;
     }
 
     @Override
-    public boolean removeRowFromA(int index) {
-        update.deleteRow(Q,R,index,true);
+    public boolean removeRowFromA( int index ) {
+        update.deleteRow(Q, R, index, true);
         numRows--;
         return true;
     }
-
 }

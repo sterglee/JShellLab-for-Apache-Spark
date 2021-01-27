@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.sparse.csc.linsol.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FGrowArray;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.data.FMatrixSparseCSC;
@@ -36,28 +37,29 @@ import static org.ejml.UtilEjml.adjust;
  *
  * @author Peter Abeles
  */
-public class LinearSolverQrLeftLooking_FSCC implements LinearSolverSparse<FMatrixSparseCSC,FMatrixRMaj> {
+@Generated("org.ejml.sparse.csc.linsol.qr.LinearSolverQrLeftLooking_DSCC")
+public class LinearSolverQrLeftLooking_FSCC implements LinearSolverSparse<FMatrixSparseCSC, FMatrixRMaj> {
 
-    private QrLeftLookingDecomposition_FSCC qr;
-    private int m,n;
+    private final QrLeftLookingDecomposition_FSCC qr;
+    private int AnumRows, AnumCols;
 
-    private FGrowArray gb = new FGrowArray();
-    private FGrowArray gbp = new FGrowArray();
-    private FGrowArray gx = new FGrowArray();
-    private IGrowArray gw = new IGrowArray();
+    private final FGrowArray gb = new FGrowArray();
+    private final FGrowArray gbp = new FGrowArray();
+    private final FGrowArray gx = new FGrowArray();
+    private final IGrowArray gw = new IGrowArray();
 
-    private FMatrixSparseCSC tmp = new FMatrixSparseCSC(1,1,1);
+    private final FMatrixSparseCSC tmp = new FMatrixSparseCSC(1, 1, 1);
 
-    public LinearSolverQrLeftLooking_FSCC(QrLeftLookingDecomposition_FSCC qr) {
+    public LinearSolverQrLeftLooking_FSCC( QrLeftLookingDecomposition_FSCC qr ) {
         this.qr = qr;
     }
 
     @Override
-    public boolean setA(FMatrixSparseCSC A) {
-        if( A.numCols > A.numRows )
+    public boolean setA( FMatrixSparseCSC A ) {
+        if (A.numCols > A.numRows)
             throw new IllegalArgumentException("Can't handle wide matrices");
-        this.m = A.numRows;
-        this.n = A.numCols;
+        this.AnumRows = A.numRows;
+        this.AnumCols = A.numCols;
         return qr.decompose(A) && !qr.isSingular();
     }
 
@@ -67,7 +69,9 @@ public class LinearSolverQrLeftLooking_FSCC implements LinearSolverSparse<FMatri
     }
 
     @Override
-    public void solveSparse(FMatrixSparseCSC B, FMatrixSparseCSC X) {
+    public void solveSparse( FMatrixSparseCSC B, FMatrixSparseCSC X ) {
+        X.reshape(AnumCols, B.numCols, X.numRows);
+
         IGrowArray gw1 = qr.getGwork();
 
         // Don't modify the input
@@ -77,16 +81,16 @@ public class LinearSolverQrLeftLooking_FSCC implements LinearSolverSparse<FMatri
         FMatrixSparseCSC swap;
 
         // Apply permutation to B
-        int pinv[] = qr.getStructure().getPinv();
-        CommonOps_FSCC.permuteRowInv(pinv,B,B_tmp);
+        int[] pinv = qr.getStructure().getPinv();
+        CommonOps_FSCC.permuteRowInv(pinv, B, B_tmp);
         swap = B_tmp;
         B_tmp = B;
         B = swap;
 
         // Apply house holders to B
         FMatrixSparseCSC V = qr.getV();
-        for (int i = 0; i < n; i++) {
-            QrHelperFunctions_FSCC.rank1UpdateMultR(V,i,qr.getBeta(i),B,B_tmp,gw,gx);
+        for (int i = 0; i < AnumCols; i++) {
+            QrHelperFunctions_FSCC.rank1UpdateMultR(V, i, qr.getBeta(i), B, B_tmp, gw, gx);
             swap = B_tmp;
             B_tmp = B;
             B = swap;
@@ -94,12 +98,12 @@ public class LinearSolverQrLeftLooking_FSCC implements LinearSolverSparse<FMatri
 
         // Solve for X
         FMatrixSparseCSC R = qr.getR();
-        TriangularSolver_FSCC.solve(R,false,B,X,null,gx,gw,gw1);
+        TriangularSolver_FSCC.solve(R, false, B, X, null, gx, gw, gw1);
     }
 
     @Override
     public void setStructureLocked( boolean locked ) {
-        qr.setStructureLocked( locked );
+        qr.setStructureLocked(locked);
     }
 
     @Override
@@ -108,31 +112,33 @@ public class LinearSolverQrLeftLooking_FSCC implements LinearSolverSparse<FMatri
     }
 
     @Override
-    public void solve(FMatrixRMaj B, FMatrixRMaj X) {
-        float[] b = adjust(gb,B.numRows);
-        float[] bp = adjust(gbp,B.numRows);
-        float[] x = adjust(gx,n);
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
+        X.reshape(AnumCols, B.numCols);
+
+        float[] b = adjust(gb, B.numRows);
+        float[] bp = adjust(gbp, B.numRows);
+        float[] x = adjust(gx, AnumCols);
 
         int[] pinv = qr.getStructure().getPinv();
 
         // process each column in X and B individually
         for (int colX = 0; colX < B.numCols; colX++) {
             int index = colX;
-            for( int i = 0; i < B.numRows; i++ , index += X.numCols ) b[i] = B.data[index];
+            for (int i = 0; i < B.numRows; i++, index += X.numCols) b[i] = B.data[index];
 
             // apply row pivots
-            CommonOps_FSCC.permuteInv(pinv, b, bp, m);
+            CommonOps_FSCC.permuteInv(pinv, b, bp, AnumRows);
 
             // apply Householder reflectors
-            for (int j = 0; j < n; j++) {
-                QrHelperFunctions_FSCC.applyHouseholder(qr.getV(),j,qr.getBeta(j),bp);
+            for (int j = 0; j < AnumCols; j++) {
+                QrHelperFunctions_FSCC.applyHouseholder(qr.getV(), j, qr.getBeta(j), bp);
             }
             // Solve for R*x = b
-            TriangularSolver_FSCC.solveU(qr.getR(),bp);
+            TriangularSolver_FSCC.solveU(qr.getR(), bp);
 
             // undo the permutation
-            float out[];
-            if( qr.isFillPermutated()) {
+            float[] out;
+            if (qr.isFillPermutated()) {
                 CommonOps_FSCC.permute(qr.getFillPermutation(), bp, x, X.numRows);
                 out = x;
             } else {
@@ -140,7 +146,7 @@ public class LinearSolverQrLeftLooking_FSCC implements LinearSolverSparse<FMatri
             }
 
             index = colX;
-            for( int i = 0; i < X.numRows; i++ , index += X.numCols ) X.data[index] = out[i];
+            for (int i = 0; i < X.numRows; i++, index += X.numCols) X.data[index] = out[i];
         }
     }
 

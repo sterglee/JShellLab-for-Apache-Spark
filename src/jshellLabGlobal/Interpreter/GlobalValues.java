@@ -39,7 +39,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 
 public class GlobalValues
 {  
-    static public   String  dateOfBuild = " 12-June-2020";       // tracks the date of build    
+    static public   String  dateOfBuild = " 27-01-2021";       // tracks the date of build    
     
     static public Equation  eq = new Equation();   // EJML equation object
     
@@ -156,7 +156,9 @@ public class GlobalValues
     static public boolean truncateOutput  = false;   // displays all the output results from the jshellLab interpreter without truncating
     static public boolean globalVerboseOff = false;
     static public boolean displayAtOutputWindow = false;   // controls displaying at output window
-        
+         
+    static public int maxNumsOutputToString = 1000;  // restricts output of toString()
+   
         static public   DecimalFormat fmtString = new  DecimalFormat("0.0000");
         static public   DecimalFormat fmtMatrix = new DecimalFormat("0.000"); // format Matrix results
         static public   int  doubleFormatLen = 4; // how many digits to display for doubles, Matrix
@@ -230,21 +232,66 @@ public class GlobalValues
                 "import static java.util.List.*;",
                 "import java.util.Set;",
                 "import static java.util.Set.*;",
-                
-                "import org.ejml.*;",
-                "import org.ejml.alg.block.*;",
-                "import org.ejml.interfaces.decomposition.*",
-                "import org.ejml.factory.*",
-                "import org.ejml.equation.*;",
-                "import org.ejml.data.*;",
-                "import org.ejml.dense.decompose.*;",
-                "import org.ejml.dense.decomposition.*;",
-                
-                "import static org.ejml.ops.CommonOps.*;",
-                "import static org.ejml.ops.CovarianceOps.*;",
-                "import static org.ejml.ops.NormOps.*;",
-                "import static org.ejml.ops.EigenOps.*;",
-                "import static org.ejml.ops.MatrixIO.*;"
+                   // EJML imports
+                     "import org.ejml.*;",
+                     "import org.ejml.concurrency.*;",
+                     "import pabeles.concurrency.*;",
+                     "import org.ejml.data.*;",
+                     "import org.ejml.dense.block.*;",
+                     "import org.ejml.dense.block.decomposition.bidiagonal.*;",
+                     "import org.ejml.dense.block.decomposition.chol.*;",
+                     "import org.ejml.dense.block.decomposition.hessenberg.*;",
+                     "import org.ejml.dense.decomposition.qr.*;",
+                     "import org.ejml.dense.block.linsol.chol.*;",
+                     "import org.ejml.dense.block.linsol.qr.*;",
+                     "import org.ejml.dense.blockd3.*;",
+                     "import org.ejml.dense.densed.mult.*;",
+                     "import org.ejml.dense.fixed.*;",
+                     "import org.ejml.dense.row.*;",
+                     "import org.ejml.dense.row.decompose.*;",
+                     "import org.ejml.dense.row.decompose.chol.*;",
+                     "import org.ejml.dense.row.decompose.hessenberg.*;",
+                     "import org.ejml.dense.row.decompose.lu.*;",
+                     "import org.ejml.dense.row.decomposition.*;",
+                     "import org.ejml.dense.row.decomposition.bidiagonal.*;",
+                     "import org.ejml.dense.row.decomposition.chol.*;",
+                     "import org.ejml.dense.row.decomposition.eig.*;",
+                     "import org.ejml.dense.row.decomposition.eig.symm.*;",
+                     "import org.ejml.dense.row.decomposition.eig.watched.*;",
+                     "import org.ejml.dense.row.decomposition.hessenberg.*;",
+                     "import org.ejml.dense.row.decomposition.lu.*;",
+                     "import org.ejml.dense.row.decomposition.qr.*;",
+                     "import org.ejml.dense.row.decomposition.svd.*;",
+                     "import org.ejml.dense.row.decomposition.svd.implicitqr.*;",
+                     "import org.ejml.dense.row.factory.*;",
+                     "import org.ejml.dense.row.linsol.*;",
+                     "import org.ejml.dense.row.linsol.chol.*;",
+                     "import org.ejml.dense.row.linsol.lu.*;",
+                     "import org.ejml.dense.row.linsol.qr.*;",
+                     "import org.ejml.dense.row.linsol.svd.*;",
+                     "import org.ejml.dense.row.misc.*;",
+                     "import org.ejml.dense.row.mult.*;",
+                     "import org.ejml.equation.*;",
+                     "import org.ejml.generic.*;",
+                     "import org.ejml.interfaces.*;",
+                     "import org.ejml.interfaces.decomposition.*;",
+                     "import org.ejml.interfaces.linsol.*;",
+                     "import org.ejml.ops.*;",
+                     "import org.ejml.simple.*;",
+                     "import org.ejml.simple.ops.*;",
+                     "import org.ejml.sparse.*;",
+                     "import org.ejml.sparse.csc.*;",
+                     "import org.ejml.sparse.csc.decomposition.chol.*;",
+                     "import org.ejml.sparse.csc.decomposition.lu.*;",
+                     "import org.ejml.sparse.csc.decomposition.qr.*;",
+                     "import org.ejml.sparse.csc.factory.*;",
+                     "import org.ejml.sparse.csc.linsol.chol.*;",
+                     "import org.ejml.sparse.csc.linsol.lu.*;",
+                     "import org.ejml.sparse.csc.linsol.qr.*;",
+                     "import org.ejml.sparse.csc.misc.*;",
+                     "import org.ejml.sparse.csc.mult.*;",
+                     "import org.ejml.sparse.triplet.*;",
+                    "import static org.ejml.ops.MatrixIO.*;"
   
 };
           

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,11 +18,11 @@
 
 package org.ejml.dense.row;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixD1;
 
 import javax.swing.*;
 import java.awt.*;
-
 
 /**
  * <p>
@@ -36,6 +36,7 @@ import java.awt.*;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.DMatrixVisualization")
 public class FMatrixVisualization {
     /**
      * Creates a window visually showing the matrix's state.  Block means an element is zero.
@@ -45,25 +46,24 @@ public class FMatrixVisualization {
      * @param A A matrix.
      * @param title Name of the window.
      */
-    public static void show(FMatrixD1 A , String title ) {
+    public static void show( FMatrixD1 A, String title ) {
         JFrame frame = new JFrame(title);
 
         int width = 300;
         int height = 300;
 
-        if( A.numRows > A.numCols) {
+        if (A.numRows > A.numCols) {
             width = width*A.numCols/A.numRows;
         } else {
             height = height*A.numRows/A.numCols;
         }
 
-        FMatrixComponent panel = new FMatrixComponent(width,height);
+        FMatrixComponent panel = new FMatrixComponent(width, height);
         panel.setMatrix(A);
 
         frame.add(panel, BorderLayout.CENTER);
 
         frame.pack();
         frame.setVisible(true);
-
     }
 }

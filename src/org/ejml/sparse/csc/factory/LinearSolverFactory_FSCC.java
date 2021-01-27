@@ -18,6 +18,7 @@
 
 package org.ejml.sparse.csc.factory;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.data.FMatrixSparseCSC;
 import org.ejml.interfaces.linsol.LinearSolverSparse;
@@ -35,6 +36,7 @@ import org.ejml.sparse.csc.linsol.qr.LinearSolverQrLeftLooking_FSCC;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.sparse.csc.factory.LinearSolverFactory_DSCC")
 public class LinearSolverFactory_FSCC {
     public static LinearSolverSparse<FMatrixSparseCSC,FMatrixRMaj> cholesky(FillReducing permutation) {
         ComputePermutation<FMatrixSparseCSC> cp = FillReductionFactory_FSCC.create(permutation);

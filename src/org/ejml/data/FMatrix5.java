@@ -18,6 +18,7 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
 import org.ejml.ops.MatrixIO;
 
 /**
@@ -26,6 +27,7 @@ import org.ejml.ops.MatrixIO;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.data.DMatrix5")
 public class FMatrix5 implements FMatrixFixed {
     public float a1,a2,a3,a4,a5;
 

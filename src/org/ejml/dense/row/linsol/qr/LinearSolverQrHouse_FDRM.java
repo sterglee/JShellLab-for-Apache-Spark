@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,13 +18,13 @@
 
 package org.ejml.dense.row.linsol.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.SpecializedOps_FDRM;
 import org.ejml.dense.row.decomposition.TriangularSolver_FDRM;
 import org.ejml.dense.row.decomposition.qr.QRDecompositionHouseholder_FDRM;
 import org.ejml.dense.row.linsol.LinearSolverAbstract_FDRM;
 import org.ejml.interfaces.decomposition.QRDecomposition;
-
 
 /**
  * <p>
@@ -40,31 +40,31 @@ import org.ejml.interfaces.decomposition.QRDecomposition;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.linsol.qr.LinearSolverQrHouse_DDRM")
 public class LinearSolverQrHouse_FDRM extends LinearSolverAbstract_FDRM {
 
-    private QRDecompositionHouseholder_FDRM decomposer;
+    private final QRDecompositionHouseholder_FDRM decomposer;
 
-    private float []a,u;
+    private float[] a, u;
 
     private int maxRows = -1;
 
     private FMatrixRMaj QR;
-    private float gammas[];
+    private float[] gammas;
 
     /**
      * Creates a linear solver that uses QR decomposition.
      */
     public LinearSolverQrHouse_FDRM() {
         decomposer = new QRDecompositionHouseholder_FDRM();
-
-
     }
 
     public void setMaxSize( int maxRows ) {
         this.maxRows = maxRows;
 
-        a = new float[ maxRows ];
-        u = new float[ maxRows ];
+        a = new float[maxRows];
+        u = new float[maxRows];
     }
 
     /**
@@ -73,15 +73,15 @@ public class LinearSolverQrHouse_FDRM extends LinearSolverAbstract_FDRM {
      * @param A not modified.
      */
     @Override
-    public boolean setA(FMatrixRMaj A) {
-        if( A.numRows > maxRows ) {
+    public boolean setA( FMatrixRMaj A ) {
+        if (A.numRows > maxRows) {
             setMaxSize(A.numRows);
         }
 
         _setA(A);
-        if( !decomposer.decompose(A) )
+        if (!decomposer.decompose(A))
             return false;
-        
+
         gammas = decomposer.getGammas();
         QR = decomposer.getQR();
 
@@ -100,18 +100,18 @@ public class LinearSolverQrHouse_FDRM extends LinearSolverAbstract_FDRM {
      * @param X An n by m matrix where the solution is writen to.  Modified.
      */
     @Override
-    public void solve(FMatrixRMaj B, FMatrixRMaj X) {
-        if( B.numRows != numRows )
-            throw new IllegalArgumentException("Unexpected dimensions for X: X rows = "+X.numRows+" expected = "+numCols);
-        X.reshape(numCols,B.numCols);
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
+        if (B.numRows != numRows)
+            throw new IllegalArgumentException("Unexpected dimensions for X: X rows = " + X.numRows + " expected = " + numCols);
+        X.reshape(numCols, B.numCols);
 
         int BnumCols = B.numCols;
 
         // solve each column one by one
-        for( int colB = 0; colB < BnumCols; colB++ ) {
+        for (int colB = 0; colB < BnumCols; colB++) {
 
             // make a copy of this column in the vector
-            for( int i = 0; i < numRows; i++ ) {
+            for (int i = 0; i < numRows; i++) {
                 a[i] = B.data[i*BnumCols + colB];
             }
 
@@ -120,28 +120,28 @@ public class LinearSolverQrHouse_FDRM extends LinearSolverAbstract_FDRM {
             // a = Q_{n-1}...Q_2*Q_1*b
             //
             // Q_n*b = (I-gamma*u*u^T)*b = b - u*(gamma*U^T*b)
-            for( int n = 0; n < numCols; n++ ) {
+            for (int n = 0; n < numCols; n++) {
                 u[n] = 1;
                 float ub = a[n];
                 // U^T*b
-                for( int i = n+1; i < numRows; i++ ) {
-                    ub += (u[i] = QR.unsafe_get(i,n))*a[i];
+                for (int i = n + 1; i < numRows; i++) {
+                    ub += (u[i] = QR.unsafe_get(i, n))*a[i];
                 }
 
                 // gamma*U^T*b
                 ub *= gammas[n];
- 
-                for( int i = n; i < numRows; i++ ) {
+
+                for (int i = n; i < numRows; i++) {
                     a[i] -= u[i]*ub;
                 }
             }
 
             // solve for Rx = b using the standard upper triangular solver
-            TriangularSolver_FDRM.solveU(QR.data,a,numCols);
+            TriangularSolver_FDRM.solveU(QR.data, a, numCols);
 
             // save the results
-            for( int i = 0; i < numCols; i++ ) {
-                X.data[i*X.numCols+colB] = a[i];
+            for (int i = 0; i < numCols; i++) {
+                X.data[i*X.numCols + colB] = a[i];
             }
         }
     }

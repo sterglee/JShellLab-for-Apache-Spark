@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,9 +18,9 @@
 
 package org.ejml.dense.row.linsol.lu;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.decomposition.lu.LUDecompositionBase_FDRM;
-
 
 /**
  * For each column in the B matrix it makes a copy, which is then solved for and
@@ -28,48 +28,48 @@ import org.ejml.dense.row.decomposition.lu.LUDecompositionBase_FDRM;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.linsol.lu.LinearSolverLu_DDRM")
 public class LinearSolverLu_FDRM extends LinearSolverLuBase_FDRM {
 
     boolean doImprove = false;
 
-    public LinearSolverLu_FDRM(LUDecompositionBase_FDRM decomp) {
+    public LinearSolverLu_FDRM( LUDecompositionBase_FDRM decomp ) {
         super(decomp);
     }
 
-    public LinearSolverLu_FDRM(LUDecompositionBase_FDRM decomp, boolean doImprove) {
+    public LinearSolverLu_FDRM( LUDecompositionBase_FDRM decomp, boolean doImprove ) {
         super(decomp);
         this.doImprove = doImprove;
     }
 
-
     @Override
-    public void solve(FMatrixRMaj B, FMatrixRMaj X) {
-        if( B.numRows != numRows )
-            throw new IllegalArgumentException("Unexpected dimensions for X: X rows = "+X.numRows+" expected = "+numRows);
-        X.reshape(numCols,B.numCols);
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
+        if (B.numRows != numRows)
+            throw new IllegalArgumentException("Unexpected dimensions for X: X rows = " + X.numRows + " expected = " + numRows);
+        X.reshape(numCols, B.numCols);
 
         int numCols = B.numCols;
 
         float dataB[] = B.data;
         float dataX[] = X.data;
 
-        float []vv = decomp._getVV();
+        float[] vv = decomp._getVV();
 
 //        for( int j = 0; j < numCols; j++ ) {
 //            for( int i = 0; i < this.numCols; i++ ) vv[i] = dataB[i*numCols+j];
 //            decomp._solveVectorInternal(vv);
 //            for( int i = 0; i < this.numCols; i++ ) dataX[i*numCols+j] = vv[i];
 //        }
-        for( int j = 0; j < numCols; j++ ) {
+        for (int j = 0; j < numCols; j++) {
             int index = j;
-            for( int i = 0; i < this.numCols; i++ , index += numCols ) vv[i] = dataB[index];
+            for (int i = 0; i < this.numCols; i++, index += numCols) vv[i] = dataB[index];
             decomp._solveVectorInternal(vv);
             index = j;
-            for( int i = 0; i < this.numCols; i++ , index += numCols ) dataX[index] = vv[i];
+            for (int i = 0; i < this.numCols; i++, index += numCols) dataX[index] = vv[i];
         }
 
-        if( doImprove ) {
-            improveSol(B,X);
+        if (doImprove) {
+            improveSol(B, X);
         }
     }
 }

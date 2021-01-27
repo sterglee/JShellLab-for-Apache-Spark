@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,9 +18,13 @@
 
 package org.ejml.dense.row.mult;
 
-import org.ejml.MatrixDimensionException;
+import org.ejml.UtilEjml;
 import org.ejml.data.FMatrix1Row;
 import org.ejml.dense.row.CommonOps_FDRM;
+import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Generated;
+//CONCURRENT_INLINE import org.ejml.concurrency.EjmlConcurrency;
 
 /**
  * <p>
@@ -35,1172 +39,1070 @@ import org.ejml.dense.row.CommonOps_FDRM;
  *
  * <p>
  * Algorithms that are labeled as 'reorder' are designed to avoid caching jumping issues, some times at the cost
- * of increasing the number of operations.  This is important for large matrices.  The straight forward 
+ * of increasing the number of operations. This is important for large matrices. The straight forward
  * implementation seems to be faster for small matrices.
  * </p>
- * 
+ *
  * <p>
- * Algorithms that are labeled as 'aux' use an auxiliary array of length n.  This array is used to create
- * a copy of an out of sequence column vector that is referenced several times.  This reduces the number
- * of cache misses.  If the 'aux' parameter passed in is null then the array is declared internally.
+ * Algorithms that are labeled as 'aux' use an auxiliary array of length n. This array is used to create
+ * a copy of an out of sequence column vector that is referenced several times. This reduces the number
+ * of cache misses. If the 'aux' parameter passed in is null then the array is declared internally.
  * </p>
  *
  * <p>
  * Typically the straight forward implementation runs about 30% faster on smaller matrices and
- * about 5 times slower on larger matrices.  This is all computer architecture and matrix shape/size specific.
+ * about 5 times slower on larger matrices. This is all computer architecture and matrix shape/size specific.
  * </p>
- * 
- * <center>******** IMPORTANT **********</center>
- * This class was auto generated using org.ejml.dense.row.mult.GeneratorMatrixMatrixMult_FDRM
- * 
+ *
+ * <p>DO NOT MODIFY. Automatically generated code created by GenerateMatrixMatrixMult_FDRM</p>
+ *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.mult.GenerateMatrixMatrixMult_FDRM")
 public class MatrixMatrixMult_FDRM {
     /**
-     * @see CommonOps_FDRM#mult( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#mult(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void mult_reorder( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void mult_reorder( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numRows, B.numCols);
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
-            CommonOps_FDRM.fill(c,0);
+        if (A.numCols == 0 || A.numRows == 0) {
+            CommonOps_FDRM.fill(C, 0);
             return;
         }
-        float valA;
-        int indexCbase= 0;
-        int endOfKLoop = b.numRows*b.numCols;
+        final int endOfKLoop = B.numRows*B.numCols;
 
-        for( int i = 0; i < a.numRows; i++ ) {
-            int indexA = i*a.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numRows; i++) {
+            int indexCbase = i*C.numCols;
+            int indexA = i*A.numCols;
 
-            // need to assign c.data to a value initially
+            // need to assign C.data to a value initially
             int indexB = 0;
             int indexC = indexCbase;
-            int end = indexB + b.numCols;
+            int end = indexB + B.numCols;
 
-            valA = a.get(indexA++);
+            float valA = A.data[indexA++];
 
-            while( indexB < end ) {
-                c.set(indexC++ , valA*b.get(indexB++));
+            while (indexB < end) {
+                C.set(indexC++, valA*B.data[indexB++]);
             }
 
             // now add to it
-            while( indexB != endOfKLoop ) { // k loop
+            while (indexB != endOfKLoop) { // k loop
                 indexC = indexCbase;
-                end = indexB + b.numCols;
+                end = indexB + B.numCols;
 
-                valA = a.get(indexA++);
+                valA = A.data[indexA++];
 
-                while( indexB < end ) { // j loop
-                    c.plus(indexC++ , valA*b.get(indexB++));
+                while (indexB < end) { // j loop
+                    C.data[indexC++] += valA*B.data[indexB++];
                 }
             }
-            indexCbase += c.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#mult( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#mult(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void mult_small( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void mult_small( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numRows, B.numCols);
 
-        int aIndexStart = 0;
-        int cIndex = 0;
-
-        for( int i = 0; i < a.numRows; i++ ) {
-            for( int j = 0; j < b.numCols; j++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numRows; i++) {
+            int cIndex = i*B.numCols;
+            int aIndexStart = i*A.numCols;
+            for (int j = 0; j < B.numCols; j++) {
                 float total = 0;
 
                 int indexA = aIndexStart;
                 int indexB = j;
-                int end = indexA + b.numRows;
-                while( indexA < end ) {
-                    total += a.get(indexA++) * b.get(indexB);
-                    indexB += b.numCols;
+                int end = indexA + B.numRows;
+                while (indexA < end) {
+                    total += A.data[indexA++]*B.data[indexB];
+                    indexB += B.numCols;
                 }
 
-                c.set( cIndex++ , total );
+                C.set(cIndex++, total);
             }
-            aIndexStart += a.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
 
+    //CONCURRENT_OMIT_BEGIN
+
     /**
-     * @see CommonOps_FDRM#mult( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#mult(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void mult_aux( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c , float []aux )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void mult_aux( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C, @Nullable float[] aux ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numRows, B.numCols);
 
-        if( aux == null ) aux = new float[ b.numRows ];
+        if (aux == null) aux = new float[B.numRows];
 
-        for( int j = 0; j < b.numCols; j++ ) {
+        for (int j = 0; j < B.numCols; j++) {
             // create a copy of the column in B to avoid cache issues
-            for( int k = 0; k < b.numRows; k++ ) {
-                aux[k] = b.unsafe_get(k,j);
+            for (int k = 0; k < B.numRows; k++) {
+                aux[k] = B.unsafe_get(k, j);
             }
 
             int indexA = 0;
-            for( int i = 0; i < a.numRows; i++ ) {
+            for (int i = 0; i < A.numRows; i++) {
                 float total = 0;
-                for( int k = 0; k < b.numRows; ) {
-                    total += a.get(indexA++)*aux[k++];
+                for (int k = 0; k < B.numRows; ) {
+                    total += A.data[indexA++]*aux[k++];
                 }
-                c.set( i*c.numCols+j , total );
+                C.set(i*C.numCols + j, total);
             }
         }
     }
+    //CONCURRENT_OMIT_END
 
     /**
-     * @see CommonOps_FDRM#multTransA( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multTransA(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multTransA_reorder( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numCols);
+    public static void multTransA_reorder( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numCols, B.numCols);
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
-            CommonOps_FDRM.fill(c,0);
+        if (A.numCols == 0 || A.numRows == 0) {
+            CommonOps_FDRM.fill(C, 0);
             return;
         }
-        float valA;
-
-        for( int i = 0; i < a.numCols; i++ ) {
-            int indexC_start = i*c.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int indexC_start = i*C.numCols;
 
             // first assign R
-            valA = a.get(i);
+            float valA = A.data[i];
             int indexB = 0;
-            int end = indexB+b.numCols;
+            int end = indexB + B.numCols;
             int indexC = indexC_start;
-            while( indexB<end ) {
-                c.set( indexC++ , valA*b.get(indexB++));
+            while (indexB < end) {
+                C.set(indexC++, valA*B.data[indexB++]);
             }
             // now increment it
-            for( int k = 1; k < a.numRows; k++ ) {
-                valA = a.unsafe_get(k,i);
-                end = indexB+b.numCols;
+            for (int k = 1; k < A.numRows; k++) {
+                valA = A.unsafe_get(k, i);
+                end = indexB + B.numCols;
                 indexC = indexC_start;
                 // this is the loop for j
-                while( indexB<end ) {
-                    c.plus( indexC++ , valA*b.get(indexB++));
+                while (indexB < end) {
+                    C.data[indexC++] += valA*B.data[indexB++];
                 }
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multTransA( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multTransA(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multTransA_small( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numCols);
+    public static void multTransA_small( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numCols, B.numCols);
 
-        int cIndex = 0;
-
-        for( int i = 0; i < a.numCols; i++ ) {
-            for( int j = 0; j < b.numCols; j++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numCols, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int cIndex = i*B.numCols;
+            for (int j = 0; j < B.numCols; j++) {
                 int indexA = i;
                 int indexB = j;
-                int end = indexB + b.numRows*b.numCols;
+                int end = indexB + B.numRows*B.numCols;
 
                 float total = 0;
-
                 // loop for k
-                for(; indexB < end; indexB += b.numCols ) {
-                    total += a.get(indexA) * b.get(indexB);
-                    indexA += a.numCols;
+                for (; indexB < end; indexB += B.numCols) {
+                    total += A.data[indexA]*B.data[indexB];
+                    indexA += A.numCols;
                 }
 
-                c.set( cIndex++ , total );
+                C.set(cIndex++, total);
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multTransAB( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multTransAB(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multTransAB( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numRows);
+    public static void multTransAB( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numCols, B.numRows);
 
-        int cIndex = 0;
 
-        for( int i = 0; i < a.numCols; i++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numCols, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int cIndex = i*B.numRows;
             int indexB = 0;
-            for( int j = 0; j < b.numRows; j++ ) {
+            for (int j = 0; j < B.numRows; j++) {
                 int indexA = i;
-                int end = indexB + b.numCols;
+                int end = indexB + B.numCols;
 
                 float total = 0;
 
-                for( ;indexB<end; ) {
-                    total += a.get(indexA) * b.get(indexB++);
-                    indexA += a.numCols;
+                while (indexB < end) {
+                    total += A.data[indexA]*B.data[indexB++];
+                    indexA += A.numCols;
                 }
 
-                c.set( cIndex++ , total );
+                C.set(cIndex++, total);
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
+    //CONCURRENT_OMIT_BEGIN
+
     /**
-     * @see CommonOps_FDRM#multTransAB( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multTransAB(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multTransAB_aux( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c , float []aux )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numRows);
+    public static void multTransAB_aux( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C, @Nullable float[] aux ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numCols, B.numRows);
 
-        if( aux == null ) aux = new float[ a.numRows ];
+        if (aux == null) aux = new float[A.numRows];
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
-            CommonOps_FDRM.fill(c,0);
+        if (A.numCols == 0 || A.numRows == 0) {
+            CommonOps_FDRM.fill(C, 0);
             return;
         }
         int indexC = 0;
-        for( int i = 0; i < a.numCols; i++ ) {
-            for( int k = 0; k < b.numCols; k++ ) {
-                aux[k] = a.unsafe_get(k,i);
+        for (int i = 0; i < A.numCols; i++) {
+            for (int k = 0; k < B.numCols; k++) {
+                aux[k] = A.unsafe_get(k, i);
             }
 
-            for( int j = 0; j < b.numRows; j++ ) {
+            for (int j = 0; j < B.numRows; j++) {
                 float total = 0;
 
-                for( int k = 0; k < b.numCols; k++ ) {
-                    total += aux[k] * b.unsafe_get(j,k);
+                for (int k = 0; k < B.numCols; k++) {
+                    total += aux[k]*B.unsafe_get(j, k);
                 }
-                c.set( indexC++ , total );
+                C.set(indexC++, total);
             }
         }
     }
+    //CONCURRENT_OMIT_END
 
     /**
-     * @see CommonOps_FDRM#multTransB( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multTransB(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multTransB( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numRows);
+    public static void multTransB( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numRows, B.numRows);
 
-        int cIndex = 0;
-        int aIndexStart = 0;
-
-        for( int xA = 0; xA < a.numRows; xA++ ) {
-            int end = aIndexStart + b.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, xA -> {
+        for (int xA = 0; xA < A.numRows; xA++) {
+            int cIndex = xA*B.numRows;
+            int aIndexStart = xA*B.numCols;
+            int end = aIndexStart + B.numCols;
             int indexB = 0;
-            for( int xB = 0; xB < b.numRows; xB++ ) {
+            for (int xB = 0; xB < B.numRows; xB++) {
                 int indexA = aIndexStart;
 
                 float total = 0;
-
-                while( indexA<end ) {
-                    total += a.get(indexA++) * b.get(indexB++);
+                while (indexA < end) {
+                    total += A.data[indexA++]*B.data[indexB++];
                 }
 
-                c.set( cIndex++ , total );
+                C.set(cIndex++, total);
             }
-            aIndexStart += a.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multAdd( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAdd(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAdd_reorder( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void multAdd_reorder( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numRows == C.numRows && B.numCols == C.numCols, "C is not compatible with A and B");
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
+        if (A.numCols == 0 || A.numRows == 0) {
             return;
         }
-        float valA;
-        int indexCbase= 0;
-        int endOfKLoop = b.numRows*b.numCols;
+        final int endOfKLoop = B.numRows*B.numCols;
 
-        for( int i = 0; i < a.numRows; i++ ) {
-            int indexA = i*a.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numRows; i++) {
+            int indexCbase = i*C.numCols;
+            int indexA = i*A.numCols;
 
-            // need to assign c.data to a value initially
+            // need to assign C.data to a value initially
             int indexB = 0;
             int indexC = indexCbase;
-            int end = indexB + b.numCols;
+            int end = indexB + B.numCols;
 
-            valA = a.get(indexA++);
+            float valA = A.data[indexA++];
 
-            while( indexB < end ) {
-                c.plus(indexC++ , valA*b.get(indexB++));
+            while (indexB < end) {
+                C.plus(indexC++, valA*B.data[indexB++]);
             }
 
             // now add to it
-            while( indexB != endOfKLoop ) { // k loop
+            while (indexB != endOfKLoop) { // k loop
                 indexC = indexCbase;
-                end = indexB + b.numCols;
+                end = indexB + B.numCols;
 
-                valA = a.get(indexA++);
+                valA = A.data[indexA++];
 
-                while( indexB < end ) { // j loop
-                    c.plus(indexC++ , valA*b.get(indexB++));
+                while (indexB < end) { // j loop
+                    C.data[indexC++] += valA*B.data[indexB++];
                 }
             }
-            indexCbase += c.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multAdd( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAdd(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAdd_small( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void multAdd_small( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numRows == C.numRows && B.numCols == C.numCols, "C is not compatible with A and B");
 
-        int aIndexStart = 0;
-        int cIndex = 0;
-
-        for( int i = 0; i < a.numRows; i++ ) {
-            for( int j = 0; j < b.numCols; j++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numRows; i++) {
+            int cIndex = i*B.numCols;
+            int aIndexStart = i*A.numCols;
+            for (int j = 0; j < B.numCols; j++) {
                 float total = 0;
 
                 int indexA = aIndexStart;
                 int indexB = j;
-                int end = indexA + b.numRows;
-                while( indexA < end ) {
-                    total += a.get(indexA++) * b.get(indexB);
-                    indexB += b.numCols;
+                int end = indexA + B.numRows;
+                while (indexA < end) {
+                    total += A.data[indexA++]*B.data[indexB];
+                    indexB += B.numCols;
                 }
 
-                c.plus( cIndex++ , total );
+                C.plus(cIndex++, total);
             }
-            aIndexStart += a.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
 
+    //CONCURRENT_OMIT_BEGIN
+
     /**
-     * @see CommonOps_FDRM#multAdd( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAdd(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAdd_aux( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c , float []aux )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void multAdd_aux( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C, @Nullable float[] aux ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numRows == C.numRows && B.numCols == C.numCols, "C is not compatible with A and B");
 
-        if( aux == null ) aux = new float[ b.numRows ];
+        if (aux == null) aux = new float[B.numRows];
 
-        for( int j = 0; j < b.numCols; j++ ) {
+        for (int j = 0; j < B.numCols; j++) {
             // create a copy of the column in B to avoid cache issues
-            for( int k = 0; k < b.numRows; k++ ) {
-                aux[k] = b.unsafe_get(k,j);
+            for (int k = 0; k < B.numRows; k++) {
+                aux[k] = B.unsafe_get(k, j);
             }
 
             int indexA = 0;
-            for( int i = 0; i < a.numRows; i++ ) {
+            for (int i = 0; i < A.numRows; i++) {
                 float total = 0;
-                for( int k = 0; k < b.numRows; ) {
-                    total += a.get(indexA++)*aux[k++];
+                for (int k = 0; k < B.numRows; ) {
+                    total += A.data[indexA++]*aux[k++];
                 }
-                c.plus( i*c.numCols+j , total );
+                C.plus(i*C.numCols + j, total);
             }
         }
     }
+    //CONCURRENT_OMIT_END
 
     /**
-     * @see CommonOps_FDRM#multAddTransA( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAddTransA(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAddTransA_reorder( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numCols);
+    public static void multAddTransA_reorder( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numCols == C.numRows && B.numCols == C.numCols, "C is not compatible with A and B");
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
+        if (A.numCols == 0 || A.numRows == 0) {
             return;
         }
-        float valA;
-
-        for( int i = 0; i < a.numCols; i++ ) {
-            int indexC_start = i*c.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int indexC_start = i*C.numCols;
 
             // first assign R
-            valA = a.get(i);
+            float valA = A.data[i];
             int indexB = 0;
-            int end = indexB+b.numCols;
+            int end = indexB + B.numCols;
             int indexC = indexC_start;
-            while( indexB<end ) {
-                c.plus( indexC++ , valA*b.get(indexB++));
+            while (indexB < end) {
+                C.plus(indexC++, valA*B.data[indexB++]);
             }
             // now increment it
-            for( int k = 1; k < a.numRows; k++ ) {
-                valA = a.unsafe_get(k,i);
-                end = indexB+b.numCols;
+            for (int k = 1; k < A.numRows; k++) {
+                valA = A.unsafe_get(k, i);
+                end = indexB + B.numCols;
                 indexC = indexC_start;
                 // this is the loop for j
-                while( indexB<end ) {
-                    c.plus( indexC++ , valA*b.get(indexB++));
+                while (indexB < end) {
+                    C.data[indexC++] += valA*B.data[indexB++];
                 }
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multAddTransA( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAddTransA(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAddTransA_small( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numCols);
+    public static void multAddTransA_small( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numCols == C.numRows && B.numCols == C.numCols, "C is not compatible with A and B");
 
-        int cIndex = 0;
-
-        for( int i = 0; i < a.numCols; i++ ) {
-            for( int j = 0; j < b.numCols; j++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numCols, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int cIndex = i*B.numCols;
+            for (int j = 0; j < B.numCols; j++) {
                 int indexA = i;
                 int indexB = j;
-                int end = indexB + b.numRows*b.numCols;
+                int end = indexB + B.numRows*B.numCols;
 
                 float total = 0;
-
                 // loop for k
-                for(; indexB < end; indexB += b.numCols ) {
-                    total += a.get(indexA) * b.get(indexB);
-                    indexA += a.numCols;
+                for (; indexB < end; indexB += B.numCols) {
+                    total += A.data[indexA]*B.data[indexB];
+                    indexA += A.numCols;
                 }
 
-                c.plus( cIndex++ , total );
+                C.plus(cIndex++, total);
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multAddTransAB( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAddTransAB(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAddTransAB( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numRows);
+    public static void multAddTransAB( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numCols == C.numRows && B.numRows == C.numCols, "C is not compatible with A and B");
 
-        int cIndex = 0;
 
-        for( int i = 0; i < a.numCols; i++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numCols, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int cIndex = i*B.numRows;
             int indexB = 0;
-            for( int j = 0; j < b.numRows; j++ ) {
+            for (int j = 0; j < B.numRows; j++) {
                 int indexA = i;
-                int end = indexB + b.numCols;
+                int end = indexB + B.numCols;
 
                 float total = 0;
 
-                for( ;indexB<end; ) {
-                    total += a.get(indexA) * b.get(indexB++);
-                    indexA += a.numCols;
+                while (indexB < end) {
+                    total += A.data[indexA]*B.data[indexB++];
+                    indexA += A.numCols;
                 }
 
-                c.plus( cIndex++ , total );
+                C.plus(cIndex++, total);
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
+    //CONCURRENT_OMIT_BEGIN
+
     /**
-     * @see CommonOps_FDRM#multAddTransAB( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAddTransAB(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAddTransAB_aux( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c , float []aux )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numRows);
+    public static void multAddTransAB_aux( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C, @Nullable float[] aux ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numCols == C.numRows && B.numRows == C.numCols, "C is not compatible with A and B");
 
-        if( aux == null ) aux = new float[ a.numRows ];
+        if (aux == null) aux = new float[A.numRows];
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
+        if (A.numCols == 0 || A.numRows == 0) {
             return;
         }
         int indexC = 0;
-        for( int i = 0; i < a.numCols; i++ ) {
-            for( int k = 0; k < b.numCols; k++ ) {
-                aux[k] = a.unsafe_get(k,i);
+        for (int i = 0; i < A.numCols; i++) {
+            for (int k = 0; k < B.numCols; k++) {
+                aux[k] = A.unsafe_get(k, i);
             }
 
-            for( int j = 0; j < b.numRows; j++ ) {
+            for (int j = 0; j < B.numRows; j++) {
                 float total = 0;
 
-                for( int k = 0; k < b.numCols; k++ ) {
-                    total += aux[k] * b.unsafe_get(j,k);
+                for (int k = 0; k < B.numCols; k++) {
+                    total += aux[k]*B.unsafe_get(j, k);
                 }
-                c.plus( indexC++ , total );
+                C.plus(indexC++, total);
             }
         }
     }
+    //CONCURRENT_OMIT_END
 
     /**
-     * @see CommonOps_FDRM#multAddTransB( org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAddTransB(org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAddTransB( FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numRows);
+    public static void multAddTransB( FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numRows == C.numRows && B.numRows == C.numCols, "C is not compatible with A and B");
 
-        int cIndex = 0;
-        int aIndexStart = 0;
-
-        for( int xA = 0; xA < a.numRows; xA++ ) {
-            int end = aIndexStart + b.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, xA -> {
+        for (int xA = 0; xA < A.numRows; xA++) {
+            int cIndex = xA*B.numRows;
+            int aIndexStart = xA*B.numCols;
+            int end = aIndexStart + B.numCols;
             int indexB = 0;
-            for( int xB = 0; xB < b.numRows; xB++ ) {
+            for (int xB = 0; xB < B.numRows; xB++) {
                 int indexA = aIndexStart;
 
                 float total = 0;
-
-                while( indexA<end ) {
-                    total += a.get(indexA++) * b.get(indexB++);
+                while (indexA < end) {
+                    total += A.data[indexA++]*B.data[indexB++];
                 }
 
-                c.plus( cIndex++ , total );
+                C.plus(cIndex++, total);
             }
-            aIndexStart += a.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#mult(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#mult(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void mult_reorder( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void mult_reorder( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numRows, B.numCols);
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
-            CommonOps_FDRM.fill(c,0);
+        if (A.numCols == 0 || A.numRows == 0) {
+            CommonOps_FDRM.fill(C, 0);
             return;
         }
-        float valA;
-        int indexCbase= 0;
-        int endOfKLoop = b.numRows*b.numCols;
+        final int endOfKLoop = B.numRows*B.numCols;
 
-        for( int i = 0; i < a.numRows; i++ ) {
-            int indexA = i*a.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numRows; i++) {
+            int indexCbase = i*C.numCols;
+            int indexA = i*A.numCols;
 
-            // need to assign c.data to a value initially
+            // need to assign C.data to a value initially
             int indexB = 0;
             int indexC = indexCbase;
-            int end = indexB + b.numCols;
+            int end = indexB + B.numCols;
 
-            valA = alpha*a.get(indexA++);
+            float valA = alpha*A.data[indexA++];
 
-            while( indexB < end ) {
-                c.set(indexC++ , valA*b.get(indexB++));
+            while (indexB < end) {
+                C.set(indexC++, valA*B.data[indexB++]);
             }
 
             // now add to it
-            while( indexB != endOfKLoop ) { // k loop
+            while (indexB != endOfKLoop) { // k loop
                 indexC = indexCbase;
-                end = indexB + b.numCols;
+                end = indexB + B.numCols;
 
-                valA = alpha*a.get(indexA++);
+                valA = alpha*A.data[indexA++];
 
-                while( indexB < end ) { // j loop
-                    c.plus(indexC++ , valA*b.get(indexB++));
+                while (indexB < end) { // j loop
+                    C.data[indexC++] += valA*B.data[indexB++];
                 }
             }
-            indexCbase += c.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#mult(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#mult(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void mult_small( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void mult_small( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numRows, B.numCols);
 
-        int aIndexStart = 0;
-        int cIndex = 0;
-
-        for( int i = 0; i < a.numRows; i++ ) {
-            for( int j = 0; j < b.numCols; j++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numRows; i++) {
+            int cIndex = i*B.numCols;
+            int aIndexStart = i*A.numCols;
+            for (int j = 0; j < B.numCols; j++) {
                 float total = 0;
 
                 int indexA = aIndexStart;
                 int indexB = j;
-                int end = indexA + b.numRows;
-                while( indexA < end ) {
-                    total += a.get(indexA++) * b.get(indexB);
-                    indexB += b.numCols;
+                int end = indexA + B.numRows;
+                while (indexA < end) {
+                    total += A.data[indexA++]*B.data[indexB];
+                    indexB += B.numCols;
                 }
 
-                c.set( cIndex++ , alpha*total );
+                C.set(cIndex++, alpha*total);
             }
-            aIndexStart += a.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
 
+    //CONCURRENT_OMIT_BEGIN
+
     /**
-     * @see CommonOps_FDRM#mult(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#mult(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void mult_aux( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c , float []aux )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void mult_aux( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C, @Nullable float[] aux ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numRows, B.numCols);
 
-        if( aux == null ) aux = new float[ b.numRows ];
+        if (aux == null) aux = new float[B.numRows];
 
-        for( int j = 0; j < b.numCols; j++ ) {
+        for (int j = 0; j < B.numCols; j++) {
             // create a copy of the column in B to avoid cache issues
-            for( int k = 0; k < b.numRows; k++ ) {
-                aux[k] = b.unsafe_get(k,j);
+            for (int k = 0; k < B.numRows; k++) {
+                aux[k] = B.unsafe_get(k, j);
             }
 
             int indexA = 0;
-            for( int i = 0; i < a.numRows; i++ ) {
+            for (int i = 0; i < A.numRows; i++) {
                 float total = 0;
-                for( int k = 0; k < b.numRows; ) {
-                    total += a.get(indexA++)*aux[k++];
+                for (int k = 0; k < B.numRows; ) {
+                    total += A.data[indexA++]*aux[k++];
                 }
-                c.set( i*c.numCols+j , alpha*total );
+                C.set(i*C.numCols + j, alpha*total);
             }
         }
     }
+    //CONCURRENT_OMIT_END
 
     /**
-     * @see CommonOps_FDRM#multTransA(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multTransA(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multTransA_reorder( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numCols);
+    public static void multTransA_reorder( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numCols, B.numCols);
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
-            CommonOps_FDRM.fill(c,0);
+        if (A.numCols == 0 || A.numRows == 0) {
+            CommonOps_FDRM.fill(C, 0);
             return;
         }
-        float valA;
-
-        for( int i = 0; i < a.numCols; i++ ) {
-            int indexC_start = i*c.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int indexC_start = i*C.numCols;
 
             // first assign R
-            valA = alpha*a.get(i);
+            float valA = alpha*A.data[i];
             int indexB = 0;
-            int end = indexB+b.numCols;
+            int end = indexB + B.numCols;
             int indexC = indexC_start;
-            while( indexB<end ) {
-                c.set( indexC++ , valA*b.get(indexB++));
+            while (indexB < end) {
+                C.set(indexC++, valA*B.data[indexB++]);
             }
             // now increment it
-            for( int k = 1; k < a.numRows; k++ ) {
-                valA = alpha*a.unsafe_get(k,i);
-                end = indexB+b.numCols;
+            for (int k = 1; k < A.numRows; k++) {
+                valA = alpha*A.unsafe_get(k, i);
+                end = indexB + B.numCols;
                 indexC = indexC_start;
                 // this is the loop for j
-                while( indexB<end ) {
-                    c.plus( indexC++ , valA*b.get(indexB++));
+                while (indexB < end) {
+                    C.data[indexC++] += valA*B.data[indexB++];
                 }
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multTransA(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multTransA(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multTransA_small( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numCols);
+    public static void multTransA_small( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numCols, B.numCols);
 
-        int cIndex = 0;
-
-        for( int i = 0; i < a.numCols; i++ ) {
-            for( int j = 0; j < b.numCols; j++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numCols, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int cIndex = i*B.numCols;
+            for (int j = 0; j < B.numCols; j++) {
                 int indexA = i;
                 int indexB = j;
-                int end = indexB + b.numRows*b.numCols;
+                int end = indexB + B.numRows*B.numCols;
 
                 float total = 0;
-
                 // loop for k
-                for(; indexB < end; indexB += b.numCols ) {
-                    total += a.get(indexA) * b.get(indexB);
-                    indexA += a.numCols;
+                for (; indexB < end; indexB += B.numCols) {
+                    total += A.data[indexA]*B.data[indexB];
+                    indexA += A.numCols;
                 }
 
-                c.set( cIndex++ , alpha*total );
+                C.set(cIndex++, alpha*total);
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multTransAB(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multTransAB(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multTransAB( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numRows);
+    public static void multTransAB( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numCols, B.numRows);
 
-        int cIndex = 0;
 
-        for( int i = 0; i < a.numCols; i++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numCols, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int cIndex = i*B.numRows;
             int indexB = 0;
-            for( int j = 0; j < b.numRows; j++ ) {
+            for (int j = 0; j < B.numRows; j++) {
                 int indexA = i;
-                int end = indexB + b.numCols;
+                int end = indexB + B.numCols;
 
                 float total = 0;
 
-                for( ;indexB<end; ) {
-                    total += a.get(indexA) * b.get(indexB++);
-                    indexA += a.numCols;
+                while (indexB < end) {
+                    total += A.data[indexA]*B.data[indexB++];
+                    indexA += A.numCols;
                 }
 
-                c.set( cIndex++ , alpha*total );
+                C.set(cIndex++, alpha*total);
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
+    //CONCURRENT_OMIT_BEGIN
+
     /**
-     * @see CommonOps_FDRM#multTransAB(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multTransAB(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multTransAB_aux( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c , float []aux )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numRows);
+    public static void multTransAB_aux( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C, @Nullable float[] aux ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numCols, B.numRows);
 
-        if( aux == null ) aux = new float[ a.numRows ];
+        if (aux == null) aux = new float[A.numRows];
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
-            CommonOps_FDRM.fill(c,0);
+        if (A.numCols == 0 || A.numRows == 0) {
+            CommonOps_FDRM.fill(C, 0);
             return;
         }
         int indexC = 0;
-        for( int i = 0; i < a.numCols; i++ ) {
-            for( int k = 0; k < b.numCols; k++ ) {
-                aux[k] = a.unsafe_get(k,i);
+        for (int i = 0; i < A.numCols; i++) {
+            for (int k = 0; k < B.numCols; k++) {
+                aux[k] = A.unsafe_get(k, i);
             }
 
-            for( int j = 0; j < b.numRows; j++ ) {
+            for (int j = 0; j < B.numRows; j++) {
                 float total = 0;
 
-                for( int k = 0; k < b.numCols; k++ ) {
-                    total += aux[k] * b.unsafe_get(j,k);
+                for (int k = 0; k < B.numCols; k++) {
+                    total += aux[k]*B.unsafe_get(j, k);
                 }
-                c.set( indexC++ , alpha*total );
+                C.set(indexC++, alpha*total);
             }
         }
     }
+    //CONCURRENT_OMIT_END
 
     /**
-     * @see CommonOps_FDRM#multTransB(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multTransB(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multTransB( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numRows);
+    public static void multTransB( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        C.reshape(A.numRows, B.numRows);
 
-        int cIndex = 0;
-        int aIndexStart = 0;
-
-        for( int xA = 0; xA < a.numRows; xA++ ) {
-            int end = aIndexStart + b.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, xA -> {
+        for (int xA = 0; xA < A.numRows; xA++) {
+            int cIndex = xA*B.numRows;
+            int aIndexStart = xA*B.numCols;
+            int end = aIndexStart + B.numCols;
             int indexB = 0;
-            for( int xB = 0; xB < b.numRows; xB++ ) {
+            for (int xB = 0; xB < B.numRows; xB++) {
                 int indexA = aIndexStart;
 
                 float total = 0;
-
-                while( indexA<end ) {
-                    total += a.get(indexA++) * b.get(indexB++);
+                while (indexA < end) {
+                    total += A.data[indexA++]*B.data[indexB++];
                 }
 
-                c.set( cIndex++ , alpha*total );
+                C.set(cIndex++, alpha*total);
             }
-            aIndexStart += a.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multAdd(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAdd(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAdd_reorder( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void multAdd_reorder( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numRows == C.numRows && B.numCols == C.numCols, "C is not compatible with A and B");
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
+        if (A.numCols == 0 || A.numRows == 0) {
             return;
         }
-        float valA;
-        int indexCbase= 0;
-        int endOfKLoop = b.numRows*b.numCols;
+        final int endOfKLoop = B.numRows*B.numCols;
 
-        for( int i = 0; i < a.numRows; i++ ) {
-            int indexA = i*a.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numRows; i++) {
+            int indexCbase = i*C.numCols;
+            int indexA = i*A.numCols;
 
-            // need to assign c.data to a value initially
+            // need to assign C.data to a value initially
             int indexB = 0;
             int indexC = indexCbase;
-            int end = indexB + b.numCols;
+            int end = indexB + B.numCols;
 
-            valA = alpha*a.get(indexA++);
+            float valA = alpha*A.data[indexA++];
 
-            while( indexB < end ) {
-                c.plus(indexC++ , valA*b.get(indexB++));
+            while (indexB < end) {
+                C.plus(indexC++, valA*B.data[indexB++]);
             }
 
             // now add to it
-            while( indexB != endOfKLoop ) { // k loop
+            while (indexB != endOfKLoop) { // k loop
                 indexC = indexCbase;
-                end = indexB + b.numCols;
+                end = indexB + B.numCols;
 
-                valA = alpha*a.get(indexA++);
+                valA = alpha*A.data[indexA++];
 
-                while( indexB < end ) { // j loop
-                    c.plus(indexC++ , valA*b.get(indexB++));
+                while (indexB < end) { // j loop
+                    C.data[indexC++] += valA*B.data[indexB++];
                 }
             }
-            indexCbase += c.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multAdd(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAdd(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAdd_small( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void multAdd_small( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numRows == C.numRows && B.numCols == C.numCols, "C is not compatible with A and B");
 
-        int aIndexStart = 0;
-        int cIndex = 0;
-
-        for( int i = 0; i < a.numRows; i++ ) {
-            for( int j = 0; j < b.numCols; j++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numRows; i++) {
+            int cIndex = i*B.numCols;
+            int aIndexStart = i*A.numCols;
+            for (int j = 0; j < B.numCols; j++) {
                 float total = 0;
 
                 int indexA = aIndexStart;
                 int indexB = j;
-                int end = indexA + b.numRows;
-                while( indexA < end ) {
-                    total += a.get(indexA++) * b.get(indexB);
-                    indexB += b.numCols;
+                int end = indexA + B.numRows;
+                while (indexA < end) {
+                    total += A.data[indexA++]*B.data[indexB];
+                    indexB += B.numCols;
                 }
 
-                c.plus( cIndex++ , alpha*total );
+                C.plus(cIndex++, alpha*total);
             }
-            aIndexStart += a.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
 
+    //CONCURRENT_OMIT_BEGIN
+
     /**
-     * @see CommonOps_FDRM#multAdd(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAdd(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAdd_aux( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c , float []aux )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numCols);
+    public static void multAdd_aux( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C, @Nullable float[] aux ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numRows == C.numRows && B.numCols == C.numCols, "C is not compatible with A and B");
 
-        if( aux == null ) aux = new float[ b.numRows ];
+        if (aux == null) aux = new float[B.numRows];
 
-        for( int j = 0; j < b.numCols; j++ ) {
+        for (int j = 0; j < B.numCols; j++) {
             // create a copy of the column in B to avoid cache issues
-            for( int k = 0; k < b.numRows; k++ ) {
-                aux[k] = b.unsafe_get(k,j);
+            for (int k = 0; k < B.numRows; k++) {
+                aux[k] = B.unsafe_get(k, j);
             }
 
             int indexA = 0;
-            for( int i = 0; i < a.numRows; i++ ) {
+            for (int i = 0; i < A.numRows; i++) {
                 float total = 0;
-                for( int k = 0; k < b.numRows; ) {
-                    total += a.get(indexA++)*aux[k++];
+                for (int k = 0; k < B.numRows; ) {
+                    total += A.data[indexA++]*aux[k++];
                 }
-                c.plus( i*c.numCols+j , alpha*total );
+                C.plus(i*C.numCols + j, alpha*total);
             }
         }
     }
+    //CONCURRENT_OMIT_END
 
     /**
-     * @see CommonOps_FDRM#multAddTransA(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAddTransA(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAddTransA_reorder( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numCols);
+    public static void multAddTransA_reorder( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numCols == C.numRows && B.numCols == C.numCols, "C is not compatible with A and B");
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
+        if (A.numCols == 0 || A.numRows == 0) {
             return;
         }
-        float valA;
-
-        for( int i = 0; i < a.numCols; i++ ) {
-            int indexC_start = i*c.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int indexC_start = i*C.numCols;
 
             // first assign R
-            valA = alpha*a.get(i);
+            float valA = alpha*A.data[i];
             int indexB = 0;
-            int end = indexB+b.numCols;
+            int end = indexB + B.numCols;
             int indexC = indexC_start;
-            while( indexB<end ) {
-                c.plus( indexC++ , valA*b.get(indexB++));
+            while (indexB < end) {
+                C.plus(indexC++, valA*B.data[indexB++]);
             }
             // now increment it
-            for( int k = 1; k < a.numRows; k++ ) {
-                valA = alpha*a.unsafe_get(k,i);
-                end = indexB+b.numCols;
+            for (int k = 1; k < A.numRows; k++) {
+                valA = alpha*A.unsafe_get(k, i);
+                end = indexB + B.numCols;
                 indexC = indexC_start;
                 // this is the loop for j
-                while( indexB<end ) {
-                    c.plus( indexC++ , valA*b.get(indexB++));
+                while (indexB < end) {
+                    C.data[indexC++] += valA*B.data[indexB++];
                 }
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multAddTransA(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAddTransA(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAddTransA_small( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numCols);
+    public static void multAddTransA_small( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numRows, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numCols == C.numRows && B.numCols == C.numCols, "C is not compatible with A and B");
 
-        int cIndex = 0;
-
-        for( int i = 0; i < a.numCols; i++ ) {
-            for( int j = 0; j < b.numCols; j++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numCols, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int cIndex = i*B.numCols;
+            for (int j = 0; j < B.numCols; j++) {
                 int indexA = i;
                 int indexB = j;
-                int end = indexB + b.numRows*b.numCols;
+                int end = indexB + B.numRows*B.numCols;
 
                 float total = 0;
-
                 // loop for k
-                for(; indexB < end; indexB += b.numCols ) {
-                    total += a.get(indexA) * b.get(indexB);
-                    indexA += a.numCols;
+                for (; indexB < end; indexB += B.numCols) {
+                    total += A.data[indexA]*B.data[indexB];
+                    indexA += A.numCols;
                 }
 
-                c.plus( cIndex++ , alpha*total );
+                C.plus(cIndex++, alpha*total);
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
-     * @see CommonOps_FDRM#multAddTransAB(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAddTransAB(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAddTransAB( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numRows);
+    public static void multAddTransAB( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numCols == C.numRows && B.numRows == C.numCols, "C is not compatible with A and B");
 
-        int cIndex = 0;
 
-        for( int i = 0; i < a.numCols; i++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numCols, i -> {
+        for (int i = 0; i < A.numCols; i++) {
+            int cIndex = i*B.numRows;
             int indexB = 0;
-            for( int j = 0; j < b.numRows; j++ ) {
+            for (int j = 0; j < B.numRows; j++) {
                 int indexA = i;
-                int end = indexB + b.numCols;
+                int end = indexB + B.numCols;
 
                 float total = 0;
 
-                for( ;indexB<end; ) {
-                    total += a.get(indexA) * b.get(indexB++);
-                    indexA += a.numCols;
+                while (indexB < end) {
+                    total += A.data[indexA]*B.data[indexB++];
+                    indexA += A.numCols;
                 }
 
-                c.plus( cIndex++ , alpha*total );
+                C.plus(cIndex++, alpha*total);
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
+    //CONCURRENT_OMIT_BEGIN
+
     /**
-     * @see CommonOps_FDRM#multAddTransAB(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAddTransAB(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAddTransAB_aux( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c , float []aux )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numRows != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numCols,b.numRows);
+    public static void multAddTransAB_aux( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C, @Nullable float[] aux ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numRows, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numCols == C.numRows && B.numRows == C.numCols, "C is not compatible with A and B");
 
-        if( aux == null ) aux = new float[ a.numRows ];
+        if (aux == null) aux = new float[A.numRows];
 
-        if( a.numCols == 0 || a.numRows == 0 ) {
+        if (A.numCols == 0 || A.numRows == 0) {
             return;
         }
         int indexC = 0;
-        for( int i = 0; i < a.numCols; i++ ) {
-            for( int k = 0; k < b.numCols; k++ ) {
-                aux[k] = a.unsafe_get(k,i);
+        for (int i = 0; i < A.numCols; i++) {
+            for (int k = 0; k < B.numCols; k++) {
+                aux[k] = A.unsafe_get(k, i);
             }
 
-            for( int j = 0; j < b.numRows; j++ ) {
+            for (int j = 0; j < B.numRows; j++) {
                 float total = 0;
 
-                for( int k = 0; k < b.numCols; k++ ) {
-                    total += aux[k] * b.unsafe_get(j,k);
+                for (int k = 0; k < B.numCols; k++) {
+                    total += aux[k]*B.unsafe_get(j, k);
                 }
-                c.plus( indexC++ , alpha*total );
+                C.plus(indexC++, alpha*total);
             }
         }
     }
+    //CONCURRENT_OMIT_END
 
     /**
-     * @see CommonOps_FDRM#multAddTransB(float,  org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
+     * @see CommonOps_FDRM#multAddTransB(float, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row, org.ejml.data.FMatrix1Row)
      */
-    public static void multAddTransB( float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( a == c || b == c )
-            throw new IllegalArgumentException("Neither 'a' or 'b' can be the same matrix as 'c'");
-        else if( a.numCols != b.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,b.numRows);
+    public static void multAddTransB( float alpha, FMatrix1Row A, FMatrix1Row B, FMatrix1Row C ) {
+        UtilEjml.assertTrue(A != C && B != C, "Neither 'A' or 'B' can be the same matrix as 'C'");
+        UtilEjml.assertShape(A.numCols, B.numCols, "The 'A' and 'B' matrices do not have compatible dimensions");
+        UtilEjml.assertShape(A.numRows == C.numRows && B.numRows == C.numCols, "C is not compatible with A and B");
 
-        int cIndex = 0;
-        int aIndexStart = 0;
-
-        for( int xA = 0; xA < a.numRows; xA++ ) {
-            int end = aIndexStart + b.numCols;
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(0, A.numRows, xA -> {
+        for (int xA = 0; xA < A.numRows; xA++) {
+            int cIndex = xA*B.numRows;
+            int aIndexStart = xA*B.numCols;
+            int end = aIndexStart + B.numCols;
             int indexB = 0;
-            for( int xB = 0; xB < b.numRows; xB++ ) {
+            for (int xB = 0; xB < B.numRows; xB++) {
                 int indexA = aIndexStart;
 
                 float total = 0;
-
-                while( indexA<end ) {
-                    total += a.get(indexA++) * b.get(indexB++);
+                while (indexA < end) {
+                    total += A.data[indexA++]*B.data[indexB++];
                 }
 
-                c.plus( cIndex++ , alpha*total );
+                C.plus(cIndex++, alpha*total);
             }
-            aIndexStart += a.numCols;
         }
+        //CONCURRENT_ABOVE });
     }
-
 }
-

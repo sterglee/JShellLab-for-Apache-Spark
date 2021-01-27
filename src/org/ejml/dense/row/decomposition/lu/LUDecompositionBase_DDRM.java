@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -26,48 +26,49 @@ import org.ejml.dense.row.SpecializedOps_DDRM;
 import org.ejml.dense.row.decomposition.TriangularSolver_DDRM;
 import org.ejml.dense.row.decomposition.UtilDecompositons_DDRM;
 import org.ejml.interfaces.decomposition.LUDecomposition_F64;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
  * Contains common data structures and operations for LU decomposition algorithms.
  * </p>
+ *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
 public abstract class LUDecompositionBase_DDRM
         implements LUDecomposition_F64<DMatrixRMaj> {
     // the decomposed matrix
     protected DMatrixRMaj LU;
 
     // it can decompose a matrix up to this size
-    protected int maxWidth=-1;
+    protected int maxWidth = -1;
 
     // the shape of the matrix
-    protected int m,n;
+    protected int m, n;
     // data in the matrix
-    protected double dataLU[];
+    protected double[] dataLU;
 
     // used in set, solve, invert
-    protected double vv[];
+    protected double[] vv;
     // used in set
-    protected int indx[];
-    protected int pivot[];
+    protected int[] indx;
+    protected int[] pivot;
 
     // used by determinant
     protected double pivsign;
 
     Complex_F64 det = new Complex_F64();
 
-    public void setExpectedMaxSize( int numRows , int numCols )
-    {
-        LU = new DMatrixRMaj(numRows,numCols);
+    public void setExpectedMaxSize( int numRows, int numCols ) {
+        LU = new DMatrixRMaj(numRows, numCols);
 
         this.dataLU = LU.data;
-        maxWidth = Math.max(numRows,numCols);
+        maxWidth = Math.max(numRows, numCols);
 
-        vv = new double[ maxWidth ];
-        indx = new int[ maxWidth ];
-        pivot = new int[ maxWidth ];
+        vv = new double[maxWidth];
+        indx = new int[maxWidth];
+        pivot = new int[maxWidth];
     }
 
     public DMatrixRMaj getLU() {
@@ -93,25 +94,24 @@ public abstract class LUDecompositionBase_DDRM
      * @param lower Where the lower triangular matrix is written to.
      */
     @Override
-    public DMatrixRMaj getLower(DMatrixRMaj lower )
-    {
+    public DMatrixRMaj getLower( @Nullable DMatrixRMaj lower ) {
         int numRows = LU.numRows;
         int numCols = LU.numRows < LU.numCols ? LU.numRows : LU.numCols;
 
-        lower = UtilDecompositons_DDRM.checkZerosUT(lower,numRows,numCols);
+        lower = UtilDecompositons_DDRM.checkZerosUT(lower, numRows, numCols);
 
-        for( int i = 0; i < numCols; i++ ) {
-            lower.unsafe_set(i,i,1.0);
+        for (int i = 0; i < numCols; i++) {
+            lower.unsafe_set(i, i, 1.0);
 
-            for( int j = 0; j < i; j++ ) {
-                lower.unsafe_set(i,j, LU.unsafe_get(i,j));
+            for (int j = 0; j < i; j++) {
+                lower.unsafe_set(i, j, LU.unsafe_get(i, j));
             }
         }
 
-        if( numRows > numCols ) {
-            for( int i = numCols; i < numRows; i++ ) {
-                for( int j = 0; j < numCols; j++ ) {
-                    lower.unsafe_set(i,j, LU.unsafe_get(i,j));
+        if (numRows > numCols) {
+            for (int i = numCols; i < numRows; i++) {
+                for (int j = 0; j < numCols; j++) {
+                    lower.unsafe_set(i, j, LU.unsafe_get(i, j));
                 }
             }
         }
@@ -124,16 +124,15 @@ public abstract class LUDecompositionBase_DDRM
      * @param upper Where the upper triangular matrix is writen to.
      */
     @Override
-    public DMatrixRMaj getUpper(DMatrixRMaj upper )
-    {
+    public DMatrixRMaj getUpper( @Nullable DMatrixRMaj upper ) {
         int numRows = LU.numRows < LU.numCols ? LU.numRows : LU.numCols;
         int numCols = LU.numCols;
 
-        upper = UtilDecompositons_DDRM.checkZerosLT(upper,numRows,numCols);
+        upper = UtilDecompositons_DDRM.checkZerosLT(upper, numRows, numCols);
 
-        for( int i = 0; i < numRows; i++ ) {
-            for( int j = i; j < numCols; j++ ) {
-                upper.unsafe_set(i,j, LU.unsafe_get(i,j));
+        for (int i = 0; i < numRows; i++) {
+            for (int j = i; j < numCols; j++) {
+                upper.unsafe_set(i, j, LU.unsafe_get(i, j));
             }
         }
 
@@ -141,18 +140,18 @@ public abstract class LUDecompositionBase_DDRM
     }
 
     @Override
-    public DMatrixRMaj getRowPivot(DMatrixRMaj pivot ) {
+    public DMatrixRMaj getRowPivot( @Nullable DMatrixRMaj pivot ) {
         return SpecializedOps_DDRM.pivotMatrix(pivot, this.pivot, LU.numRows, false);
     }
 
     @Override
-    public int[] getRowPivotV(IGrowArray pivot) {
-        return UtilEjml.pivotVector(this.pivot,LU.numRows,pivot);
+    public int[] getRowPivotV( @Nullable IGrowArray pivot ) {
+        return UtilEjml.pivotVector(this.pivot, LU.numRows, pivot);
     }
 
-    protected void decomposeCommonInit(DMatrixRMaj a) {
-        if( a.numRows > maxWidth || a.numCols > maxWidth ) {
-            setExpectedMaxSize(a.numRows,a.numCols);
+    protected void decomposeCommonInit( DMatrixRMaj a ) {
+        if (a.numRows > maxWidth || a.numCols > maxWidth) {
+            setExpectedMaxSize(a.numRows, a.numCols);
         }
 
         m = a.numRows;
@@ -173,8 +172,8 @@ public abstract class LUDecompositionBase_DDRM
      */
     @Override
     public boolean isSingular() {
-        for( int i = 0; i < m; i++ ) {
-            if( Math.abs(dataLU[i* n +i]) < UtilEjml.EPS )
+        for (int i = 0; i < m; i++) {
+            if (Math.abs(dataLU[i*n + i]) < UtilEjml.EPS)
                 return true;
         }
         return false;
@@ -187,13 +186,13 @@ public abstract class LUDecompositionBase_DDRM
      */
     @Override
     public Complex_F64 computeDeterminant() {
-        if( m != n )
+        if (m != n)
             throw new IllegalArgumentException("Must be a square matrix.");
 
         double ret = pivsign;
 
         int total = m*n;
-        for( int i = 0; i < total; i += n + 1 ) {
+        for (int i = 0; i < total; i += n + 1) {
             ret *= dataLU[i];
         }
 
@@ -210,29 +209,28 @@ public abstract class LUDecompositionBase_DDRM
     /**
      * a specialized version of solve that avoid additional checks that are not needed.
      */
-    public void _solveVectorInternal( double []vv )
-    {
+    public void _solveVectorInternal( double[] vv ) {
         // Solve L*Y = B
         int ii = 0;
 
-        for( int i = 0; i < n; i++ ) {
+        for (int i = 0; i < n; i++) {
             int ip = indx[i];
             double sum = vv[ip];
             vv[ip] = vv[i];
-            if( ii != 0 ) {
+            if (ii != 0) {
 //                for( int j = ii-1; j < i; j++ )
 //                    sum -= dataLU[i* n +j]*vv[j];
-                int index = i*n + ii-1;
-                for( int j = ii-1; j < i; j++ )
+                int index = i*n + ii - 1;
+                for (int j = ii - 1; j < i; j++)
                     sum -= dataLU[index++]*vv[j];
-            } else if( sum != 0.0 ) {
-                ii=i+1;
+            } else if (sum != 0.0) {
+                ii = i + 1;
             }
             vv[i] = sum;
         }
 
         // Solve U*X = Y;
-        TriangularSolver_DDRM.solveU(dataLU,vv,n);
+        TriangularSolver_DDRM.solveU(dataLU, vv, n);
     }
 
     public double[] _getVV() {

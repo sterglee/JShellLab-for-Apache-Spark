@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row;
 
+import javax.annotation.Generated;
 import org.ejml.LinearSolverSafe;
 import org.ejml.UtilEjml;
 import org.ejml.data.FMatrixRMaj;
@@ -27,12 +28,12 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
 
 import java.util.Random;
 
-
 /**
  * Contains operations specific to covariance matrices.
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.CovarianceOps_DDRM")
 public class CovarianceOps_FDRM {
 
     public static float TOL = UtilEjml.TESTP_F32;
@@ -41,8 +42,8 @@ public class CovarianceOps_FDRM {
      * This is a fairly light weight check to see of a covariance matrix is valid.
      * It checks to see if the diagonal elements are all positive, which they should be
      * if it is valid.  Not all invalid covariance matrices will be caught by this method.
-	 *
-	 * @return true if valid and false if invalid
+     *
+     * @return true if valid and false if invalid
      */
     public static boolean isValidFast( FMatrixRMaj cov ) {
         return MatrixFeatures_FDRM.isDiagonalPositive(cov);
@@ -52,16 +53,16 @@ public class CovarianceOps_FDRM {
      * Performs a variety of tests to see if the provided matrix is a valid
      * covariance matrix.
      *
-     * @return  0 = is valid 1 = failed positive diagonal, 2 = failed on symmetry, 2 = failed on positive definite
+     * @return 0 = is valid 1 = failed positive diagonal, 2 = failed on symmetry, 2 = failed on positive definite
      */
     public static int isValid( FMatrixRMaj cov ) {
-        if( !MatrixFeatures_FDRM.isDiagonalPositive(cov) )
+        if (!MatrixFeatures_FDRM.isDiagonalPositive(cov))
             return 1;
 
-        if( !MatrixFeatures_FDRM.isSymmetric(cov,TOL) )
+        if (!MatrixFeatures_FDRM.isSymmetric(cov, TOL))
             return 2;
 
-        if( !MatrixFeatures_FDRM.isPositiveSemidefinite(cov) )
+        if (!MatrixFeatures_FDRM.isPositiveSemidefinite(cov))
             return 3;
 
         return 0;
@@ -75,7 +76,7 @@ public class CovarianceOps_FDRM {
      * @return true if it could invert the matrix false if it could not.
      */
     public static boolean invert( FMatrixRMaj cov ) {
-        return invert(cov,cov);
+        return invert(cov, cov);
     }
 
     /**
@@ -86,22 +87,21 @@ public class CovarianceOps_FDRM {
      * @param cov_inv The inverse of cov.  Modified.
      * @return true if it could invert the matrix false if it could not.
      */
-    public static boolean invert(final FMatrixRMaj cov , final FMatrixRMaj cov_inv ) {
-        if( cov.numCols <= 4 ) {
-            if( cov.numCols != cov.numRows ) {
+    public static boolean invert( final FMatrixRMaj cov, final FMatrixRMaj cov_inv ) {
+        if (cov.numCols <= 4) {
+            if (cov.numCols != cov.numRows) {
                 throw new IllegalArgumentException("Must be a square matrix.");
             }
 
-            if( cov.numCols >= 2 )
-                UnrolledInverseFromMinor_FDRM.inv(cov,cov_inv);
+            if (cov.numCols >= 2)
+                UnrolledInverseFromMinor_FDRM.inv(cov, cov_inv);
             else
                 cov_inv.data[0] = 1.0f/cov.data[0];
-
         } else {
             LinearSolverDense<FMatrixRMaj> solver = LinearSolverFactory_FDRM.symmPosDef(cov.numRows);
             // wrap it to make sure the covariance is not modified.
             solver = new LinearSolverSafe<FMatrixRMaj>(solver);
-            if( !solver.setA(cov) )
+            if (!solver.setA(cov))
                 return false;
             solver.invert(cov_inv);
         }
@@ -116,11 +116,10 @@ public class CovarianceOps_FDRM {
      * @param vector The random vector. Modified.
      * @param rand Random number generator.
      */
-    public static void randomVector( FMatrixRMaj cov ,
-                                     FMatrixRMaj vector ,
-                                     Random rand  )
-    {
-        CovarianceRandomDraw_FDRM rng = new CovarianceRandomDraw_FDRM(rand,cov);
+    public static void randomVector( FMatrixRMaj cov,
+                                     FMatrixRMaj vector,
+                                     Random rand ) {
+        CovarianceRandomDraw_FDRM rng = new CovarianceRandomDraw_FDRM(rand, cov);
         rng.next(vector);
     }
 }

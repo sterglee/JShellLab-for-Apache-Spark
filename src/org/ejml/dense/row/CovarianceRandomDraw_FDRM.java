@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.decomposition.chol.CholeskyDecompositionInner_FDRM;
 
@@ -27,6 +28,7 @@ import java.util.Random;
  * Generates random vectors based on a zero mean multivariate Gaussian distribution.  The covariance
  * matrix is provided in the constructor.
  */
+@Generated("org.ejml.dense.row.CovarianceRandomDraw_DDRM")
 public class CovarianceRandomDraw_FDRM {
     private FMatrixRMaj A;
     private Random rand;
@@ -39,14 +41,13 @@ public class CovarianceRandomDraw_FDRM {
      * @param rand Used to create the random numbers for the draw. Reference is saved.
      * @param cov The covariance of the distribution.  Not modified.
      */
-    public CovarianceRandomDraw_FDRM(Random rand , FMatrixRMaj cov )
-    {
-        r = new FMatrixRMaj(cov.numRows,1);
-        CholeskyDecompositionInner_FDRM cholesky = new CholeskyDecompositionInner_FDRM( true);
+    public CovarianceRandomDraw_FDRM( Random rand, FMatrixRMaj cov ) {
+        r = new FMatrixRMaj(cov.numRows, 1);
+        CholeskyDecompositionInner_FDRM cholesky = new CholeskyDecompositionInner_FDRM(true);
 
-        if( cholesky.inputModified() )
+        if (cholesky.inputModified())
             cov = cov.copy();
-        if( !cholesky.decompose(cov) )
+        if (!cholesky.decompose(cov))
             throw new RuntimeException("Decomposition failed!");
 
         A = cholesky.getT();
@@ -56,13 +57,12 @@ public class CovarianceRandomDraw_FDRM {
     /**
      * Makes a draw on the distribution.  The results are added to parameter 'x'
      */
-    public void next( FMatrixRMaj x )
-    {
-        for( int i = 0; i < r.numRows; i++ ) {
-            r.set(i,0, (float)rand.nextGaussian());
+    public void next( FMatrixRMaj x ) {
+        for (int i = 0; i < r.numRows; i++) {
+            r.set(i, 0, (float)rand.nextGaussian());
         }
 
-        CommonOps_FDRM.multAdd(A,r,x);
+        CommonOps_FDRM.multAdd(A, r, x);
     }
 
     /**
@@ -73,8 +73,8 @@ public class CovarianceRandomDraw_FDRM {
     public float computeLikelihoodP() {
         float ret = 1.0f;
 
-        for( int i = 0; i < r.numRows; i++ ) {
-            float a = r.get(i,0);
+        for (int i = 0; i < r.numRows; i++) {
+            float a = r.get(i, 0);
 
             ret *= (float)Math.exp(-a*a/2.0f);
         }

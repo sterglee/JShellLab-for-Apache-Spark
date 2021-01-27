@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2019, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -22,6 +22,7 @@ import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.data.IGrowArray;
 import org.ejml.sparse.ComputePermutation;
 import org.ejml.sparse.csc.CommonOps_DSCC;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Applies the fill reduction row pivots to the input matrix to reduce fill in during decomposition/solve.
@@ -32,18 +33,18 @@ import org.ejml.sparse.csc.CommonOps_DSCC;
  */
 public class ApplyFillReductionPermutation_DSCC {
     // fill reduction permutation
-    private ComputePermutation<DMatrixSparseCSC> fillReduce;
+    private @Nullable ComputePermutation<DMatrixSparseCSC> fillReduce;
 
     // storage for permuted A matrix
-    DMatrixSparseCSC Aperm = new DMatrixSparseCSC(1,1,0);
-    int [] pinv = new int[1]; // inverse row pivots
+    DMatrixSparseCSC Aperm = new DMatrixSparseCSC(1, 1, 0);
+    int[] pinv = new int[1]; // inverse row pivots
 
     IGrowArray gw = new IGrowArray();
 
     boolean symmetric;
 
-    public ApplyFillReductionPermutation_DSCC(ComputePermutation<DMatrixSparseCSC> fillReduce,
-                                              boolean symmetric ) {
+    public ApplyFillReductionPermutation_DSCC( @Nullable ComputePermutation<DMatrixSparseCSC> fillReduce,
+                                               boolean symmetric ) {
         this.fillReduce = fillReduce;
         this.symmetric = symmetric;
     }
@@ -51,34 +52,40 @@ public class ApplyFillReductionPermutation_DSCC {
     /**
      * Computes and applies the fill reduction permutation. Either A is returned (unmodified) or the permutated
      * version of A.
+     *
      * @param A Input matrix. unmodified.
      * @return A permuted matrix. Might be A or a different matrix.
      */
     public DMatrixSparseCSC apply( DMatrixSparseCSC A ) {
-        if( fillReduce == null )
+        if (fillReduce == null)
             return A;
         fillReduce.process(A);
 
         IGrowArray gp = fillReduce.getRow();
+        if (gp == null)
+            throw new RuntimeException("No row permutation matrix");
 
-        if( pinv.length < gp.length)
-            pinv = new int[ gp.length ];
+        if (pinv.length < gp.length)
+            pinv = new int[gp.length];
         CommonOps_DSCC.permutationInverse(gp.data, pinv, gp.length);
-        if( symmetric )
+        if (symmetric)
             CommonOps_DSCC.permuteSymmetric(A, pinv, Aperm, gw);
         else
-            CommonOps_DSCC.permuteRowInv(pinv, A ,Aperm);
+            CommonOps_DSCC.permuteRowInv(pinv, A, Aperm);
         return Aperm;
     }
 
-    public int[] getArrayPinv() {
+    public @Nullable int[] getArrayPinv() {
         return fillReduce == null ? null : pinv;
     }
-    public int[] getArrayP() {
+
+    @SuppressWarnings("NullAway")
+    public @Nullable int[] getArrayP() {
         return fillReduce == null ? null : fillReduce.getRow().data;
     }
 
-    public int[] getArrayQ() {
+    @SuppressWarnings("NullAway")
+    public @Nullable int[] getArrayQ() {
         return fillReduce == null ? null : fillReduce.getColumn().data;
     }
 
@@ -86,11 +93,11 @@ public class ApplyFillReductionPermutation_DSCC {
         return gw;
     }
 
-    public void setGw(IGrowArray gw) {
+    public void setGw( IGrowArray gw ) {
         this.gw = gw;
     }
 
-    public ComputePermutation<DMatrixSparseCSC> getFillReduce() {
+    public @Nullable ComputePermutation<DMatrixSparseCSC> getFillReduce() {
         return fillReduce;
     }
 

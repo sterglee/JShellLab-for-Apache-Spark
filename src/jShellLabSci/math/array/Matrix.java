@@ -5734,7 +5734,7 @@ final public static Matrix invEJML(Matrix A) {
 // compute eigenvalues  using EJML library
 // returns an array where each row stores an eigenvalue 
 // first the real part and then the imaginary part
-
+/*
 final public static double  [] []  eigDEJML(double [][] da) {
     DMatrixRMaj dmrm = new DMatrixRMaj(da);
     
@@ -5749,12 +5749,11 @@ final public static double  [] []  eigDEJML(double [][] da) {
     
     return eigVals;
 }
-
 // compute eigenvalues  using EJML library
 final public static double [] []  eigDEJML(Matrix a) {
     return eigDEJML(a.getArray());
 }
-
+*/
 
 // compute eigenvectors  using EJML library
 // returns an array where each column keeps an eigenvector
@@ -5778,6 +5777,7 @@ final public static double  [] []  eigVEJML(double [][] da) {
 // compute eigenvalues  and eigenvectors using EJML library
 // returns an array where each row stores an eigenvalue 
 // first the real part and then the imaginary part
+/*
 final public static eigReIm eigEJML(double [][] da) {
     eigReIm er = new eigReIm(da.length);
             
@@ -5802,7 +5802,7 @@ final public static eigReIm eigEJML(double [][] da) {
 final public static eigReIm eigEJML(Matrix  A) {
     return eigEJML(A.getArray());
 }
-
+*/
 final public static double  [] []  eigVEJML(Matrix da) { 
       return  eigVEJML(da.getArray());
 } 

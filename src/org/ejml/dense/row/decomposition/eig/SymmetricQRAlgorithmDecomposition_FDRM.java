@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.decomposition.eig;
 
+import javax.annotation.Generated;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
@@ -26,7 +27,6 @@ import org.ejml.dense.row.decomposition.eig.symm.SymmetricQrAlgorithm_FDRM;
 import org.ejml.dense.row.factory.DecompositionFactory_FDRM;
 import org.ejml.interfaces.decomposition.EigenDecomposition_F32;
 import org.ejml.interfaces.decomposition.TridiagonalSimilarDecomposition_F32;
-
 
 /**
  * <p>
@@ -38,61 +38,61 @@ import org.ejml.interfaces.decomposition.TridiagonalSimilarDecomposition_F32;
  * David S. Watkins, "Fundamentals of Matrix Computations," Second Edition. page 377-385
  * </p>
  *
+ * @author Peter Abeles
  * @see SymmetricQrAlgorithm_FDRM
  * @see org.ejml.dense.row.decomposition.hessenberg.TridiagonalDecompositionHouseholder_FDRM
- *
- * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.decomposition.eig.SymmetricQRAlgorithmDecomposition_DDRM")
 public class SymmetricQRAlgorithmDecomposition_FDRM
         implements EigenDecomposition_F32<FMatrixRMaj> {
 
     // computes a tridiagonal matrix whose eigenvalues are the same as the original
     // matrix and can be easily computed.
-    private TridiagonalSimilarDecomposition_F32<FMatrixRMaj> decomp;
+    private final TridiagonalSimilarDecomposition_F32<FMatrixRMaj> decomp;
     // helper class for eigenvalue and eigenvector algorithms
-    private SymmetricQREigenHelper_FDRM helper;
+    private final SymmetricQREigenHelper_FDRM helper;
     // computes the eigenvectors
-    private SymmetricQrAlgorithm_FDRM vector;
+    private final SymmetricQrAlgorithm_FDRM vector;
 
     // should it compute eigenvectors at the same time as the eigenvalues?
     private boolean computeVectorsWithValues = false;
 
     // where the found eigenvalues are stored
-    private float values[];
+    private float[] values;
 
     // where the tridiagonal matrix is stored
-    private float diag[];
-    private float off[];
+    private float[] diag;
+    private float[] off;
 
-    private float diagSaved[];
-    private float offSaved[];
+    private float[] diagSaved;
+    private float[] offSaved;
 
     // temporary variable used to store/compute eigenvectors
     private FMatrixRMaj V;
     // the extracted eigenvectors
-    private FMatrixRMaj eigenvectors[];
+    private FMatrixRMaj[] eigenvectors;
 
     // should it compute eigenvectors or just eigenvalues
     boolean computeVectors;
 
-    public SymmetricQRAlgorithmDecomposition_FDRM(TridiagonalSimilarDecomposition_F32<FMatrixRMaj> decomp,
-                                                 boolean computeVectors) {
+    public SymmetricQRAlgorithmDecomposition_FDRM( TridiagonalSimilarDecomposition_F32<FMatrixRMaj> decomp,
+                                                   boolean computeVectors ) {
 
         this.decomp = decomp;
         this.computeVectors = computeVectors;
 
         helper = new SymmetricQREigenHelper_FDRM();
-
         vector = new SymmetricQrAlgorithm_FDRM(helper);
     }
 
-    public SymmetricQRAlgorithmDecomposition_FDRM(boolean computeVectors) {
+    public SymmetricQRAlgorithmDecomposition_FDRM( boolean computeVectors ) {
 
-        this(DecompositionFactory_FDRM.tridiagonal(0),computeVectors);
+        this(DecompositionFactory_FDRM.tridiagonal(0), computeVectors);
     }
 
-    public void setComputeVectorsWithValues(boolean computeVectorsWithValues) {
-        if( !computeVectors )
+    public void setComputeVectorsWithValues( boolean computeVectorsWithValues ) {
+        if (!computeVectors)
             throw new IllegalArgumentException("Compute eigenvalues has been set to false");
 
         this.computeVectorsWithValues = computeVectorsWithValues;
@@ -114,12 +114,12 @@ public class SymmetricQRAlgorithmDecomposition_FDRM
     }
 
     @Override
-    public Complex_F32 getEigenvalue(int index) {
-        return new Complex_F32(values[index],0);
+    public Complex_F32 getEigenvalue( int index ) {
+        return new Complex_F32(values[index], 0);
     }
 
     @Override
-    public FMatrixRMaj getEigenVector(int index) {
+    public FMatrixRMaj getEigenVector( int index ) {
         return eigenvectors[index];
     }
 
@@ -131,31 +131,33 @@ public class SymmetricQRAlgorithmDecomposition_FDRM
      * @return true if it decomposed the matrix or false if an error was detected.  This will not catch all errors.
      */
     @Override
-    public boolean decompose(FMatrixRMaj orig) {
-        if( orig.numCols != orig.numRows )
+    public boolean decompose( FMatrixRMaj orig ) {
+        if (orig.numCols != orig.numRows)
             throw new IllegalArgumentException("Matrix must be square.");
-        if( orig.numCols <= 0 )
+        if (orig.numCols <= 0)
             return false;
 
         int N = orig.numRows;
 
         // compute a similar tridiagonal matrix
-        if( !decomp.decompose(orig) )
+        if (!decomp.decompose(orig))
             return false;
 
-        if( diag == null || diag.length < N) {
-            diag = new float[N];
-            off = new float[N-1];
+        float[] diag = this.diag;
+        float[] off = this.off;
+        if (diag == null || diag.length < N) {
+            this.diag = diag = new float[N];
+            this.off = off = new float[N - 1];
         }
-        decomp.getDiagonal(diag,off);
+        decomp.getDiagonal(diag, off);
 
         // Tell the helper to work with this matrix
-        helper.init(diag,off,N);
+        helper.init(diag, off, N);
 
-        if( computeVectors ) {
-            if( computeVectorsWithValues ) {
+        if (computeVectors) {
+            if (computeVectorsWithValues) {
                 return extractTogether();
-            }  else {
+            } else {
                 return extractSeparate(N);
             }
         } else {
@@ -170,7 +172,7 @@ public class SymmetricQRAlgorithmDecomposition_FDRM
 
     private boolean extractTogether() {
         // extract the orthogonal from the similar transform
-        V = decomp.getQ(V,true);
+        V = decomp.getQ(V, true);
 
         // tell eigenvector algorithm to update this matrix as it computes the rotators
         helper.setQ(V);
@@ -178,11 +180,11 @@ public class SymmetricQRAlgorithmDecomposition_FDRM
         vector.setFastEigenvalues(false);
 
         // extract the eigenvalues
-        if( !vector.process(-1,null,null) )
+        if (!vector.process(-1, null, null))
             return false;
 
         // the V matrix contains the eigenvectors.  Convert those into column vectors
-        eigenvectors = CommonOps_FDRM.rowsToVector(V,eigenvectors);
+        eigenvectors = CommonOps_FDRM.rowsToVector(V, eigenvectors);
 
         // save a copy of them since this data structure will be recycled next
         values = helper.copyEigenvalues(values);
@@ -190,7 +192,7 @@ public class SymmetricQRAlgorithmDecomposition_FDRM
         return true;
     }
 
-    private boolean extractSeparate(int numCols) {
+    private boolean extractSeparate( int numCols ) {
         if (!computeEigenValues())
             return false;
 
@@ -201,42 +203,40 @@ public class SymmetricQRAlgorithmDecomposition_FDRM
         offSaved = helper.swapOff(offSaved);
 
         // extract the orthogonal from the similar transform
-        V = decomp.getQ(V,true);
+        V = decomp.getQ(V, true);
 
         // tell eigenvector algorithm to update this matrix as it computes the rotators
         vector.setQ(V);
 
         // extract eigenvectors
-        if( !vector.process(-1,null,null, values) )
+        if (!vector.process(-1, null, null, values))
             return false;
 
         // the ordering of the eigenvalues might have changed
         values = helper.copyEigenvalues(values);
         // the V matrix contains the eigenvectors.  Convert those into column vectors
-        eigenvectors = CommonOps_FDRM.rowsToVector(V,eigenvectors);
+        eigenvectors = CommonOps_FDRM.rowsToVector(V, eigenvectors);
 
         return true;
     }
 
-   /**
+    /**
      * Computes eigenvalues only
-    *
-     * @return
      */
     private boolean computeEigenValues() {
-       // make a copy of the internal tridiagonal matrix data for later use
-       diagSaved = helper.copyDiag(diagSaved);
-       offSaved = helper.copyOff(offSaved);
+        // make a copy of the internal tridiagonal matrix data for later use
+        diagSaved = helper.copyDiag(diagSaved);
+        offSaved = helper.copyOff(offSaved);
 
-       vector.setQ(null);
-       vector.setFastEigenvalues(true);
+        vector.setQ(null);
+        vector.setFastEigenvalues(true);
 
-       // extract the eigenvalues
-       if( !vector.process(-1,null,null) )
-           return false;
+        // extract the eigenvalues
+        if (!vector.process(-1, null, null))
+            return false;
 
-       // save a copy of them since this data structure will be recycled next
-       values = helper.copyEigenvalues(values);
-       return true;
-   }
+        // save a copy of them since this data structure will be recycled next
+        values = helper.copyEigenvalues(values);
+        return true;
+    }
 }

@@ -18,6 +18,7 @@
 
 package org.ejml.ops;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.data.ComplexPolar_F32;
 import org.ejml.data.Complex_F32;
@@ -27,6 +28,7 @@ import org.ejml.data.Complex_F32;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.ops.ComplexMath_F64")
 public class ComplexMath_F32
 {
 

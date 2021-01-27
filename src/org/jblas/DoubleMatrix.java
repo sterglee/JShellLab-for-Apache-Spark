@@ -1,4 +1,40 @@
-
+// --- BEGIN LICENSE BLOCK ---
+/* 
+ * Copyright (c) 2009, Mikio L. Braun
+ * Copyright (c) 2008, Johannes Schaback
+ * Copyright (c) 2009, Jan Saputra Müller
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ * 
+ *     * Redistributions in binary form must reproduce the above
+ *       copyright notice, this list of conditions and the following
+ *       disclaimer in the documentation and/or other materials provided
+ *       with the distribution.
+ * 
+ *     * Neither the name of the Technische Universitaet Berlin nor the
+ *       names of its contributors may be used to endorse or promote
+ *       products derived from this software without specific prior
+ *       written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+// --- END LICENSE BLOCK ---
 package org.jblas;
 
 import org.jblas.exceptions.SizeException;
@@ -24,10 +60,8 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
-import static org.bytedeco.javacpp.openblas.CblasColMajor;
-import static org.bytedeco.javacpp.openblas.CblasNoTrans;
+
 /**
  * A general matrix class for <tt>double</tt> typed values.
  * 
@@ -244,7 +278,7 @@ import static org.bytedeco.javacpp.openblas.CblasNoTrans;
  * <tr><td>x.max() <td>Return maximal element
  * <tr><td>x.argmax() <td>Return index of largest element
  * <tr><td>x.min() <td>Return minimal element
- * <tr><td>x.argmin() <td>Return index of largest element
+ * <tr><td>x.argmin() <td>Return index of smallest element
  * <tr><td>x.columnMins() <td>Return column-wise minima
  * <tr><td>x.columnArgmins() <td>Return column-wise index of minima
  * <tr><td>x.columnMaxs() <td>Return column-wise maxima
@@ -252,8 +286,8 @@ import static org.bytedeco.javacpp.openblas.CblasNoTrans;
  * </table>
  * 
  * @author Mikio Braun, Johannes Schaback
- */ 
-public class DoubleMatrix implements Serializable   {
+ */
+public class DoubleMatrix implements Serializable {
 
     /** Number of rows. */
     public int rows;
@@ -429,7 +463,7 @@ public class DoubleMatrix implements Serializable   {
     }
 
     /** Create matrix with random values uniformly in 0..1. */
-    public static DoubleMatrix rand1D(int rows, int columns) {
+    public static DoubleMatrix rand(int rows, int columns) {
         DoubleMatrix m = new DoubleMatrix(rows, columns);
 
         for (int i = 0; i < rows * columns; i++) {
@@ -440,8 +474,8 @@ public class DoubleMatrix implements Serializable   {
     }
 
     /** Creates a column vector with random values uniformly in 0..1. */
-    public static DoubleMatrix rand1D(int len) {
-        return rand1D(len, 1);
+    public static DoubleMatrix rand(int len) {
+        return rand(len, 1);
     }
 
     /** Create matrix with normally distributed random values. */
@@ -1202,294 +1236,6 @@ public class DoubleMatrix implements Serializable   {
             throw new SizeException("Matrices must have the same size.");
         }
     }
-    
-    
-
-// this method is used to overload the indexing operator e.g.,
-// A = rand(8, 9);   a23 = A[2,3]
-final public double   getAt(int row, int col)  { 
-    return data[col*rows+row];
-}
-
-
-
-// assuming a column major storage of values
-final public void   putAt(int row, int col, double value)  { 
-    data[col*rows+row] = value;
-            
-}
-
- final public DoubleMatrix plus(DoubleMatrix v2) {
-        
- DoubleMatrix  r = new DoubleMatrix(rows, columns);
-   for (int k=0; k<rows*columns; k++)
-       r.data[k] = data[k]+v2.data[k];
-   
-   return r;
-    }
-
- final public DoubleMatrix  plus(double [] v2) {
-        
-   DoubleMatrix  r = new DoubleMatrix(rows, columns);
-   for (int k=0; k<rows*columns; k++)
-       r.data[k] = data[k]+v2[k];
-   
-   return r;
-    }
-
- 
- final public DoubleMatrix minus(DoubleMatrix v2) {
-        
-   DoubleMatrix r = new DoubleMatrix(rows, columns);
-   for (int k=0; k<rows*columns; k++)
-       r.data[k] = data[k]-v2.data[k];
-   
-   return r;
-    }
-
- final public DoubleMatrix minus(double [] v2) {
-        
-   DoubleMatrix r = new DoubleMatrix(rows, columns);
-   for (int k=0; k<rows*columns; k++)
-       r.data[k] = data[k]-v2[k];
-   
-   return r;
-    }
-
- final public void  putAt(java.util.List<Object>  rc, double value) {
-    if (rc.get(0) instanceof  Integer)
-         data[(int)rc.get(1)*rows+(int)rc.get(0)] = value;
- }
-
-    
- // assuming row major storage
- final static public DoubleMatrix fill1D(int rows , int columns, double value) {
-		double[] o = new double[rows *columns];
-		for (int r = 0; r < rows ; r++)
-			for (int c = 0; c < columns; c++)
-				o[r*columns+c] = value;
-		return new DoubleMatrix(rows , columns, o);
-	}
-
- final public DoubleMatrix sin() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.sin(data[k]);
-    return new DoubleMatrix(rows, columns, ra);      
- }
- 
- final public DoubleMatrix cos() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.cos(data[k]);
-    return new DoubleMatrix(rows, columns, ra);      
- }
- 
- 
- 
- final public DoubleMatrix ceil() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.ceil(data[k]);
-    return new DoubleMatrix(rows, columns, ra);      
- }
- 
-  
- final public DoubleMatrix floor() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.floor(data[k]);
-    return new DoubleMatrix( rows, columns, ra);      
- }
- 
-  
- final public DoubleMatrix round() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.round(data[k]);
-    return new DoubleMatrix( rows, columns, ra);      
- }
- 
- final public DoubleMatrix tan() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.tan(data[k]);
-    return new DoubleMatrix( rows, columns, ra);      
- }
- 
- 
-  
- final public DoubleMatrix sqrt() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.sqrt(data[k]);
-    return new DoubleMatrix( rows, columns, ra);      
- }
- 
- 
- final public DoubleMatrix atan() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.atan(data[k]);
-    return new DoubleMatrix( rows, columns, ra);      
- }
- 
- 
- final public DoubleMatrix sinh() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.sinh(data[k]);
-    return new DoubleMatrix( rows, columns, ra);      
- }
- 
- final public DoubleMatrix cosh() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.cosh(data[k]);
-    return new DoubleMatrix( rows, columns, ra);      
- }
- 
- 
- final public DoubleMatrix tanh() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.tanh(data[k]);
-    return new DoubleMatrix( rows, columns, ra);      
- }
- 
- final static public DoubleMatrix ones1D(int rows ,int columns) {
-     double [] ra = new double[rows *columns];
-          for (int k=0; k<rows *columns; k++)
-            ra[k] = 1.0;
-    return new DoubleMatrix(rows , columns, ra);      
- }
- 
- 
- 
- final static public DoubleMatrix zeros1D(int rows ,int columns) {
-     double [] ra = new double[rows *columns];
-          for (int k=0; k<rows *columns; k++)
-            ra[k] = Math.random();
-    return new DoubleMatrix( rows , columns, ra);      
- }
- 
- 
- // in place routines
- final public DoubleMatrix isin() {
-          for (int k=0; k<rows*columns; k++)
-            data[k] = Math.sin(data[k]);
-    return this;      
- }
- 
- final public DoubleMatrix icos() {
-           for (int k=0; k<rows*columns; k++)
-            data[k] = Math.cos(data[k]);
-    return this;     
- }
- 
- 
- 
- final public DoubleMatrix iceil() {
-           for (int k=0; k<rows*columns; k++)
-            data[k] = Math.ceil(data[k]);
-    return this;     
- }
- 
- 
- 
- final public DoubleMatrix ifloor() {
-           for (int k=0; k<rows*columns; k++)
-            data[k] = Math.floor(data[k]);
-    return this;     
- }
- 
- final public DoubleMatrix iround() {
-           for (int k=0; k<rows*columns; k++)
-            data[k] = Math.cos(data[k]);
-    return this;     
- }
-  
- 
- final public DoubleMatrix itan() {
-           for (int k=0; k<rows*columns; k++)
-            data[k] = Math.cos(data[k]);
-    return this;     
- }
- 
- 
- 
-  final public DoubleMatrix isqrt() {
-           for (int k=0; k<rows*columns; k++)
-            data[k] = Math.sqrt(data[k]);
-    return this;     
- }
- 
- 
- final public DoubleMatrix iatan() {
-           for (int k=0; k<rows*columns; k++)
-            data[k] = Math.atan(data[k]);
-    return this;     
- }
- 
- final public DoubleMatrix isinh() {
-           for (int k=0; k<rows*columns; k++)
-            data[k] = Math.sinh(data[k]);
-    return this;     
- }
- 
- 
- final public DoubleMatrix itanh() {
-           for (int k=0; k<rows*columns; k++)
-            data[k] = Math.tanh(data[k]);
-    return this;     
- }
- 
- 
- final public DoubleMatrix irand() {
-           for (int k=0; k<rows*columns; k++)
-            data[k] = Math.random();
-    return this;     
- }
- 
- 
-  // map Java 8 lambda function
-  final  public DoubleMatrix  map(UnaryOperator <Double>myfun) {
-    double [] dm = new double[rows*columns];
-    
-      for (int elem = 0; elem < rows*columns; elem++)
-          dm[elem] = myfun.apply(data[elem]);
-      
-      return new DoubleMatrix(rows, columns, dm);
- }
- 
-  
- final public DoubleMatrix abs() {
-     double [] ra = new double[rows*columns];
-          for (int k=0; k<rows*columns; k++)
-            ra[k] = Math.abs(data[k]);
-    return new DoubleMatrix( rows, columns, ra);      
- 
- }
- 
-// multiply using openBLAS
- final public DoubleMatrix multiply( DoubleMatrix that)  {
-     
-   int Ccolumns = that.columns;
-   double [] result = new double[rows*that.columns];
-   double alpha=1.0;
-   double beta=0.0;
-   int lda = rows;
-   int ldb = columns;
-   int ldc = rows;
-    // perform the multiplication using openblas  
-   org.bytedeco.javacpp.openblas.cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, 
-           rows, that.columns,  columns, alpha, data, lda, that.data, ldb, beta, 
-        result, ldc);
- 
-       // return the resulted matrix
-    return new DoubleMatrix(rows, that.columns, result);
-}
- 
 
     /** Checks whether two matrices can be multiplied (that is, number of columns of
      * this must equal number of rows of a. */
@@ -1684,19 +1430,14 @@ final public void   putAt(int row, int col, double value)  {
     public String toString(String fmt, String open, String close, String colSep, String rowSep) {
         StringWriter s = new StringWriter();
         PrintWriter p = new PrintWriter(s);
-        int cnt=0;
 
-        int maxColRows = 5;
         p.print(open);
-        int rowlimit = rows; if (rowlimit > maxColRows) rowlimit = maxColRows;
-        int collimit = columns; if (collimit > maxColRows) collimit = maxColRows;
-        
-        for (int r = 0; r < rowlimit; r++) {
-            for (int c = 0; c < collimit; c++) {
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < columns; c++) {
                 p.printf(fmt, get(r, c));
                 if (c < columns - 1) {
                     p.print(colSep);
-                    cnt++;
                 }
             }
             if (r < rows - 1) {
@@ -2827,7 +2568,7 @@ final public void   putAt(int row, int col, double value)  {
         return maxs;
     }
 
-    /** Return index of minimal element per row. */
+    /** Return index of maximum element per row. */
     public int[] rowArgmaxs() {
         int[] argmaxs = new int[rows];
         for (int c = 0; c < rows; c++) {
@@ -2904,14 +2645,6 @@ final public void   putAt(int row, int col, double value)  {
         return dup().subiColumnVector(x);
     }
 
-    /*
-    public static void sgesvd(char jobu, char jobvt, int m, int n, double [] A, int LDA, double [] S, double [] U, int LDU, double [] VT, int LDVT, double [] WORK, int LWORK, double [] RWORK, int info ) {
-     
-        
-     //   org.bytedeco.javacpp.openblas.LAPACKE_sgesvd(n, 0, 0, n, n, fb, n, fb1, fb2, n, fb3, n, fb4)
-        
-    
-    }*/
     /** Multiply a row by a scalar. */
     public DoubleMatrix mulRow(int r, double scale) {
         NativeBlas.dscal(columns, scale, data, index(r, 0), rows);

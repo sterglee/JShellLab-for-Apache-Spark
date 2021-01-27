@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row;
 
+import javax.annotation.Generated;
 import org.ejml.EjmlParameters;
 import org.ejml.LinearSolverSafe;
 import org.ejml.MatrixDimensionException;
@@ -36,10 +37,12 @@ import org.ejml.dense.row.mult.MatrixVectorMult_FDRM;
 import org.ejml.dense.row.mult.VectorVectorMult_FDRM;
 import org.ejml.interfaces.linsol.LinearSolverDense;
 import org.ejml.interfaces.linsol.ReducedRowEchelonForm_F32;
+import org.ejml.ops.FOperatorUnary;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
-import static org.ejml.UtilEjml.stringShapes;
+import static org.ejml.UtilEjml.*;
 
 /**
  * <p>
@@ -51,14 +54,15 @@ import static org.ejml.UtilEjml.stringShapes;
  * <p>
  * For more exotic and specialized generic operations see {@link SpecializedOps_FDRM}.
  * </p>
+ *
+ * @author Peter Abeles
  * @see MatrixMatrixMult_FDRM
  * @see MatrixVectorMult_FDRM
  * @see SpecializedOps_FDRM
  * @see MatrixFeatures_FDRM
- *
- * @author Peter Abeles
  */
 @SuppressWarnings({"ForLoopReplaceableByForEach"})
+@Generated("org.ejml.dense.row.CommonOps_DDRM")
 public class CommonOps_FDRM {
     /**
      * <p>Performs the following operation:<br>
@@ -70,20 +74,22 @@ public class CommonOps_FDRM {
      *
      * @param a The left matrix in the multiplication operation. Not modified.
      * @param b The right matrix in the multiplication operation. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void mult(FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        UtilEjml.checkSameInstance(a,c);
-        UtilEjml.checkSameInstance(b,c);
+    public static <T extends FMatrix1Row> T mult( T a, T b, @Nullable T output ) {
+        output = reshapeOrDeclare(output, a, a.numRows, b.numCols);
+        UtilEjml.checkSameInstance(a, output);
+        UtilEjml.checkSameInstance(b, output);
 
-        if( b.numCols == 1 ) {
-            MatrixVectorMult_FDRM.mult(a, b, c);
-        } else if( b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ) {
-            MatrixMatrixMult_FDRM.mult_reorder(a,b,c);
+        if (b.numCols == 1) {
+            MatrixVectorMult_FDRM.mult(a, b, output);
+        } else if (b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
+            MatrixMatrixMult_FDRM.mult_reorder(a, b, output);
         } else {
-            MatrixMatrixMult_FDRM.mult_small(a,b,c);
+            MatrixMatrixMult_FDRM.mult_small(a, b, output);
         }
+
+        return output;
     }
 
     /**
@@ -97,19 +103,21 @@ public class CommonOps_FDRM {
      * @param alpha Scaling factor.
      * @param a The left matrix in the multiplication operation. Not modified.
      * @param b The right matrix in the multiplication operation. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void mult(float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        UtilEjml.checkSameInstance(a,c);
-        UtilEjml.checkSameInstance(b,c);
+    public static <T extends FMatrix1Row> T mult( float alpha, T a, T b, @Nullable T output ) {
+        output = reshapeOrDeclare(output, a, a.numRows, b.numCols);
+        UtilEjml.checkSameInstance(a, output);
+        UtilEjml.checkSameInstance(b, output);
 
         // TODO add a matrix vectory multiply here
-        if( b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ) {
-            MatrixMatrixMult_FDRM.mult_reorder(alpha, a, b, c);
+        if (b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
+            MatrixMatrixMult_FDRM.mult_reorder(alpha, a, b, output);
         } else {
-            MatrixMatrixMult_FDRM.mult_small(alpha,a,b,c);
+            MatrixMatrixMult_FDRM.mult_small(alpha, a, b, output);
         }
+
+        return output;
     }
 
     /**
@@ -122,27 +130,29 @@ public class CommonOps_FDRM {
      *
      * @param a The left matrix in the multiplication operation. Not modified.
      * @param b The right matrix in the multiplication operation. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void multTransA(FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        UtilEjml.checkSameInstance(a,c);
-        UtilEjml.checkSameInstance(b,c);
+    public static <T extends FMatrix1Row> T multTransA( T a, T b, @Nullable T output ) {
+        output = reshapeOrDeclare(output, a, a.numCols, b.numCols);
+        UtilEjml.checkSameInstance(a, output);
+        UtilEjml.checkSameInstance(b, output);
 
-        if( b.numCols == 1 ) {
+        if (b.numCols == 1) {
             // todo check a.numCols == 1 and do inner product?
             // there are significantly faster algorithms when dealing with vectors
-            if( a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ) {
-                MatrixVectorMult_FDRM.multTransA_reorder(a,b,c);
+            if (a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
+                MatrixVectorMult_FDRM.multTransA_reorder(a, b, output);
             } else {
-                MatrixVectorMult_FDRM.multTransA_small(a,b,c);
+                MatrixVectorMult_FDRM.multTransA_small(a, b, output);
             }
-        } else if( a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ||
-                b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH  ) {
-            MatrixMatrixMult_FDRM.multTransA_reorder(a, b, c);
+        } else if (a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ||
+                b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
+            MatrixMatrixMult_FDRM.multTransA_reorder(a, b, output);
         } else {
-            MatrixMatrixMult_FDRM.multTransA_small(a, b, c);
+            MatrixMatrixMult_FDRM.multTransA_small(a, b, output);
         }
+
+        return output;
     }
 
     /**
@@ -156,20 +166,22 @@ public class CommonOps_FDRM {
      * @param alpha Scaling factor.
      * @param a The left matrix in the multiplication operation. Not modified.
      * @param b The right matrix in the multiplication operation. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void multTransA(float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        UtilEjml.checkSameInstance(a,c);
-        UtilEjml.checkSameInstance(b,c);
+    public static <T extends FMatrix1Row> T multTransA( float alpha, T a, T b, @Nullable T output ) {
+        output = reshapeOrDeclare(output, a, a.numCols, b.numCols);
+        UtilEjml.checkSameInstance(a, output);
+        UtilEjml.checkSameInstance(b, output);
 
         // TODO add a matrix vectory multiply here
-        if( a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ||
-                b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ) {
-            MatrixMatrixMult_FDRM.multTransA_reorder(alpha, a, b, c);
+        if (a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ||
+                b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
+            MatrixMatrixMult_FDRM.multTransA_reorder(alpha, a, b, output);
         } else {
-            MatrixMatrixMult_FDRM.multTransA_small(alpha, a, b, c);
+            MatrixMatrixMult_FDRM.multTransA_small(alpha, a, b, output);
         }
+
+        return output;
     }
 
     /**
@@ -182,18 +194,20 @@ public class CommonOps_FDRM {
      *
      * @param a The left matrix in the multiplication operation. Not modified.
      * @param b The right matrix in the multiplication operation. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void multTransB(FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        UtilEjml.checkSameInstance(a,c);
-        UtilEjml.checkSameInstance(b,c);
+    public static <T extends FMatrix1Row> T multTransB( T a, T b, @Nullable T output ) {
+        output = reshapeOrDeclare(output, a, a.numRows, b.numRows);
+        UtilEjml.checkSameInstance(a, output);
+        UtilEjml.checkSameInstance(b, output);
 
-        if( b.numRows == 1 ) {
-            MatrixVectorMult_FDRM.mult(a, b, c);
+        if (b.numRows == 1) {
+            MatrixVectorMult_FDRM.mult(a, b, output);
         } else {
-            MatrixMatrixMult_FDRM.multTransB(a, b, c);
+            MatrixMatrixMult_FDRM.multTransB(a, b, output);
         }
+
+        return output;
     }
 
     /**
@@ -207,15 +221,17 @@ public class CommonOps_FDRM {
      * @param alpha Scaling factor.
      * @param a The left matrix in the multiplication operation. Not modified.
      * @param b The right matrix in the multiplication operation. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void multTransB(float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        UtilEjml.checkSameInstance(a,c);
-        UtilEjml.checkSameInstance(b,c);
+    public static <T extends FMatrix1Row> T multTransB( float alpha, T a, T b, @Nullable T output ) {
+        output = reshapeOrDeclare(output, a, a.numRows, b.numRows);
+        UtilEjml.checkSameInstance(a, output);
+        UtilEjml.checkSameInstance(b, output);
 
         // TODO add a matrix vectory multiply here
-        MatrixMatrixMult_FDRM.multTransB(alpha,a,b,c);
+        MatrixMatrixMult_FDRM.multTransB(alpha, a, b, output);
+
+        return output;
     }
 
     /**
@@ -228,25 +244,27 @@ public class CommonOps_FDRM {
      *
      * @param a The left matrix in the multiplication operation. Not modified.
      * @param b The right matrix in the multiplication operation. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void multTransAB(FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        UtilEjml.checkSameInstance(a,c);
-        UtilEjml.checkSameInstance(b,c);
+    public static <T extends FMatrix1Row> T multTransAB( T a, T b, @Nullable T output ) {
+        output = reshapeOrDeclare(output, a, a.numCols, b.numRows);
+        UtilEjml.checkSameInstance(a, output);
+        UtilEjml.checkSameInstance(b, output);
 
-        if( b.numRows == 1) {
+        if (b.numRows == 1) {
             // there are significantly faster algorithms when dealing with vectors
-            if( a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ) {
-                MatrixVectorMult_FDRM.multTransA_reorder(a,b,c);
+            if (a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
+                MatrixVectorMult_FDRM.multTransA_reorder(a, b, output);
             } else {
-                MatrixVectorMult_FDRM.multTransA_small(a,b,c);
+                MatrixVectorMult_FDRM.multTransA_small(a, b, output);
             }
-        } else if( a.numCols >= EjmlParameters.MULT_TRANAB_COLUMN_SWITCH ) {
-            MatrixMatrixMult_FDRM.multTransAB_aux(a, b, c, null);
+        } else if (a.numCols >= EjmlParameters.MULT_TRANAB_COLUMN_SWITCH) {
+            MatrixMatrixMult_FDRM.multTransAB_aux(a, b, output, null);
         } else {
-            MatrixMatrixMult_FDRM.multTransAB(a, b, c);
+            MatrixMatrixMult_FDRM.multTransAB(a, b, output);
         }
+
+        return output;
     }
 
     /**
@@ -260,19 +278,21 @@ public class CommonOps_FDRM {
      * @param alpha Scaling factor.
      * @param a The left matrix in the multiplication operation. Not modified.
      * @param b The right matrix in the multiplication operation. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void multTransAB(float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        UtilEjml.checkSameInstance(a,c);
-        UtilEjml.checkSameInstance(b,c);
+    public static <T extends FMatrix1Row> T multTransAB( float alpha, T a, T b, @Nullable T output ) {
+        output = reshapeOrDeclare(output, a, a.numCols, b.numRows);
+        UtilEjml.checkSameInstance(a, output);
+        UtilEjml.checkSameInstance(b, output);
 
         // TODO add a matrix vectory multiply here
-        if( a.numCols >= EjmlParameters.MULT_TRANAB_COLUMN_SWITCH ) {
-            MatrixMatrixMult_FDRM.multTransAB_aux(alpha, a, b, c, null);
+        if (a.numCols >= EjmlParameters.MULT_TRANAB_COLUMN_SWITCH) {
+            MatrixMatrixMult_FDRM.multTransAB_aux(alpha, a, b, output, null);
         } else {
-            MatrixMatrixMult_FDRM.multTransAB(alpha, a, b, c);
+            MatrixMatrixMult_FDRM.multTransAB(alpha, a, b, output);
         }
+
+        return output;
     }
 
     /**
@@ -282,15 +302,16 @@ public class CommonOps_FDRM {
      * {@code dot(a,b) = a<sup>T</sup> * b}<br>
      * If the vectors are column or row or both is ignored by this function.
      * </p>
+     *
      * @param a Vector
      * @param b Vector
      * @return Dot product of the two vectors
      */
-    public static float dot(FMatrixD1 a , FMatrixD1 b ) {
-        if( !MatrixFeatures_FDRM.isVector(a) || !MatrixFeatures_FDRM.isVector(b))
+    public static float dot( FMatrixD1 a, FMatrixD1 b ) {
+        if (!MatrixFeatures_FDRM.isVector(a) || !MatrixFeatures_FDRM.isVector(b))
             throw new RuntimeException("Both inputs must be vectors");
 
-        return VectorVectorMult_FDRM.innerProd(a,b);
+        return VectorVectorMult_FDRM.innerProd(a, b);
     }
 
     /**
@@ -300,24 +321,24 @@ public class CommonOps_FDRM {
      * <br>
      * c<sub>ij</sub> = &sum;<sub>k=1:n</sub> { a<sub>ki</sub> * a<sub>kj</sub>}
      * </p>
-     * 
+     *
      * <p>
      * Is faster than using a generic matrix multiplication by taking advantage of symmetry.  For
      * vectors there is an even faster option, see {@link VectorVectorMult_FDRM#innerProd(FMatrixD1, FMatrixD1)}
      * </p>
      *
      * @param a The matrix being multiplied. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void multInner(FMatrix1Row a , FMatrix1Row c )
-    {
-        c.reshape(a.numCols,a.numCols);
+    public static <T extends FMatrix1Row> T multInner( T a, @Nullable T output ) {
+        output = reshapeOrDeclare(output, a, a.numCols, a.numCols);
 
-        if( a.numCols >= EjmlParameters.MULT_INNER_SWITCH ) {
-            MatrixMultProduct_FDRM.inner_small(a, c);
+        if (a.numCols >= EjmlParameters.MULT_INNER_SWITCH) {
+            MatrixMultProduct_FDRM.inner_small(a, output);
         } else {
-            MatrixMultProduct_FDRM.inner_reorder(a, c);
+            MatrixMultProduct_FDRM.inner_reorder(a, output);
         }
+        return output;
     }
 
     /**
@@ -333,13 +354,12 @@ public class CommonOps_FDRM {
      * </p>
      *
      * @param a The matrix being multiplied. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void multOuter(FMatrix1Row a , FMatrix1Row c )
-    {
-        c.reshape(a.numRows,a.numRows);
-
-        MatrixMultProduct_FDRM.outer(a, c);
+    public static <T extends FMatrix1Row> T multOuter( T a, @Nullable T output ) {
+        output = reshapeOrDeclare(output, a, a.numRows, a.numRows);
+        MatrixMultProduct_FDRM.outer(a, output);
+        return output;
     }
 
     /**
@@ -354,15 +374,14 @@ public class CommonOps_FDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAdd(FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( b.numCols == 1 ) {
+    public static void multAdd( FMatrix1Row a, FMatrix1Row b, FMatrix1Row c ) {
+        if (b.numCols == 1) {
             MatrixVectorMult_FDRM.multAdd(a, b, c);
         } else {
-            if( b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ) {
-                MatrixMatrixMult_FDRM.multAdd_reorder(a,b,c);
+            if (b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
+                MatrixMatrixMult_FDRM.multAdd_reorder(a, b, c);
             } else {
-                MatrixMatrixMult_FDRM.multAdd_small(a,b,c);
+                MatrixMatrixMult_FDRM.multAdd_small(a, b, c);
             }
         }
     }
@@ -380,13 +399,12 @@ public class CommonOps_FDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAdd(float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
+    public static void multAdd( float alpha, FMatrix1Row a, FMatrix1Row b, FMatrix1Row c ) {
         // TODO add a matrix vectory multiply here
-        if( b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ) {
+        if (b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
             MatrixMatrixMult_FDRM.multAdd_reorder(alpha, a, b, c);
         } else {
-            MatrixMatrixMult_FDRM.multAdd_small(alpha,a,b,c);
+            MatrixMatrixMult_FDRM.multAdd_small(alpha, a, b, c);
         }
     }
 
@@ -402,17 +420,16 @@ public class CommonOps_FDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransA(FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( b.numCols == 1 ) {
-            if( a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ) {
-                MatrixVectorMult_FDRM.multAddTransA_reorder(a,b,c);
+    public static void multAddTransA( FMatrix1Row a, FMatrix1Row b, FMatrix1Row c ) {
+        if (b.numCols == 1) {
+            if (a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
+                MatrixVectorMult_FDRM.multAddTransA_reorder(a, b, c);
             } else {
-                MatrixVectorMult_FDRM.multAddTransA_small(a,b,c);
+                MatrixVectorMult_FDRM.multAddTransA_small(a, b, c);
             }
         } else {
-            if( a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ||
-                    b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH  ) {
+            if (a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ||
+                    b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
                 MatrixMatrixMult_FDRM.multAddTransA_reorder(a, b, c);
             } else {
                 MatrixMatrixMult_FDRM.multAddTransA_small(a, b, c);
@@ -433,11 +450,10 @@ public class CommonOps_FDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransA(float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
+    public static void multAddTransA( float alpha, FMatrix1Row a, FMatrix1Row b, FMatrix1Row c ) {
         // TODO add a matrix vectory multiply here
-        if( a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ||
-                b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ) {
+        if (a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ||
+                b.numCols >= EjmlParameters.MULT_COLUMN_SWITCH) {
             MatrixMatrixMult_FDRM.multAddTransA_reorder(alpha, a, b, c);
         } else {
             MatrixMatrixMult_FDRM.multAddTransA_small(alpha, a, b, c);
@@ -456,9 +472,8 @@ public class CommonOps_FDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransB(FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        MatrixMatrixMult_FDRM.multAddTransB(a,b,c);
+    public static void multAddTransB( FMatrix1Row a, FMatrix1Row b, FMatrix1Row c ) {
+        MatrixMatrixMult_FDRM.multAddTransB(a, b, c);
     }
 
     /**
@@ -474,10 +489,9 @@ public class CommonOps_FDRM {
      * @param b The right matrix in the multiplication operation. Not modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransB(float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
+    public static void multAddTransB( float alpha, FMatrix1Row a, FMatrix1Row b, FMatrix1Row c ) {
         // TODO add a matrix vectory multiply here
-        MatrixMatrixMult_FDRM.multAddTransB(alpha,a,b,c);
+        MatrixMatrixMult_FDRM.multAddTransB(alpha, a, b, c);
     }
 
     /**
@@ -492,19 +506,11 @@ public class CommonOps_FDRM {
      * @param b The right matrix in the multiplication operation. Not Modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransAB(FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
-        if( b.numRows == 1 ) {
-            // there are significantly faster algorithms when dealing with vectors
-            if( a.numCols >= EjmlParameters.MULT_COLUMN_SWITCH ) {
-                MatrixVectorMult_FDRM.multAddTransA_reorder(a,b,c);
-            } else {
-                MatrixVectorMult_FDRM.multAddTransA_small(a,b,c);
-            }
-        } else if( a.numCols >= EjmlParameters.MULT_TRANAB_COLUMN_SWITCH ) {
-            MatrixMatrixMult_FDRM.multAddTransAB_aux(a,b,c,null);
+    public static void multAddTransAB( FMatrix1Row a, FMatrix1Row b, FMatrix1Row c ) {
+        if (a.numCols >= EjmlParameters.MULT_TRANAB_COLUMN_SWITCH) {
+            MatrixMatrixMult_FDRM.multAddTransAB_aux(a, b, c, null);
         } else {
-            MatrixMatrixMult_FDRM.multAddTransAB(a,b,c);
+            MatrixMatrixMult_FDRM.multAddTransAB(a, b, c);
         }
     }
 
@@ -521,10 +527,9 @@ public class CommonOps_FDRM {
      * @param b The right matrix in the multiplication operation. Not Modified.
      * @param c Where the results of the operation are stored. Modified.
      */
-    public static void multAddTransAB(float alpha , FMatrix1Row a , FMatrix1Row b , FMatrix1Row c )
-    {
+    public static void multAddTransAB( float alpha, FMatrix1Row a, FMatrix1Row b, FMatrix1Row c ) {
         // TODO add a matrix vectory multiply here
-        if( a.numCols >= EjmlParameters.MULT_TRANAB_COLUMN_SWITCH ) {
+        if (a.numCols >= EjmlParameters.MULT_TRANAB_COLUMN_SWITCH) {
             MatrixMatrixMult_FDRM.multAddTransAB_aux(alpha, a, b, c, null);
         } else {
             MatrixMatrixMult_FDRM.multAddTransAB(alpha, a, b, c);
@@ -556,19 +561,17 @@ public class CommonOps_FDRM {
      * @param a A matrix that is m by n. Not modified.
      * @param b A matrix that is n by k. Not modified.
      * @param x A matrix that is m by k. Modified.
-     *
      * @return true if it could invert the matrix false if it could not.
      */
-    public static boolean solve(FMatrixRMaj a , FMatrixRMaj b , FMatrixRMaj x )
-    {
-        x.reshape(a.numCols,b.numCols);
+    public static boolean solve( FMatrixRMaj a, FMatrixRMaj b, FMatrixRMaj x ) {
+        x.reshape(a.numCols, b.numCols);
 
-        LinearSolverDense<FMatrixRMaj> solver = LinearSolverFactory_FDRM.general(a.numRows,a.numCols);
+        LinearSolverDense<FMatrixRMaj> solver = LinearSolverFactory_FDRM.general(a.numRows, a.numCols);
 
         // make sure the inputs 'a' and 'b' are not modified
         solver = new LinearSolverSafe<>(solver);
 
-        if( !solver.setA(a) )
+        if (!solver.setA(a))
             return false;
 
         solver.solve(b, x);
@@ -581,42 +584,40 @@ public class CommonOps_FDRM {
      * A*x = b
      * </p>
      *
-     * @see UnrolledCholesky_FDRM
-     * @see LinearSolverFactory_FDRM
-     *
      * @param A A matrix that is n by n and SPD. Not modified.
      * @param b A matrix that is n by k. Not modified.
      * @param x A matrix that is n by k. Modified.
      * @return true if it could invert the matrix false if it could not.
+     * @see UnrolledCholesky_FDRM
+     * @see LinearSolverFactory_FDRM
      */
-    public static boolean solveSPD( FMatrixRMaj A , FMatrixRMaj b , FMatrixRMaj x )
-    {
-        if( A.numRows != A.numCols )
+    public static boolean solveSPD( FMatrixRMaj A, FMatrixRMaj b, FMatrixRMaj x ) {
+        if (A.numRows != A.numCols)
             throw new IllegalArgumentException("Must be a square matrix");
 
-        x.reshape(A.numCols,b.numCols);
+        x.reshape(A.numCols, b.numCols);
 
-        if( A.numRows <= UnrolledCholesky_FDRM.MAX ) {
+        if (A.numRows <= UnrolledCholesky_FDRM.MAX) {
             FMatrixRMaj L = A.createLike();
 
             // L*L' = A
-            if( !UnrolledCholesky_FDRM.lower(A,L) )
+            if (!UnrolledCholesky_FDRM.lower(A, L))
                 return false;
 
             // if only one column then a faster method can be used
-            if( x.numCols == 1 ) {
+            if (x.numCols == 1) {
                 x.set(b);
-                TriangularSolver_FDRM.solveL(L.data,x.data,L.numCols);
-                TriangularSolver_FDRM.solveTranL(L.data,x.data,L.numCols);
+                TriangularSolver_FDRM.solveL(L.data, x.data, L.numCols);
+                TriangularSolver_FDRM.solveTranL(L.data, x.data, L.numCols);
             } else {
-                float vv[] = new float[A.numCols];
+                float[] vv = new float[A.numCols];
                 LinearSolverChol_FDRM.solveLower(L, b, x, vv);
             }
         } else {
             LinearSolverDense<FMatrixRMaj> solver = LinearSolverFactory_FDRM.chol(A.numCols);
             solver = new LinearSolverSafe<>(solver);
 
-            if( !solver.setA(A) )
+            if (!solver.setA(A))
                 return false;
 
             solver.solve(b, x);
@@ -638,11 +639,11 @@ public class CommonOps_FDRM {
      * @param mat The matrix that is to be transposed. Modified.
      */
     public static void transpose( FMatrixRMaj mat ) {
-        if( mat.numCols == mat.numRows ){
+        if (mat.numCols == mat.numRows) {
             TransposeAlgs_FDRM.square(mat);
         } else {
-            FMatrixRMaj b = new FMatrixRMaj(mat.numCols,mat.numRows);
-            transpose(mat,b);
+            FMatrixRMaj b = new FMatrixRMaj(mat.numCols, mat.numRows);
+            transpose(mat, b);
             mat.set(b);
         }
     }
@@ -659,25 +660,17 @@ public class CommonOps_FDRM {
      * @param A_tran Where the transpose is stored. If null a new matrix is created. Modified.
      * @return The transposed matrix.
      */
-    public static FMatrixRMaj transpose(FMatrixRMaj A, FMatrixRMaj A_tran)
-    {
-        if( A_tran == null ) {
-            A_tran = new FMatrixRMaj(A.numCols,A.numRows);
-        } else {
-            if( A.numRows != A_tran.numCols || A.numCols != A_tran.numRows ) {
-                throw new MatrixDimensionException("Incompatible matrix dimensions");
-            }
-        }
+    public static FMatrixRMaj transpose( FMatrixRMaj A, @Nullable FMatrixRMaj A_tran ) {
+        A_tran = reshapeOrDeclare(A_tran, A.numCols, A.numRows);
 
-        if( A.numRows > EjmlParameters.TRANSPOSE_SWITCH &&
-                A.numCols > EjmlParameters.TRANSPOSE_SWITCH )
-            TransposeAlgs_FDRM.block(A,A_tran,EjmlParameters.BLOCK_WIDTH);
+        if (A.numRows > EjmlParameters.TRANSPOSE_SWITCH &&
+                A.numCols > EjmlParameters.TRANSPOSE_SWITCH)
+            TransposeAlgs_FDRM.block(A, A_tran, EjmlParameters.BLOCK_WIDTH);
         else
-            TransposeAlgs_FDRM.standard(A,A_tran);
+            TransposeAlgs_FDRM.standard(A, A_tran);
 
         return A_tran;
     }
-
 
     /**
      * <p>
@@ -693,7 +686,7 @@ public class CommonOps_FDRM {
         int N = Math.min(a.numRows, a.numCols);
         float sum = 0;
         int index = 0;
-        for( int i = 0; i < N; i++ ) {
+        for (int i = 0; i < N; i++) {
             sum += a.get(index);
             index += 1 + a.numCols;
         }
@@ -709,18 +702,17 @@ public class CommonOps_FDRM {
      * @param mat The matrix whose determinant is to be computed.  Not modified.
      * @return The determinant.
      */
-    public static float det( FMatrixRMaj mat )
-    {
+    public static float det( FMatrixRMaj mat ) {
         int numCol = mat.getNumCols();
         int numRow = mat.getNumRows();
 
-        if( numCol != numRow ) {
+        if (numCol != numRow) {
             throw new MatrixDimensionException("Must be a square matrix.");
-        } else if( numCol <= UnrolledDeterminantFromMinor_FDRM.MAX ) {
+        } else if (numCol <= UnrolledDeterminantFromMinor_FDRM.MAX) {
             // slight performance boost overall by doing it this way
             // when it was the case statement the VM did some strange optimization
             // and made case 2 about 1/2 the speed
-            if( numCol >= 2 ) {
+            if (numCol >= 2) {
                 return UnrolledDeterminantFromMinor_FDRM.det(mat);
             } else {
                 return mat.get(0);
@@ -728,11 +720,11 @@ public class CommonOps_FDRM {
         } else {
             LUDecompositionAlt_FDRM alg = new LUDecompositionAlt_FDRM();
 
-            if( alg.inputModified() ) {
+            if (alg.inputModified()) {
                 mat = mat.copy();
             }
 
-            if( !alg.decompose(mat) )
+            if (!alg.decompose(mat))
                 return 0.0f;
             return alg.computeDeterminant().real;
         }
@@ -755,21 +747,21 @@ public class CommonOps_FDRM {
      * @param mat The matrix that is to be inverted.  Results are stored here.  Modified.
      * @return true if it could invert the matrix false if it could not.
      */
-    public static boolean invert( FMatrixRMaj mat) {
-        if( mat.numCols <= UnrolledInverseFromMinor_FDRM.MAX ) {
-            if( mat.numCols != mat.numRows ) {
+    public static boolean invert( FMatrixRMaj mat ) {
+        if (mat.numCols <= UnrolledInverseFromMinor_FDRM.MAX) {
+            if (mat.numCols != mat.numRows) {
                 throw new MatrixDimensionException("Must be a square matrix.");
             }
 
-            if( mat.numCols >= 2 ) {
-                UnrolledInverseFromMinor_FDRM.inv(mat,mat);
+            if (mat.numCols >= 2) {
+                UnrolledInverseFromMinor_FDRM.inv(mat, mat);
             } else {
                 mat.set(0, 1.0f/mat.get(0));
             }
         } else {
             LUDecompositionAlt_FDRM alg = new LUDecompositionAlt_FDRM();
             LinearSolverLu_FDRM solver = new LinearSolverLu_FDRM(alg);
-            if( solver.setA(mat) ) {
+            if (solver.setA(mat)) {
                 solver.invert(mat);
             } else {
                 return false;
@@ -802,26 +794,26 @@ public class CommonOps_FDRM {
      * @param result Where the inverse matrix is stored.  Modified.
      * @return true if it could invert the matrix false if it could not.
      */
-    public static boolean invert(FMatrixRMaj mat, FMatrixRMaj result ) {
-        result.reshape(mat.numRows,mat.numCols);
+    public static boolean invert( FMatrixRMaj mat, FMatrixRMaj result ) {
+        result.reshape(mat.numRows, mat.numCols);
 
-        if( mat.numCols <= UnrolledInverseFromMinor_FDRM.MAX ) {
-            if( mat.numCols != mat.numRows ) {
+        if (mat.numCols <= UnrolledInverseFromMinor_FDRM.MAX) {
+            if (mat.numCols != mat.numRows) {
                 throw new MatrixDimensionException("Must be a square matrix.");
             }
-            if( result.numCols >= 2 ) {
-                UnrolledInverseFromMinor_FDRM.inv(mat,result);
+            if (result.numCols >= 2) {
+                UnrolledInverseFromMinor_FDRM.inv(mat, result);
             } else {
-                result.set(0,  1.0f/mat.get(0));
+                result.set(0, 1.0f/mat.get(0));
             }
         } else {
             LUDecompositionAlt_FDRM alg = new LUDecompositionAlt_FDRM();
             LinearSolverLu_FDRM solver = new LinearSolverLu_FDRM(alg);
 
-            if( solver.modifiesA() )
+            if (solver.modifiesA())
                 mat = mat.copy();
 
-            if( !solver.setA(mat))
+            if (!solver.setA(mat))
                 return false;
             solver.invert(result);
         }
@@ -832,32 +824,31 @@ public class CommonOps_FDRM {
      * Matrix inverse for symmetric positive definite matrices. For small matrices an unrolled
      * cholesky is used. Otherwise a standard decomposition.
      *
-     * @see UnrolledCholesky_FDRM
-     * @see LinearSolverFactory_FDRM#chol(int)
-     *
      * @param mat (Input) SPD matrix
      * @param result (Output) Inverted matrix.
      * @return true if it could invert the matrix false if it could not.
+     * @see UnrolledCholesky_FDRM
+     * @see LinearSolverFactory_FDRM#chol(int)
      */
-    public static boolean invertSPD(FMatrixRMaj mat, FMatrixRMaj result ) {
-        if( mat.numRows != mat.numCols )
+    public static boolean invertSPD( FMatrixRMaj mat, FMatrixRMaj result ) {
+        if (mat.numRows != mat.numCols)
             throw new IllegalArgumentException("Must be a square matrix");
-        result.reshape(mat.numRows,mat.numRows);
+        result.reshape(mat.numRows, mat.numRows);
 
-        if( mat.numRows <= UnrolledCholesky_FDRM.MAX ) {
+        if (mat.numRows <= UnrolledCholesky_FDRM.MAX) {
             // L*L' = A
-            if( !UnrolledCholesky_FDRM.lower(mat,result) )
+            if (!UnrolledCholesky_FDRM.lower(mat, result))
                 return false;
             // L = inv(L)
-            TriangularSolver_FDRM.invertLower(result.data,result.numCols);
+            TriangularSolver_FDRM.invertLower(result.data, result.numCols);
             // inv(A) = inv(L')*inv(L)
             SpecializedOps_FDRM.multLowerTranA(result);
         } else {
             LinearSolverDense<FMatrixRMaj> solver = LinearSolverFactory_FDRM.chol(mat.numCols);
-            if( solver.modifiesA() )
+            if (solver.modifiesA())
                 mat = mat.copy();
 
-            if( !solver.setA(mat))
+            if (!solver.setA(mat))
                 return false;
             solver.invert(result);
         }
@@ -877,16 +868,16 @@ public class CommonOps_FDRM {
      * Internally it uses {@link SolvePseudoInverseSvd_FDRM} to compute the inverse.  For performance reasons, this should only
      * be used when a matrix is singular or nearly singular.
      * </p>
-     * @param A  A m by n Matrix.  Not modified.
+     *
+     * @param A A m by n Matrix.  Not modified.
      * @param invA Where the computed pseudo inverse is stored. n by m.  Modified.
      */
-    public static void pinv(FMatrixRMaj A , FMatrixRMaj invA )
-    {
+    public static void pinv( FMatrixRMaj A, FMatrixRMaj invA ) {
         LinearSolverDense<FMatrixRMaj> solver = LinearSolverFactory_FDRM.pseudoInverse(true);
-        if( solver.modifiesA())
+        if (solver.modifiesA())
             A = A.copy();
 
-        if( !solver.setA(A) )
+        if (!solver.setA(A))
             throw new IllegalArgumentException("Invert failed, maybe a bug?");
 
         solver.invert(invA);
@@ -896,29 +887,27 @@ public class CommonOps_FDRM {
      * Converts the columns in a matrix into a set of vectors.
      *
      * @param A Matrix.  Not modified.
-     * @param v
      * @return An array of vectors.
      */
-    public static FMatrixRMaj[] columnsToVector(FMatrixRMaj A, FMatrixRMaj[] v)
-    {
-        FMatrixRMaj[]ret;
-        if( v == null || v.length < A.numCols ) {
-            ret = new FMatrixRMaj[ A.numCols ];
+    public static FMatrixRMaj[] columnsToVector( FMatrixRMaj A, @Nullable FMatrixRMaj[] v ) {
+        FMatrixRMaj[] ret;
+        if (v == null || v.length < A.numCols) {
+            ret = new FMatrixRMaj[A.numCols];
         } else {
             ret = v;
         }
 
-        for( int i = 0; i < ret.length; i++ ) {
-            if( ret[i] == null ) {
-                ret[i] = new FMatrixRMaj(A.numRows,1);
+        for (int i = 0; i < ret.length; i++) {
+            if (ret[i] == null) {
+                ret[i] = new FMatrixRMaj(A.numRows, 1);
             } else {
-                ret[i].reshape(A.numRows,1, false);
+                ret[i].reshape(A.numRows, 1, false);
             }
 
             FMatrixRMaj u = ret[i];
 
-            for( int j = 0; j < A.numRows; j++ ) {
-                u.set(j,0, A.get(j,i));
+            for (int j = 0; j < A.numRows; j++) {
+                u.set(j, 0, A.get(j, i));
             }
         }
 
@@ -929,30 +918,28 @@ public class CommonOps_FDRM {
      * Converts the rows in a matrix into a set of vectors.
      *
      * @param A Matrix.  Not modified.
-     * @param v
      * @return An array of vectors.
      */
-    public static FMatrixRMaj[] rowsToVector(FMatrixRMaj A, FMatrixRMaj[] v)
-    {
-        FMatrixRMaj[]ret;
-        if( v == null || v.length < A.numRows ) {
-            ret = new FMatrixRMaj[ A.numRows ];
+    public static FMatrixRMaj[] rowsToVector( FMatrixRMaj A, @Nullable FMatrixRMaj[] v ) {
+        FMatrixRMaj[] ret;
+        if (v == null || v.length < A.numRows) {
+            ret = new FMatrixRMaj[A.numRows];
         } else {
             ret = v;
         }
 
 
-        for( int i = 0; i < ret.length; i++ ) {
-            if( ret[i] == null ) {
-                ret[i] = new FMatrixRMaj(A.numCols,1);
+        for (int i = 0; i < ret.length; i++) {
+            if (ret[i] == null) {
+                ret[i] = new FMatrixRMaj(A.numCols, 1);
             } else {
-                ret[i].reshape(A.numCols,1, false);
+                ret[i].reshape(A.numCols, 1, false);
             }
 
             FMatrixRMaj u = ret[i];
 
-            for( int j = 0; j < A.numCols; j++ ) {
-                u.set(j,0, A.get(i,j));
+            for (int j = 0; j < A.numCols; j++) {
+                u.set(j, 0, A.get(i, j));
             }
         }
 
@@ -963,18 +950,16 @@ public class CommonOps_FDRM {
      * Sets all the diagonal elements equal to one and everything else equal to zero.
      * If this is a square matrix then it will be an identity matrix.
      *
-     * @see #identity(int)
-     *
      * @param mat A square matrix.
+     * @see #identity(int)
      */
-    public static void setIdentity( FMatrix1Row mat )
-    {
+    public static void setIdentity( FMatrix1Row mat ) {
         int width = mat.numRows < mat.numCols ? mat.numRows : mat.numCols;
 
-        Arrays.fill(mat.data,0,mat.getNumElements(),0);
+        Arrays.fill(mat.data, 0, mat.getNumElements(), 0);
 
         int index = 0;
-        for( int i = 0; i < width; i++ , index += mat.numCols + 1) {
+        for (int i = 0; i < width; i++, index += mat.numCols + 1) {
             mat.data[index] = 1;
         }
     }
@@ -990,12 +975,11 @@ public class CommonOps_FDRM {
      * @param width The width and height of the identity matrix.
      * @return A new instance of an identity matrix.
      */
-    public static FMatrixRMaj identity(int width )
-    {
-        FMatrixRMaj ret = new FMatrixRMaj(width,width);
+    public static FMatrixRMaj identity( int width ) {
+        FMatrixRMaj ret = new FMatrixRMaj(width, width);
 
-        for( int i = 0; i < width; i++ ) {
-            ret.set(i,i,1.0f);
+        for (int i = 0; i < width; i++) {
+            ret.set(i, i, 1.0f);
         }
 
         return ret;
@@ -1008,14 +992,13 @@ public class CommonOps_FDRM {
      * @param numCols NUmber of columns in the matrix.
      * @return A matrix with diagonal elements equal to one.
      */
-    public static FMatrixRMaj identity(int numRows , int numCols )
-    {
-        FMatrixRMaj ret = new FMatrixRMaj(numRows,numCols);
+    public static FMatrixRMaj identity( int numRows, int numCols ) {
+        FMatrixRMaj ret = new FMatrixRMaj(numRows, numCols);
 
         int small = numRows < numCols ? numRows : numCols;
 
-        for( int i = 0; i < small; i++ ) {
-            ret.set(i,i,1.0f);
+        for (int i = 0; i < small; i++) {
+            ret.set(i, i, 1.0f);
         }
 
         return ret;
@@ -1030,31 +1013,28 @@ public class CommonOps_FDRM {
      * a<sub>ij</sub> = diag[i]   if i = j<br>
      * </p>
      *
-     * @see #diagR
-     *
      * @param diagEl Contains the values of the diagonal elements of the resulting matrix.
      * @return A new matrix.
+     * @see #diagR
      */
-    public static FMatrixRMaj diag(float ...diagEl )
-    {
-        return diag(null,diagEl.length,diagEl);
+    public static FMatrixRMaj diag( float... diagEl ) {
+        return diag(null, diagEl.length, diagEl);
     }
 
     /**
      * @see #diag(float...)
      */
-    public static FMatrixRMaj diag(FMatrixRMaj ret , int width , float ...diagEl )
-    {
-        if( ret == null ) {
-            ret = new FMatrixRMaj(width,width);
+    public static FMatrixRMaj diag( @Nullable FMatrixRMaj ret, int width, float... diagEl ) {
+        if (ret == null) {
+            ret = new FMatrixRMaj(width, width);
         } else {
-            if( ret.numRows != width || ret.numCols != width )
+            if (ret.numRows != width || ret.numCols != width)
                 throw new IllegalArgumentException("Unexpected matrix size");
 
             CommonOps_FDRM.fill(ret, 0);
         }
 
-        for( int i = 0; i < width; i++ ) {
+        for (int i = 0; i < width; i++) {
             ret.unsafe_set(i, i, diagEl[i]);
         }
 
@@ -1070,20 +1050,18 @@ public class CommonOps_FDRM {
      * a<sub>ij</sub> = diag[i]   if i = j<br>
      * </p>
      *
-     * @see #diag
-     *
      * @param numRows Number of rows in the matrix.
      * @param numCols Number of columns in the matrix.
      * @param diagEl Contains the values of the diagonal elements of the resulting matrix.
      * @return A new matrix.
+     * @see #diag
      */
-    public static FMatrixRMaj diagR(int numRows , int numCols , float ...diagEl )
-    {
-        FMatrixRMaj ret = new FMatrixRMaj(numRows,numCols);
+    public static FMatrixRMaj diagR( int numRows, int numCols, float... diagEl ) {
+        FMatrixRMaj ret = new FMatrixRMaj(numRows, numCols);
 
-        int o = Math.min(numRows,numCols);
+        int o = Math.min(numRows, numCols);
 
-        for( int i = 0; i < o; i++ ) {
+        for (int i = 0; i < o; i++) {
             ret.set(i, i, diagEl[i]);
         }
 
@@ -1100,32 +1078,31 @@ public class CommonOps_FDRM {
      *
      * @param A The left matrix in the operation. Not modified.
      * @param B The right matrix in the operation. Not modified.
-     * @param C Where the results of the operation are stored. Modified.
+     * @param C Where the results of the operation are stored. Nullable. Modified.
      */
-    public static void kron(FMatrixRMaj A , FMatrixRMaj B , FMatrixRMaj C )
-    {
+    public static FMatrixRMaj kron( FMatrixRMaj A, FMatrixRMaj B, @Nullable FMatrixRMaj C ) {
         int numColsC = A.numCols*B.numCols;
         int numRowsC = A.numRows*B.numRows;
 
-        if( C.numCols != numColsC || C.numRows != numRowsC) {
-            throw new MatrixDimensionException("C does not have the expected dimensions");
-        }
+        C = reshapeOrDeclare(C,numRowsC, numColsC);
 
         // TODO see comment below
         // this will work well for small matrices
         // but an alternative version should be made for large matrices
-        for( int i = 0; i < A.numRows; i++ ) {
-            for( int j = 0; j < A.numCols; j++ ) {
-                float a = A.get(i,j);
+        for (int i = 0; i < A.numRows; i++) {
+            for (int j = 0; j < A.numCols; j++) {
+                float a = A.get(i, j);
 
-                for( int rowB = 0; rowB < B.numRows; rowB++ ) {
-                    for( int colB = 0; colB < B.numCols; colB++ ) {
-                        float val = a*B.get(rowB,colB);
-                        C.set(i*B.numRows+rowB,j*B.numCols+colB,val);
+                for (int rowB = 0; rowB < B.numRows; rowB++) {
+                    for (int colB = 0; colB < B.numCols; colB++) {
+                        float val = a*B.get(rowB, colB);
+                        C.unsafe_set(i*B.numRows + rowB, j*B.numCols + colB, val);
                     }
                 }
             }
         }
+
+        return C;
     }
 
     /**
@@ -1151,32 +1128,32 @@ public class CommonOps_FDRM {
     public static void extract( FMatrix src,
                                 int srcY0, int srcY1,
                                 int srcX0, int srcX1,
-                                FMatrix dst ,
-                                int dstY0, int dstX0 )
-    {
-        if( srcY1 < srcY0 || srcY0 < 0 || srcY1 > src.getNumRows() )
-            throw new MatrixDimensionException("srcY1 < srcY0 || srcY0 < 0 || srcY1 > src.numRows. "+stringShapes(src,dst));
-        if( srcX1 < srcX0 || srcX0 < 0 || srcX1 > src.getNumCols() )
-            throw new MatrixDimensionException("srcX1 < srcX0 || srcX0 < 0 || srcX1 > src.numCols. "+stringShapes(src,dst));
+                                FMatrix dst,
+                                int dstY0, int dstX0 ) {
+        if (srcY1 < srcY0 || srcY0 < 0 || srcY1 > src.getNumRows())
+            throw new MatrixDimensionException("srcY1 < srcY0 || srcY0 < 0 || srcY1 > src.numRows. " + stringShapes(src, dst));
+        if (srcX1 < srcX0 || srcX0 < 0 || srcX1 > src.getNumCols())
+            throw new MatrixDimensionException("srcX1 < srcX0 || srcX0 < 0 || srcX1 > src.numCols. " + stringShapes(src, dst));
 
-        int w = srcX1-srcX0;
-        int h = srcY1-srcY0;
+        int w = srcX1 - srcX0;
+        int h = srcY1 - srcY0;
 
-        if( dstY0+h > dst.getNumRows() )
-            throw new MatrixDimensionException("dst is too small in rows. "+dst.getNumRows()+" < "+(dstY0+h));
-        if( dstX0+w > dst.getNumCols() )
-            throw new MatrixDimensionException("dst is too small in columns. "+dst.getNumCols()+" < "+(dstX0+w));
+        if (dstY0 + h > dst.getNumRows())
+            throw new MatrixDimensionException("dst is too small in rows. " + dst.getNumRows() + " < " + (dstY0 + h));
+        if (dstX0 + w > dst.getNumCols())
+            throw new MatrixDimensionException("dst is too small in columns. " + dst.getNumCols() + " < " + (dstX0 + w));
 
         // interestingly, the performance is only different for small matrices but identical for larger ones
-        if( src instanceof FMatrixRMaj && dst instanceof FMatrixRMaj) {
-            ImplCommonOps_FDRM.extract((FMatrixRMaj)src,srcY0,srcX0,(FMatrixRMaj)dst,dstY0,dstX0, h, w);
+        if (src instanceof FMatrixRMaj && dst instanceof FMatrixRMaj) {
+            ImplCommonOps_FDRM.extract((FMatrixRMaj)src, srcY0, srcX0, (FMatrixRMaj)dst, dstY0, dstX0, h, w);
         } else {
-            ImplCommonOps_FDMA.extract(src,srcY0,srcX0,dst,dstY0,dstX0, h, w);
+            ImplCommonOps_FDMA.extract(src, srcY0, srcX0, dst, dstY0, dstX0, h, w);
         }
     }
 
     /**
      * Extract where the destination is reshaped to match the extracted region
+     *
      * @param src The original matrix which is to be copied.  Not modified.
      * @param srcX0 Start column.
      * @param srcX1 Stop column+1.
@@ -1188,8 +1165,8 @@ public class CommonOps_FDRM {
                                 int srcY0, int srcY1,
                                 int srcX0, int srcX1,
                                 FMatrix dst ) {
-        ((ReshapeMatrix)dst).reshape(srcY1-srcY0,srcX1-srcX0);
-        extract(src,srcY0,srcY1,srcX0,srcX1,dst,0,0);
+        ((ReshapeMatrix)dst).reshape(srcY1 - srcY0, srcX1 - srcX0);
+        extract(src, srcY0, srcY1, srcX0, srcX1, dst, 0, 0);
     }
 
     /**
@@ -1206,7 +1183,7 @@ public class CommonOps_FDRM {
     public static void extract( FMatrix src,
                                 int srcY0, int srcX0,
                                 FMatrix dst ) {
-        extract(src,srcY0,srcY0+dst.getNumRows(),srcX0,srcX0+dst.getNumCols(),dst,0,0);
+        extract(src, srcY0, srcY0 + dst.getNumRows(), srcX0, srcX0 + dst.getNumCols(), dst, 0, 0);
     }
 
     /**
@@ -1227,21 +1204,20 @@ public class CommonOps_FDRM {
      * @param srcY1 Stop row+1.
      * @return Extracted submatrix.
      */
-    public static FMatrixRMaj extract(FMatrixRMaj src,
-                                        int srcY0, int srcY1,
-                                        int srcX0, int srcX1 )
-    {
-        if( srcY1 <= srcY0 || srcY0 < 0 || srcY1 > src.numRows )
+    public static FMatrixRMaj extract( FMatrixRMaj src,
+                                       int srcY0, int srcY1,
+                                       int srcX0, int srcX1 ) {
+        if (srcY1 <= srcY0 || srcY0 < 0 || srcY1 > src.numRows)
             throw new MatrixDimensionException("srcY1 <= srcY0 || srcY0 < 0 || srcY1 > src.numRows");
-        if( srcX1 <= srcX0 || srcX0 < 0 || srcX1 > src.numCols )
+        if (srcX1 <= srcX0 || srcX0 < 0 || srcX1 > src.numCols)
             throw new MatrixDimensionException("srcX1 <= srcX0 || srcX0 < 0 || srcX1 > src.numCols");
 
-        int w = srcX1-srcX0;
-        int h = srcY1-srcY0;
+        int w = srcX1 - srcX0;
+        int h = srcY1 - srcY0;
 
-        FMatrixRMaj dst = new FMatrixRMaj(h,w);
+        FMatrixRMaj dst = new FMatrixRMaj(h, w);
 
-        ImplCommonOps_FDRM.extract(src,srcY0,srcX0,dst,0,0, h, w);
+        ImplCommonOps_FDRM.extract(src, srcY0, srcX0, dst, 0, 0, h, w);
 
         return dst;
     }
@@ -1257,11 +1233,10 @@ public class CommonOps_FDRM {
      * @param colsSize maximum element in column array
      * @param dst output matrix.  Must be correct shape.
      */
-    public static void extract( FMatrixRMaj src,
-                                int rows[] , int rowsSize ,
-                                int cols[] , int colsSize , FMatrixRMaj dst ) {
-        if( rowsSize != dst.numRows || colsSize != dst.numCols )
-            throw new MatrixDimensionException("Unexpected number of rows and/or columns in dst matrix");
+    public static FMatrixRMaj extract( FMatrixRMaj src,
+                                       int[] rows, int rowsSize,
+                                       int[] cols, int colsSize, @Nullable FMatrixRMaj dst ) {
+        dst = reshapeOrDeclare(dst, rowsSize, colsSize);
 
         int indexDst = 0;
         for (int i = 0; i < rowsSize; i++) {
@@ -1270,6 +1245,8 @@ public class CommonOps_FDRM {
                 dst.data[indexDst++] = src.data[indexSrcRow + cols[j]];
             }
         }
+
+        return dst;
     }
 
     /**
@@ -1280,15 +1257,17 @@ public class CommonOps_FDRM {
      * @param length maximum element in row array
      * @param dst output matrix.  Must be a vector of the correct length.
      */
-    public static void extract(FMatrixRMaj src, int indexes[] , int length , FMatrixRMaj dst ) {
-        if( !MatrixFeatures_FDRM.isVector(dst))
-            throw new MatrixDimensionException("Dst must be a vector");
-        if( length != dst.getNumElements())
-            throw new MatrixDimensionException("Unexpected number of elements in dst vector");
+    public static FMatrixRMaj extract( FMatrixRMaj src, int[] indexes, int length, @Nullable FMatrixRMaj dst ) {
+        if (dst==null)
+            dst = new FMatrixRMaj(length,1);
+        else if (!MatrixFeatures_FDRM.isVector(dst) || length != dst.getNumElements())
+            throw new MatrixDimensionException("Dst must be a vector and have 'length' elements");
 
         for (int i = 0; i < length; i++) {
             dst.data[i] = src.data[indexes[i]];
         }
+
+        return dst;
     }
 
     /**
@@ -1301,17 +1280,17 @@ public class CommonOps_FDRM {
      *
      * @param src Source matrix. Not modified.
      * @param dst output matrix.  Must be correct shape.
-     * @param rows array of row indexes
+     * @param rows array of row indexes.
      * @param rowsSize maximum element in row array
      * @param cols array of column indexes
      * @param colsSize maximum element in column array
      */
-    public static void insert( FMatrixRMaj src ,
-                               FMatrixRMaj dst ,
-                                int rows[] , int rowsSize ,
-                                int cols[] , int colsSize ) {
-        if( rowsSize != src.numRows || colsSize != src.numCols )
-            throw new MatrixDimensionException("Unexpected number of rows and/or columns in dst matrix");
+    public static void insert( FMatrixRMaj src,
+                               FMatrixRMaj dst,
+                               int[] rows, int rowsSize,
+                               int[] cols, int colsSize ) {
+        UtilEjml.assertEq(rowsSize, src.numRows, "src's rows don't match rowsSize");
+        UtilEjml.assertEq(colsSize, src.numCols, "src's columns don't match colsSize");
 
         int indexSrc = 0;
         for (int i = 0; i < rowsSize; i++) {
@@ -1331,52 +1310,59 @@ public class CommonOps_FDRM {
      * @param src Matrix whose diagonal elements are being extracted. Not modified.
      * @param dst A vector the results will be written into. Modified.
      */
-    public static void extractDiag(FMatrixRMaj src, FMatrixRMaj dst )
-    {
+    public static FMatrixRMaj extractDiag( FMatrixRMaj src, @Nullable FMatrixRMaj dst ) {
         int N = Math.min(src.numRows, src.numCols);
 
-        if( !MatrixFeatures_FDRM.isVector(dst) || dst.numCols*dst.numCols != N ) {
-            dst.reshape(N,1);
+        if( dst == null ) {
+            dst = new FMatrixRMaj(N,1);
+        } else {
+            if (!MatrixFeatures_FDRM.isVector(dst) || dst.numCols*dst.numCols != N) {
+                dst.reshape(N, 1);
+            }
         }
 
-        for( int i = 0; i < N; i++ ) {
-            dst.set( i , src.unsafe_get(i,i) );
+        for (int i = 0; i < N; i++) {
+            dst.set(i, src.unsafe_get(i, i));
         }
+
+        return dst;
     }
 
     /**
      * Extracts the row from a matrix.
+     *
      * @param a Input matrix
      * @param row Which row is to be extracted
      * @param out output. Storage for the extracted row. If null then a new vector will be returned.
      * @return The extracted row.
      */
-    public static FMatrixRMaj extractRow(FMatrixRMaj a , int row , FMatrixRMaj out ) {
-        if( out == null)
-            out = new FMatrixRMaj(1,a.numCols);
-        else if( !MatrixFeatures_FDRM.isVector(out) || out.getNumElements() != a.numCols )
-            throw new MatrixDimensionException("Output must be a vector of length "+a.numCols);
+    public static FMatrixRMaj extractRow( FMatrixRMaj a, int row, @Nullable FMatrixRMaj out ) {
+        if (out == null)
+            out = new FMatrixRMaj(1, a.numCols);
+        else if (!MatrixFeatures_FDRM.isVector(out) || out.getNumElements() != a.numCols)
+            out.reshape(1, a.numCols);
 
-        System.arraycopy(a.data,a.getIndex(row,0),out.data,0,a.numCols);
+        System.arraycopy(a.data, a.getIndex(row, 0), out.data, 0, a.numCols);
 
         return out;
     }
 
     /**
      * Extracts the column from a matrix.
+     *
      * @param a Input matrix
      * @param column Which column is to be extracted
      * @param out output. Storage for the extracted column. If null then a new vector will be returned.
      * @return The extracted column.
      */
-    public static FMatrixRMaj extractColumn(FMatrixRMaj a , int column , FMatrixRMaj out ) {
-        if( out == null)
-            out = new FMatrixRMaj(a.numRows,1);
-        else if( !MatrixFeatures_FDRM.isVector(out) || out.getNumElements() != a.numRows )
-            throw new MatrixDimensionException("Output must be a vector of length "+a.numRows);
+    public static FMatrixRMaj extractColumn( FMatrixRMaj a, int column, @Nullable FMatrixRMaj out ) {
+        if (out == null)
+            out = new FMatrixRMaj(a.numRows, 1);
+        else if (!MatrixFeatures_FDRM.isVector(out) || out.getNumElements() != a.numRows)
+            out.reshape(a.numRows, 1);
 
         int index = column;
-        for (int i = 0; i < a.numRows; i++, index += a.numCols ) {
+        for (int i = 0; i < a.numRows; i++, index += a.numCols) {
             out.data[i] = a.data[index];
         }
         return out;
@@ -1389,23 +1375,19 @@ public class CommonOps_FDRM {
      * @param col0 First column
      * @param col1 Last column, inclusive.
      */
-    public static void removeColumns( FMatrixRMaj A , int col0 , int col1 )
-    {
-        if( col1 < col0 ) {
-            throw new IllegalArgumentException("col1 must be >= col0");
-        } else if( col0 >= A.numCols || col1 >= A.numCols ) {
-            throw new IllegalArgumentException("Columns which are to be removed must be in bounds");
-        }
+    public static void removeColumns( FMatrixRMaj A, int col0, int col1 ) {
+        UtilEjml.assertTrue(col0 < col1, "col1 must be >= col0");
+        UtilEjml.assertTrue(col0 >= 0 && col1 <= A.numCols,"Columns which are to be removed must be in bounds");
 
-        int step = col1-col0+1;
+        int step = col1 - col0 + 1;
         int offset = 0;
-        for (int row = 0, idx=0; row < A.numRows; row++) {
-            for (int i = 0; i < col0; i++,idx++) {
-                A.data[idx] = A.data[idx+offset];
+        for (int row = 0, idx = 0; row < A.numRows; row++) {
+            for (int i = 0; i < col0; i++, idx++) {
+                A.data[idx] = A.data[idx + offset];
             }
             offset += step;
-            for (int i = col1+1; i < A.numCols; i++,idx++) {
-                A.data[idx] = A.data[idx+offset];
+            for (int i = col1 + 1; i < A.numCols; i++, idx++) {
+                A.data[idx] = A.data[idx + offset];
             }
         }
         A.numCols -= step;
@@ -1420,7 +1402,7 @@ public class CommonOps_FDRM {
      * @param destY0 Start row for the copy into dest.
      * @param destX0 Start column for the copy into dest.
      */
-    public static void insert(FMatrix src, FMatrix dest, int destY0, int destX0) {
+    public static void insert( FMatrix src, FMatrix dest, int destY0, int destX0 ) {
         extract(src, 0, src.getNumRows(), 0, src.getNumCols(), dest, destY0, destX0);
     }
 
@@ -1435,17 +1417,22 @@ public class CommonOps_FDRM {
      * @return The max element value of the matrix.
      */
     public static float elementMax( FMatrixD1 a ) {
-        final int size = a.getNumElements();
+        return ImplCommonOps_FDRM.elementMax(a, null);
+    }
 
-        float max = a.get(0);
-        for( int i = 1; i < size; i++ ) {
-            float val = a.get(i);
-            if( val >= max ) {
-                max = val;
-            }
-        }
-
-        return max;
+    /**
+     * <p>
+     * Returns the value of the element in the matrix that has the largest value.<br>
+     * <br>
+     * Max{ a<sub>ij</sub> } for all i and j<br>
+     * </p>
+     *
+     * @param a A matrix. Not modified.
+     * @param loc (Output) Location of selected element.
+     * @return The max element value of the matrix.
+     */
+    public static float elementMax( FMatrixD1 a, ElementLocation loc ) {
+        return ImplCommonOps_FDRM.elementMax(a, loc);
     }
 
     /**
@@ -1459,17 +1446,22 @@ public class CommonOps_FDRM {
      * @return The max abs element value of the matrix.
      */
     public static float elementMaxAbs( FMatrixD1 a ) {
-        final int size = a.getNumElements();
+        return ImplCommonOps_FDRM.elementMaxAbs(a, null);
+    }
 
-        float max = 0;
-        for( int i = 0; i < size; i++ ) {
-            float val = Math.abs(a.get(i));
-            if( val > max ) {
-                max = val;
-            }
-        }
-
-        return max;
+    /**
+     * <p>
+     * Returns the absolute value of the element in the matrix that has the largest absolute value.<br>
+     * <br>
+     * Max{ |a<sub>ij</sub>| } for all i and j<br>
+     * </p>
+     *
+     * @param a A matrix. Not modified.
+     * @param loc (Output) Location of element element.
+     * @return The max abs element value of the matrix.
+     */
+    public static float elementMaxAbs( FMatrixD1 a, ElementLocation loc  ) {
+        return ImplCommonOps_FDRM.elementMaxAbs(a, loc);
     }
 
     /**
@@ -1483,17 +1475,22 @@ public class CommonOps_FDRM {
      * @return The value of element in the matrix with the minimum value.
      */
     public static float elementMin( FMatrixD1 a ) {
-        final int size = a.getNumElements();
+        return ImplCommonOps_FDRM.elementMin(a, null);
+    }
 
-        float min = a.get(0);
-        for( int i = 1; i < size; i++ ) {
-            float val = a.get(i);
-            if( val < min ) {
-                min = val;
-            }
-        }
-
-        return min;
+    /**
+     * <p>
+     * Returns the value of the element in the matrix that has the minimum value.<br>
+     * <br>
+     * Min{ a<sub>ij</sub> } for all i and j<br>
+     * </p>
+     *
+     * @param a A matrix. Not modified.
+     * @param loc (Output) Location of selected element.
+     * @return The value of element in the matrix with the minimum value.
+     */
+    public static float elementMin( FMatrixD1 a, ElementLocation loc  ) {
+        return ImplCommonOps_FDRM.elementMin(a, loc);
     }
 
     /**
@@ -1507,17 +1504,22 @@ public class CommonOps_FDRM {
      * @return The max element value of the matrix.
      */
     public static float elementMinAbs( FMatrixD1 a ) {
-        final int size = a.getNumElements();
+        return ImplCommonOps_FDRM.elementMinAbs(a, null);
+    }
 
-        float min = Float.MAX_VALUE;
-        for( int i = 0; i < size; i++ ) {
-            float val = Math.abs(a.get(i));
-            if( val < min ) {
-                min = val;
-            }
-        }
-
-        return min;
+    /**
+     * <p>
+     * Returns the absolute value of the element in the matrix that has the smallest absolute value.<br>
+     * <br>
+     * Min{ |a<sub>ij</sub>| } for all i and j<br>
+     * </p>
+     *
+     * @param a (Input) A matrix. Not modified.
+     * @param loc (Output) Location of selected element.
+     * @return The max element value of the matrix.
+     */
+    public static float elementMinAbs( FMatrixD1 a, ElementLocation loc ) {
+        return ImplCommonOps_FDRM.elementMinAbs(a, loc);
     }
 
     /**
@@ -1525,20 +1527,12 @@ public class CommonOps_FDRM {
      * <br>
      * a<sub>ij</sub> = a<sub>ij</sub> * b<sub>ij</sub> <br>
      * </p>
-     * @param a The left matrix in the multiplication operation. Modified.
-     * @param b The right matrix in the multiplication operation. Not modified.
+     *
+     * @param A The left matrix in the multiplication operation. Modified.
+     * @param B The right matrix in the multiplication operation. Not modified.
      */
-    public static void elementMult(FMatrixD1 a , FMatrixD1 b )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-
-        int length = a.getNumElements();
-
-        for( int i = 0; i < length; i++ ) {
-            a.times(i, b.get(i));
-        }
+    public static void elementMult( FMatrixD1 A, FMatrixD1 B ) {
+        ImplCommonOps_FDRM.elementMult(A, B);
     }
 
     /**
@@ -1546,22 +1540,13 @@ public class CommonOps_FDRM {
      * <br>
      * c<sub>ij</sub> = a<sub>ij</sub> * b<sub>ij</sub> <br>
      * </p>
-     * @param a The left matrix in the multiplication operation. Not modified.
-     * @param b The right matrix in the multiplication operation. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     *
+     * @param A The left matrix in the multiplication operation. Not modified.
+     * @param B The right matrix in the multiplication operation. Not modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void elementMult(FMatrixD1 a , FMatrixD1 b , FMatrixD1 c )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows
-                || a.numRows != c.numRows || a.numCols != c.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-
-        int length = a.getNumElements();
-
-        for( int i = 0; i < length; i++ ) {
-            c.set(i, a.get(i) * b.get(i));
-        }
+    public static <T extends FMatrixD1> T elementMult( T A, T B, @Nullable T output ) {
+        return ImplCommonOps_FDRM.elementMult(A, B, output);
     }
 
     /**
@@ -1569,20 +1554,12 @@ public class CommonOps_FDRM {
      * <br>
      * a<sub>ij</sub> = a<sub>ij</sub> / b<sub>ij</sub> <br>
      * </p>
-     * @param a The left matrix in the division operation. Modified.
-     * @param b The right matrix in the division operation. Not modified.
+     *
+     * @param A The left matrix in the division operation. Modified.
+     * @param B The right matrix in the division operation. Not modified.
      */
-    public static void elementDiv(FMatrixD1 a , FMatrixD1 b )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-
-        int length = a.getNumElements();
-
-        for( int i = 0; i < length; i++ ) {
-            a.div(i, b.get(i));
-        }
+    public static void elementDiv( FMatrixD1 A, FMatrixD1 B ) {
+        ImplCommonOps_FDRM.elementDiv(A, B);
     }
 
     /**
@@ -1590,22 +1567,13 @@ public class CommonOps_FDRM {
      * <br>
      * c<sub>ij</sub> = a<sub>ij</sub> / b<sub>ij</sub> <br>
      * </p>
-     * @param a The left matrix in the division operation. Not modified.
-     * @param b The right matrix in the division operation. Not modified.
-     * @param c Where the results of the operation are stored. Modified.
+     *
+     * @param A The left matrix in the division operation. Not modified.
+     * @param B The right matrix in the division operation. Not modified.
+     * @param output Where the results of the operation are stored. Modified.
      */
-    public static void elementDiv(FMatrixD1 a , FMatrixD1 b , FMatrixD1 c )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows
-                || a.numRows != c.numRows || a.numCols != c.numCols ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-
-        int length = a.getNumElements();
-
-        for( int i = 0; i < length; i++ ) {
-            c.set(i, a.get(i) / b.get(i));
-        }
+    public static <T extends FMatrixD1> T elementDiv( T A, T B, @Nullable T output ) {
+        return ImplCommonOps_FDRM.elementDiv(A, B, output);
     }
 
     /**
@@ -1619,15 +1587,7 @@ public class CommonOps_FDRM {
      * @return The sum of the elements.
      */
     public static float elementSum( FMatrixD1 mat ) {
-        float total = 0;
-
-        int size = mat.getNumElements();
-
-        for( int i = 0; i < size; i++ ) {
-            total += mat.get(i);
-        }
-
-        return total;
+        return ImplCommonOps_FDRM.elementSum(mat);
     }
 
     /**
@@ -1641,15 +1601,7 @@ public class CommonOps_FDRM {
      * @return The sum of the absolute value of each element.
      */
     public static float elementSumAbs( FMatrixD1 mat ) {
-        float total = 0;
-
-        int size = mat.getNumElements();
-
-        for( int i = 0; i < size; i++ ) {
-            total += Math.abs(mat.get(i));
-        }
-
-        return total;
+        return ImplCommonOps_FDRM.elementSumAbs(mat);
     }
 
     /**
@@ -1660,19 +1612,10 @@ public class CommonOps_FDRM {
      *
      * @param A left side
      * @param B right side
-     * @param C output (modified)
+     * @param output output (modified)
      */
-    public static void elementPower(FMatrixD1 A , FMatrixD1 B , FMatrixD1 C ) {
-
-        if( A.numRows != B.numRows || A.numRows != C.numRows ||
-                A.numCols != B.numCols || A.numCols != C.numCols ) {
-            throw new MatrixDimensionException("All matrices must be the same shape");
-        }
-
-        int size = A.getNumElements();
-        for( int i = 0; i < size; i++ ) {
-            C.data[i] = (float)Math.pow(A.data[i], B.data[i]);
-        }
+    public static <T extends FMatrixD1> T elementPower( T A, T B, @Nullable T output ) {
+        return ImplCommonOps_FDRM.elementPower(A, B, output);
     }
 
     /**
@@ -1683,18 +1626,10 @@ public class CommonOps_FDRM {
      *
      * @param a left scalar
      * @param B right side
-     * @param C output (modified)
+     * @param output output (modified)
      */
-    public static void elementPower(float a , FMatrixD1 B , FMatrixD1 C ) {
-
-        if( B.numRows != C.numRows || B.numCols != C.numCols ) {
-            throw new MatrixDimensionException("All matrices must be the same shape");
-        }
-
-        int size = B.getNumElements();
-        for( int i = 0; i < size; i++ ) {
-            C.data[i] = (float)Math.pow(a, B.data[i]);
-        }
+    public static <T extends FMatrixD1> T elementPower( float a, T B, @Nullable T output ) {
+        return ImplCommonOps_FDRM.elementPower(a, B, output);
     }
 
     /**
@@ -1705,18 +1640,10 @@ public class CommonOps_FDRM {
      *
      * @param A left side
      * @param b right scalar
-     * @param C output (modified)
+     * @param output output (modified)
      */
-    public static void elementPower(FMatrixD1 A , float b, FMatrixD1 C ) {
-
-        if( A.numRows != C.numRows || A.numCols != C.numCols ) {
-            throw new MatrixDimensionException("All matrices must be the same shape");
-        }
-
-        int size = A.getNumElements();
-        for( int i = 0; i < size; i++ ) {
-            C.data[i] = (float)Math.pow(A.data[i], b);
-        }
+    public static <T extends FMatrixD1> T elementPower( T A, float b, @Nullable T output ) {
+        return ImplCommonOps_FDRM.elementPower(A, b, output);
     }
 
     /**
@@ -1725,40 +1652,26 @@ public class CommonOps_FDRM {
      * c<sub>ij</sub> = (float)Math.log(a<sub>ij</sub>)
      * <p>
      *
-     * @param A input
-     * @param C output (modified)
+     * @param A (input) A matrix
+     * @param output (input/output) Storage for results. can be null. (modified)
+     * @return The results
      */
-    public static void elementLog(FMatrixD1 A , FMatrixD1 C ) {
-
-        if( A.numCols != C.numCols || A.numRows != C.numRows ) {
-            throw new MatrixDimensionException("All matrices must be the same shape");
-        }
-
-        int size = A.getNumElements();
-        for( int i = 0; i < size; i++ ) {
-            C.data[i] = (float)Math.log(A.data[i]);
-        }
+    public static <T extends FMatrixD1> T elementLog( T A, @Nullable T output ) {
+        return ImplCommonOps_FDRM.elementLog(A, output);
     }
 
     /**
      * <p>
      * Element-wise exp operation  <br>
-     * c<sub>ij</sub> = (float)Math.log(a<sub>ij</sub>)
+     * c<sub>ij</sub> = (float)Math.exp(a<sub>ij</sub>)
      * <p>
      *
-     * @param A input
-     * @param C output (modified)
+     * @param A (input) A matrix
+     * @param output (input/output) Storage for results. can be null. (modified)
+     * @return The results
      */
-    public static void elementExp(FMatrixD1 A , FMatrixD1 C ) {
-
-        if( A.numCols != C.numCols || A.numRows != C.numRows ) {
-            throw new MatrixDimensionException("All matrices must be the same shape");
-        }
-
-        int size = A.getNumElements();
-        for( int i = 0; i < size; i++ ) {
-            C.data[i] = (float)Math.exp(A.data[i]);
-        }
+    public static <T extends FMatrixD1> T elementExp( T A, @Nullable T output ) {
+        return ImplCommonOps_FDRM.elementExp(A, output);
     }
 
     /**
@@ -1767,8 +1680,8 @@ public class CommonOps_FDRM {
      * @param values array. Not modified.
      * @param A Matrix. Modified.
      */
-    public static void multRows(float[] values, FMatrixRMaj A) {
-        if( values.length < A.numRows ) {
+    public static void multRows( float[] values, FMatrixRMaj A ) {
+        if (values.length < A.numRows) {
             throw new IllegalArgumentException("Not enough elements in values.");
         }
 
@@ -1787,8 +1700,8 @@ public class CommonOps_FDRM {
      * @param values array. Not modified.
      * @param A Matrix. Modified.
      */
-    public static void divideRows(float[] values, FMatrixRMaj A) {
-        if( values.length < A.numRows ) {
+    public static void divideRows( float[] values, FMatrixRMaj A ) {
+        if (values.length < A.numRows) {
             throw new IllegalArgumentException("Not enough elements in values.");
         }
 
@@ -1807,8 +1720,8 @@ public class CommonOps_FDRM {
      * @param A Matrix. Modified.
      * @param values array. Not modified.
      */
-    public static void multCols(FMatrixRMaj A , float values[] ) {
-        if( values.length < A.numCols ) {
+    public static void multCols( FMatrixRMaj A, float[] values ) {
+        if (values.length < A.numCols) {
             throw new IllegalArgumentException("Not enough elements in values.");
         }
 
@@ -1826,8 +1739,8 @@ public class CommonOps_FDRM {
      * @param A Matrix. Modified.
      * @param values array. Not modified.
      */
-    public static void divideCols(FMatrixRMaj A , float values[] ) {
-        if( values.length < A.numCols ) {
+    public static void divideCols( FMatrixRMaj A, float[] values ) {
+        if (values.length < A.numCols) {
             throw new IllegalArgumentException("Not enough elements in values.");
         }
 
@@ -1849,14 +1762,13 @@ public class CommonOps_FDRM {
      * @param diagC Array of length indexC + B.numCols
      * @param offsetC First index in C
      */
-    public static void divideRowsCols( float []diagA , int offsetA ,
-                                       FMatrixRMaj B ,
-                                       float []diagC , int offsetC )
-    {
-        if( diagA.length-offsetA < B.numRows ) {
+    public static void divideRowsCols( float[] diagA, int offsetA,
+                                       FMatrixRMaj B,
+                                       float[] diagC, int offsetC ) {
+        if (diagA.length - offsetA < B.numRows) {
             throw new IllegalArgumentException("Not enough elements in diagA.");
         }
-        if( diagC.length-offsetC < B.numCols ) {
+        if (diagC.length - offsetC < B.numCols) {
             throw new IllegalArgumentException("Not enough elements in diagC.");
         }
 
@@ -1865,9 +1777,9 @@ public class CommonOps_FDRM {
 
         int index = 0;
         for (int row = 0; row < rows; row++) {
-            float va = diagA[offsetA+row];
+            float va = diagA[offsetA + row];
             for (int col = 0; col < cols; col++, index++) {
-                B.data[index] /= va*diagC[offsetC+col];
+                B.data[index] /= va*diagC[offsetC + col];
             }
         }
     }
@@ -1883,22 +1795,18 @@ public class CommonOps_FDRM {
      * @param output Optional storage for output. Reshaped into a column. Modified.
      * @return Vector containing the sum of each row in the input.
      */
-    public static FMatrixRMaj sumRows(FMatrixRMaj input , FMatrixRMaj output ) {
-        if( output == null ) {
-            output = new FMatrixRMaj(input.numRows,1);
-        } else {
-            output.reshape(input.numRows,1);
-        }
+    public static FMatrixRMaj sumRows( FMatrixRMaj input, @Nullable FMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numRows, 1);
 
-        for( int row = 0; row < input.numRows; row++ ) {
+        for (int row = 0; row < input.numRows; row++) {
             float total = 0;
 
-            int end = (row+1)*input.numCols;
-            for( int index = row*input.numCols; index < end; index++ ) {
+            int end = (row + 1)*input.numCols;
+            for (int index = row*input.numCols; index < end; index++) {
                 total += input.data[index];
             }
 
-            output.set(row,total);
+            output.set(row, total);
         }
         return output;
     }
@@ -1914,24 +1822,20 @@ public class CommonOps_FDRM {
      * @param output Optional storage for output.  Reshaped into a column. Modified.
      * @return Vector containing the sum of each row in the input.
      */
-    public static FMatrixRMaj minRows(FMatrixRMaj input , FMatrixRMaj output ) {
-        if( output == null ) {
-            output = new FMatrixRMaj(input.numRows,1);
-        } else {
-            output.reshape(input.numRows,1);
-        }
+    public static FMatrixRMaj minRows( FMatrixRMaj input, @Nullable FMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numRows, 1);
 
-        for( int row = 0; row < input.numRows; row++ ) {
+        for (int row = 0; row < input.numRows; row++) {
             float min = Float.MAX_VALUE;
 
-            int end = (row+1)*input.numCols;
-            for( int index = row*input.numCols; index < end; index++ ) {
+            int end = (row + 1)*input.numCols;
+            for (int index = row*input.numCols; index < end; index++) {
                 float v = input.data[index];
-                if( v < min )
+                if (v < min)
                     min = v;
             }
 
-            output.set(row,min);
+            output.set(row, min);
         }
         return output;
     }
@@ -1947,24 +1851,20 @@ public class CommonOps_FDRM {
      * @param output Optional storage for output.  Reshaped into a column. Modified.
      * @return Vector containing the sum of each row in the input.
      */
-    public static FMatrixRMaj maxRows(FMatrixRMaj input , FMatrixRMaj output ) {
-        if( output == null ) {
-            output = new FMatrixRMaj(input.numRows,1);
-        } else {
-            output.reshape(input.numRows,1);
-        }
+    public static FMatrixRMaj maxRows( FMatrixRMaj input, @Nullable FMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numRows, 1);
 
-        for( int row = 0; row < input.numRows; row++ ) {
+        for (int row = 0; row < input.numRows; row++) {
             float max = -Float.MAX_VALUE;
 
-            int end = (row+1)*input.numCols;
-            for( int index = row*input.numCols; index < end; index++ ) {
+            int end = (row + 1)*input.numCols;
+            for (int index = row*input.numCols; index < end; index++) {
                 float v = input.data[index];
-                if( v > max )
+                if (v > max)
                     max = v;
             }
 
-            output.set(row,max);
+            output.set(row, max);
         }
         return output;
     }
@@ -1980,19 +1880,15 @@ public class CommonOps_FDRM {
      * @param output Optional storage for output. Reshaped into a row vector. Modified.
      * @return Vector containing the sum of each column
      */
-    public static FMatrixRMaj sumCols(FMatrixRMaj input , FMatrixRMaj output ) {
-        if( output == null ) {
-            output = new FMatrixRMaj(1,input.numCols);
-        } else {
-            output.reshape(1,input.numCols);
-        }
+    public static FMatrixRMaj sumCols( FMatrixRMaj input, @Nullable FMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, 1, input.numCols);
 
-        for( int cols = 0; cols < input.numCols; cols++ ) {
+        for (int cols = 0; cols < input.numCols; cols++) {
             float total = 0;
 
             int index = cols;
             int end = index + input.numCols*input.numRows;
-            for( ; index < end; index += input.numCols ) {
+            for (; index < end; index += input.numCols) {
                 total += input.data[index];
             }
 
@@ -2012,20 +1908,17 @@ public class CommonOps_FDRM {
      * @param output Optional storage for output. Reshaped into a row vector. Modified.
      * @return Vector containing the minimum of each column
      */
-    public static FMatrixRMaj minCols(FMatrixRMaj input , FMatrixRMaj output ) {
-        if( output == null ) {
-            output = new FMatrixRMaj(1,input.numCols);
-        } else {
-            output.reshape(1,input.numCols);
-        }
-        for( int cols = 0; cols < input.numCols; cols++ ) {
+    public static FMatrixRMaj minCols( FMatrixRMaj input, @Nullable FMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, 1, input.numCols);
+
+        for (int cols = 0; cols < input.numCols; cols++) {
             float minimum = Float.MAX_VALUE;
 
             int index = cols;
             int end = index + input.numCols*input.numRows;
-            for( ; index < end; index += input.numCols ) {
+            for (; index < end; index += input.numCols) {
                 float v = input.data[index];
-                if( v < minimum )
+                if (v < minimum)
                     minimum = v;
             }
 
@@ -2045,20 +1938,17 @@ public class CommonOps_FDRM {
      * @param output Optional storage for output. Reshaped into a row vector. Modified.
      * @return Vector containing the maximum of each column
      */
-    public static FMatrixRMaj maxCols(FMatrixRMaj input , FMatrixRMaj output ) {
-        if( output == null ) {
-            output = new FMatrixRMaj(1,input.numCols);
-        } else {
-            output.reshape(1,input.numCols);
-        }
-        for( int cols = 0; cols < input.numCols; cols++ ) {
+    public static FMatrixRMaj maxCols( FMatrixRMaj input, @Nullable FMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, 1, input.numCols);
+
+        for (int cols = 0; cols < input.numCols; cols++) {
             float maximum = -Float.MAX_VALUE;
 
             int index = cols;
             int end = index + input.numCols*input.numRows;
-            for( ; index < end; index += input.numCols ) {
+            for (; index < end; index += input.numCols) {
                 float v = input.data[index];
-                if( v > maximum )
+                if (v > maximum)
                     maximum = v;
             }
 
@@ -2074,18 +1964,15 @@ public class CommonOps_FDRM {
      * a<sub>ij</sub> = a<sub>ij</sub> + b<sub>ij</sub> <br>
      * </p>
      *
-     * @param a A Matrix. Modified.
-     * @param b A Matrix. Not modified.
+     * @param a (input/output) A Matrix. Modified.
+     * @param b (input) A Matrix. Not modified.
      */
-    public static void addEquals(FMatrixD1 a , FMatrixD1 b )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
+    public static void addEquals( FMatrixD1 a, FMatrixD1 b ) {
+        UtilEjml.checkSameShape(a, b, true);
 
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
+        for (int i = 0; i < length; i++) {
             a.plus(i, b.get(i));
         }
     }
@@ -2093,24 +1980,21 @@ public class CommonOps_FDRM {
     /**
      * <p>Performs the following operation:<br>
      * <br>
-     * a = a +  &beta; * b  <br>
+     * a = a + &beta; * b  <br>
      * a<sub>ij</sub> = a<sub>ij</sub> + &beta; * b<sub>ij</sub>
      * </p>
      *
      * @param beta The number that matrix 'b' is multiplied by.
-     * @param a A Matrix. Modified.
-     * @param b A Matrix. Not modified.
+     * @param a (input/output) A Matrix. Modified.
+     * @param b (input) A Matrix. Not modified.
      */
-    public static void addEquals(FMatrixD1 a , float beta, FMatrixD1 b )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
+    public static void addEquals( FMatrixD1 a, float beta, FMatrixD1 b ) {
+        UtilEjml.checkSameShape(a, b, true);
 
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
-            a.plus(i, beta * b.get(i));
+        for (int i = 0; i < length; i++) {
+            a.plus(i, beta*b.get(i));
         }
     }
 
@@ -2127,21 +2011,20 @@ public class CommonOps_FDRM {
      *
      * @param a A Matrix. Not modified.
      * @param b A Matrix. Not modified.
-     * @param c A Matrix where the results are stored. Modified.
+     * @param output (output) A Matrix where the results are stored. Can be null. Modified.
+     * @return The results.
      */
-    public static void add(final FMatrixD1 a , final FMatrixD1 b , final FMatrixD1 c )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The matrices are not all the same dimension.");
-        }
-
-        c.reshape(a.numRows,a.numCols);
+    public static <T extends FMatrixD1> T add( final T a, final T b, @Nullable T output ) {
+        UtilEjml.checkSameShape(a, b, true);
+        output = UtilEjml.reshapeOrDeclare(output, a);
 
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
-            c.set(i, a.get(i) + b.get(i));
+        for (int i = 0; i < length; i++) {
+            output.set(i, a.get(i) + b.get(i));
         }
+
+        return output;
     }
 
     /**
@@ -2158,21 +2041,20 @@ public class CommonOps_FDRM {
      * @param a A Matrix. Not modified.
      * @param beta Scaling factor for matrix b.
      * @param b A Matrix. Not modified.
-     * @param c A Matrix where the results are stored. Modified.
+     * @param output (output) A Matrix where the results are stored. Can be null. Modified.
+     * @return The results.
      */
-    public static void add(FMatrixD1 a , float beta , FMatrixD1 b , FMatrixD1 c )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The matrices are not all the same dimension.");
-        }
-
-        c.reshape(a.numRows,a.numCols);
+    public static <T extends FMatrixD1> T add( T a, float beta, T b, @Nullable T output ) {
+        UtilEjml.checkSameShape(a, b, true);
+        output = UtilEjml.reshapeOrDeclare(output, a);
 
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
-            c.set(i, a.get(i) + beta * b.get(i));
+        for (int i = 0; i < length; i++) {
+            output.set(i, a.get(i) + beta*b.get(i));
         }
+
+        return output;
     }
 
     /**
@@ -2190,21 +2072,20 @@ public class CommonOps_FDRM {
      * @param a A Matrix. Not modified.
      * @param beta A scaling factor for matrix b.
      * @param b A Matrix. Not modified.
-     * @param c A Matrix where the results are stored. Modified.
+     * @param output (output) A Matrix where the results are stored. Can be null. Modified.
+     * @return The results.
      */
-    public static void add(float alpha , FMatrixD1 a , float beta , FMatrixD1 b , FMatrixD1 c )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The matrices are not all the same dimension.");
-        }
-
-        c.reshape(a.numRows,a.numCols);
+    public static <T extends FMatrixD1> T add( float alpha, T a, float beta, T b, @Nullable T output ) {
+        UtilEjml.checkSameShape(a, b, true);
+        output = UtilEjml.reshapeOrDeclare(output, a);
 
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
-            c.set(i, alpha * a.get(i) + beta * b.get(i));
+        for (int i = 0; i < length; i++) {
+            output.set(i, alpha*a.get(i) + beta*b.get(i));
         }
+
+        return output;
     }
 
     /**
@@ -2221,20 +2102,20 @@ public class CommonOps_FDRM {
      * @param alpha A scaling factor for matrix a.
      * @param a A Matrix. Not modified.
      * @param b A Matrix. Not modified.
-     * @param c A Matrix where the results are stored. Modified.
+     * @param output (output) A Matrix where the results are stored. Can be null. Modified.
+     * @return The results.
      */
-    public static void add(float alpha , FMatrixD1 a , FMatrixD1 b , FMatrixD1 c )
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The matrices are not all the same dimension.");
-        }
+    public static <T extends FMatrixD1> T add( float alpha, T a, T b, T output ) {
+        UtilEjml.checkSameShape(a, b, true);
+        output = UtilEjml.reshapeOrDeclare(output, a);
 
-        c.reshape(a.numRows,a.numCols);
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
-            c.set(i, alpha * a.get(i) + b.get(i));
+        for (int i = 0; i < length; i++) {
+            output.set(i, alpha*a.get(i) + b.get(i));
         }
+
+        return output;
     }
 
     /**
@@ -2247,10 +2128,10 @@ public class CommonOps_FDRM {
      * @param a A matrix.  Modified.
      * @param val The value that's added to each element.
      */
-    public static void add(FMatrixD1 a , float val ) {
+    public static void add( FMatrixD1 a, float val ) {
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
+        for (int i = 0; i < length; i++) {
             a.plus(i, val);
         }
     }
@@ -2263,17 +2144,20 @@ public class CommonOps_FDRM {
      * </p>
      *
      * @param a A matrix. Not modified.
-     * @param c A matrix. Modified.
      * @param val The value that's added to each element.
+     * @param output (output) Storage for results. Can be null. Modified.
+     * @return The resulting matrix
      */
-    public static void add(FMatrixD1 a , float val , FMatrixD1 c ) {
-        c.reshape(a.numRows,a.numCols);
+    public static <T extends FMatrixD1> T add( T a, float val, T output ) {
+        output = UtilEjml.reshapeOrDeclare(output, a);
 
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
-            c.data[i] = a.data[i] + val;
+        for (int i = 0; i < length; i++) {
+            output.data[i] = a.data[i] + val;
         }
+
+        return output;
     }
 
     /**
@@ -2285,16 +2169,19 @@ public class CommonOps_FDRM {
      *
      * @param a (input) A matrix. Not modified.
      * @param val (input) The value that's subtracted to each element.
-     * @param c (Output) A matrix. Modified.
+     * @param output (output) Storage for results. Can be null. Modified.
+     * @return The resulting matrix
      */
-    public static void subtract(FMatrixD1 a , float val , FMatrixD1 c ) {
-        c.reshape(a.numRows,a.numCols);
+    public static <T extends FMatrixD1> T subtract( T a, float val, @Nullable T output ) {
+        output = UtilEjml.reshapeOrDeclare(output, a);
 
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
-            c.data[i] = a.data[i] - val;
+        for (int i = 0; i < length; i++) {
+            output.data[i] = a.data[i] - val;
         }
+
+        return output;
     }
 
     /**
@@ -2306,16 +2193,19 @@ public class CommonOps_FDRM {
      *
      * @param val (input) The value that's subtracted to each element.
      * @param a (input) A matrix. Not modified.
-     * @param c (Output) A matrix. Modified.
+     * @param output (output) Storage for results. Can be null. Modified.
+     * @return The resulting matrix
      */
-    public static void subtract(float val , FMatrixD1 a , FMatrixD1 c ) {
-        c.reshape(a.numRows,a.numCols);
+    public static <T extends FMatrixD1> T subtract( float val, T a, @Nullable T output ) {
+        output = UtilEjml.reshapeOrDeclare(output, a);
 
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
-            c.data[i] = val - a.data[i];
+        for (int i = 0; i < length; i++) {
+            output.data[i] = val - a.data[i];
         }
+
+        return output;
     }
 
     /**
@@ -2325,18 +2215,14 @@ public class CommonOps_FDRM {
      * a<sub>ij</sub> = a<sub>ij</sub> - b<sub>ij</sub>
      * </p>
      *
-     * @param a A Matrix. Modified.
-     * @param b A Matrix. Not modified.
+     * @param a (input) A Matrix. Modified.
+     * @param b (input) A Matrix. Not modified.
      */
-    public static void subtractEquals(FMatrixD1 a, FMatrixD1 b)
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-
+    public static void subtractEquals( FMatrixD1 a, FMatrixD1 b ) {
+        UtilEjml.checkSameShape(a, b, true);
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
+        for (int i = 0; i < length; i++) {
             a.data[i] -= b.data[i];
         }
     }
@@ -2351,22 +2237,22 @@ public class CommonOps_FDRM {
      * Matrix C can be the same instance as Matrix A and/or B.
      * </p>
      *
-     * @param a A Matrix. Not modified.
-     * @param b A Matrix. Not modified.
-     * @param c A Matrix. Modified.
+     * @param a (input) A Matrix. Not modified.
+     * @param b (input) A Matrix. Not modified.
+     * @param output (output) A Matrix. Can be null. Modified.
+     * @return The resulting matrix
      */
-    public static void subtract(FMatrixD1 a, FMatrixD1 b, FMatrixD1 c)
-    {
-        if( a.numCols != b.numCols || a.numRows != b.numRows ) {
-            throw new MatrixDimensionException("The 'a' and 'b' matrices do not have compatible dimensions");
-        }
-        c.reshape(a.numRows,a.numCols);
+    public static <T extends FMatrixD1> T subtract( T a, T b, @Nullable T output ) {
+        UtilEjml.checkSameShape(a, b, true);
+        output = UtilEjml.reshapeOrDeclare(output, a);
 
         final int length = a.getNumElements();
 
-        for( int i = 0; i < length; i++ ) {
-            c.data[i] = a.data[i] - b.data[i];
+        for (int i = 0; i < length; i++) {
+            output.data[i] = a.data[i] - b.data[i];
         }
+
+        return output;
     }
 
     /**
@@ -2379,13 +2265,12 @@ public class CommonOps_FDRM {
      * @param a The matrix that is to be scaled.  Modified.
      * @param alpha the amount each element is multiplied by.
      */
-    public static void scale( float alpha , FMatrixD1 a )
-    {
+    public static void scale( float alpha, FMatrixD1 a ) {
         // on very small matrices (2 by 2) the call to getNumElements() can slow it down
         // slightly compared to other libraries since it involves an extra multiplication.
         final int size = a.getNumElements();
 
-        for( int i = 0; i < size; i++ ) {
+        for (int i = 0; i < size; i++) {
             a.data[i] *= alpha;
         }
     }
@@ -2401,13 +2286,12 @@ public class CommonOps_FDRM {
      * @param a The matrix that is to be scaled.  Not modified.
      * @param b Where the scaled matrix is stored. Modified.
      */
-    public static void scale(float alpha , FMatrixD1 a , FMatrixD1 b)
-    {
-        b.reshape(a.numRows,a.numCols);
+    public static void scale( float alpha, FMatrixD1 a, FMatrixD1 b ) {
+        b.reshape(a.numRows, a.numCols);
 
         final int size = a.getNumElements();
 
-        for( int i = 0; i < size; i++ ) {
+        for (int i = 0; i < size; i++) {
             b.data[i] = a.data[i]*alpha;
         }
     }
@@ -2419,7 +2303,7 @@ public class CommonOps_FDRM {
      * @param A matrix
      * @param row which row in A
      */
-    public static void scaleRow( float alpha , FMatrixRMaj A , int row ) {
+    public static void scaleRow( float alpha, FMatrixRMaj A, int row ) {
         int idx = row*A.numCols;
         for (int col = 0; col < A.numCols; col++) {
             A.data[idx++] *= alpha;
@@ -2433,7 +2317,7 @@ public class CommonOps_FDRM {
      * @param A matrix
      * @param col which row in A
      */
-    public static void scaleCol( float alpha , FMatrixRMaj A , int col ) {
+    public static void scaleCol( float alpha, FMatrixRMaj A, int col ) {
         int idx = col;
         for (int row = 0; row < A.numRows; row++, idx += A.numCols) {
             A.data[idx] *= alpha;
@@ -2447,14 +2331,13 @@ public class CommonOps_FDRM {
      * a<sub>ij</sub> = &alpha;/a<sub>ij</sub>
      * </p>
      *
-     * @param a The matrix whose elements are divide the scalar.  Modified.
+     * @param a (input/output) The matrix whose elements are divide the scalar.  Modified.
      * @param alpha top value in division
      */
-    public static void divide( float alpha , FMatrixD1 a )
-    {
+    public static void divide( float alpha, FMatrixD1 a ) {
         final int size = a.getNumElements();
 
-        for( int i = 0; i < size; i++ ) {
+        for (int i = 0; i < size; i++) {
             a.data[i] = alpha/a.data[i];
         }
     }
@@ -2466,14 +2349,13 @@ public class CommonOps_FDRM {
      * a<sub>ij</sub> = a<sub>ij</sub>/&alpha;
      * </p>
      *
-     * @param a The matrix whose elements are to be divided.  Modified.
+     * @param a (input/output) The matrix whose elements are to be divided.  Modified.
      * @param alpha the amount each element is divided by.
      */
-    public static void divide(FMatrixD1 a , float alpha)
-    {
+    public static void divide( FMatrixD1 a, float alpha ) {
         final int size = a.getNumElements();
 
-        for( int i = 0; i < size; i++ ) {
+        for (int i = 0; i < size; i++) {
             a.data[i] /= alpha;
         }
     }
@@ -2486,18 +2368,20 @@ public class CommonOps_FDRM {
      * </p>
      *
      * @param alpha The numerator.
-     * @param a The matrix whose elements are the divisor.  Not modified.
-     * @param b Where the results are stored. Modified.
+     * @param input The matrix whose elements are the divisor.  Not modified.
+     * @param output Where the results are stored. Modified. Can be null.
+     * @return The resulting matrix
      */
-    public static void divide(float alpha , FMatrixD1 a , FMatrixD1 b)
-    {
-        b.reshape(a.numRows,a.numCols);
+    public static <T extends FMatrixD1> T divide( float alpha, T input, T output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input);
 
-        final int size = a.getNumElements();
+        final int size = input.getNumElements();
 
-        for( int i = 0; i < size; i++ ) {
-            b.data[i] = alpha/a.data[i];
+        for (int i = 0; i < size; i++) {
+            output.data[i] = alpha/input.data[i];
         }
+
+        return output;
     }
 
     /**
@@ -2507,19 +2391,21 @@ public class CommonOps_FDRM {
      * b<sub>ij</sub> = a<sub>ij</sub> /&alpha;
      * </p>
      *
-     * @param a The matrix whose elements are to be divided.  Not modified.
+     * @param input The matrix whose elements are to be divided.  Not modified.
      * @param alpha the amount each element is divided by.
-     * @param b Where the results are stored. Modified.
+     * @param output Where the results are stored. Modified. Can be null.
+     * @return The resulting matrix
      */
-    public static void divide(FMatrixD1 a , float alpha  , FMatrixD1 b)
-    {
-        b.reshape(a.numRows,a.numCols);
+    public static <T extends FMatrixD1> T divide( T input, float alpha, @Nullable T output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input);
 
-        final int size = a.getNumElements();
+        final int size = input.getNumElements();
 
-        for( int i = 0; i < size; i++ ) {
-            b.data[i] = a.data[i]/alpha;
+        for (int i = 0; i < size; i++) {
+            output.data[i] = input.data[i]/alpha;
         }
+
+        return output;
     }
 
     /**
@@ -2531,11 +2417,10 @@ public class CommonOps_FDRM {
      *
      * @param a A matrix. Modified.
      */
-    public static void changeSign( FMatrixD1 a )
-    {
+    public static void changeSign( FMatrixD1 a ) {
         final int size = a.getNumElements();
 
-        for( int i = 0; i < size; i++ ) {
+        for (int i = 0; i < size; i++) {
             a.data[i] = -a.data[i];
         }
     }
@@ -2549,17 +2434,12 @@ public class CommonOps_FDRM {
      *
      * @param input A matrix. Modified.
      */
-    public static <T extends FMatrixD1> T changeSign(T input ,   T output)
-    {
-        if( output == null ) {
-            output = input.createLike();
-        } else {
-            output.reshape(input.numRows, input.numCols);
-        }
+    public static <T extends FMatrixD1> T changeSign( T input, @Nullable T output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input);
 
         final int size = input.getNumElements();
 
-        for( int i = 0; i < size; i++ ) {
+        for (int i = 0; i < size; i++) {
             output.data[i] = -input.data[i];
         }
 
@@ -2576,8 +2456,7 @@ public class CommonOps_FDRM {
      * @param a A matrix whose elements are about to be set. Modified.
      * @param value The value each element will have.
      */
-    public static void fill(FMatrixD1 a, float value)
-    {
+    public static void fill( FMatrixD1 a, float value ) {
         Arrays.fill(a.data, 0, a.getNumElements(), value);
     }
 
@@ -2597,25 +2476,21 @@ public class CommonOps_FDRM {
      * [1] Page 19 in, Otter Bretscherm "Linear Algebra with Applications" Prentice-Hall Inc, 1997
      * </p>
      *
-     * @see RrefGaussJordanRowPivot_FDRM
-     *
      * @param A Input matrix.  Unmodified.
      * @param numUnknowns Number of unknowns/columns that are reduced. Set to -1 to default to
-     *                       Math.min(A.numRows,A.numCols), which works for most systems.
+     * Math.min(A.numRows,A.numCols), which works for most systems.
      * @param reduced Storage for reduced echelon matrix. If null then a new matrix is returned. Modified.
      * @return Reduced echelon form of A
+     * @see RrefGaussJordanRowPivot_FDRM
      */
-    public static FMatrixRMaj rref(FMatrixRMaj A , int numUnknowns, FMatrixRMaj reduced ) {
-        if( reduced == null ) {
-            reduced = new FMatrixRMaj(A.numRows,A.numCols);
-        }
-        reduced.reshape(A.numRows,A.numCols);
+    public static FMatrixRMaj rref( FMatrixRMaj A, int numUnknowns, @Nullable FMatrixRMaj reduced ) {
+        reduced = UtilEjml.reshapeOrDeclare(reduced, A);
 
-        if( numUnknowns <= 0 )
-            numUnknowns = Math.min(A.numCols,A.numRows);
+        if (numUnknowns <= 0)
+            numUnknowns = Math.min(A.numCols, A.numRows);
 
         ReducedRowEchelonForm_F32<FMatrixRMaj> alg = new RrefGaussJordanRowPivot_FDRM();
-        alg.setTolerance(elementMaxAbs(A)* UtilEjml.F_EPS*Math.max(A.numRows,A.numCols));
+        alg.setTolerance(elementMaxAbs(A)*UtilEjml.F_EPS*Math.max(A.numRows, A.numCols));
 
         reduced.set(A);
         alg.reduce(reduced, numUnknowns);
@@ -2631,13 +2506,8 @@ public class CommonOps_FDRM {
      * @param output (Optional) Storage for results.  Can be null. Is reshaped.
      * @return Boolean matrix with results
      */
-    public static BMatrixRMaj elementLessThan(FMatrixRMaj A , float value , BMatrixRMaj output )
-    {
-        if( output == null ) {
-            output = new BMatrixRMaj(A.numRows,A.numCols);
-        }
-
-        output.reshape(A.numRows, A.numCols);
+    public static BMatrixRMaj elementLessThan( FMatrixRMaj A, float value, BMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, A.numRows, A.numCols);
 
         int N = A.getNumElements();
 
@@ -2656,13 +2526,8 @@ public class CommonOps_FDRM {
      * @param output (Optional) Storage for results.  Can be null. Is reshaped.
      * @return Boolean matrix with results
      */
-    public static BMatrixRMaj elementLessThanOrEqual(FMatrixRMaj A , float value , BMatrixRMaj output )
-    {
-        if( output == null ) {
-            output = new BMatrixRMaj(A.numRows,A.numCols);
-        }
-
-        output.reshape(A.numRows, A.numCols);
+    public static BMatrixRMaj elementLessThanOrEqual( FMatrixRMaj A, float value, BMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, A.numRows, A.numCols);
 
         int N = A.getNumElements();
 
@@ -2681,13 +2546,8 @@ public class CommonOps_FDRM {
      * @param output (Optional) Storage for results.  Can be null. Is reshaped.
      * @return Boolean matrix with results
      */
-    public static BMatrixRMaj elementMoreThan(FMatrixRMaj A , float value , BMatrixRMaj output )
-    {
-        if( output == null ) {
-            output = new BMatrixRMaj(A.numRows,A.numCols);
-        }
-
-        output.reshape(A.numRows, A.numCols);
+    public static BMatrixRMaj elementMoreThan( FMatrixRMaj A, float value, BMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, A.numRows, A.numCols);
 
         int N = A.getNumElements();
 
@@ -2706,13 +2566,8 @@ public class CommonOps_FDRM {
      * @param output (Optional) Storage for results.  Can be null. Is reshaped.
      * @return Boolean matrix with results
      */
-    public static BMatrixRMaj elementMoreThanOrEqual(FMatrixRMaj A , float value , BMatrixRMaj output )
-    {
-        if( output == null ) {
-            output = new BMatrixRMaj(A.numRows,A.numCols);
-        }
-
-        output.reshape(A.numRows, A.numCols);
+    public static BMatrixRMaj elementMoreThanOrEqual( FMatrixRMaj A, float value, BMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, A.numRows, A.numCols);
 
         int N = A.getNumElements();
 
@@ -2731,13 +2586,8 @@ public class CommonOps_FDRM {
      * @param output (Optional) Storage for results.  Can be null. Is reshaped.
      * @return Boolean matrix with results
      */
-    public static BMatrixRMaj elementLessThan(FMatrixRMaj A , FMatrixRMaj B , BMatrixRMaj output )
-    {
-        if( output == null ) {
-            output = new BMatrixRMaj(A.numRows,A.numCols);
-        }
-
-        output.reshape(A.numRows, A.numCols);
+    public static BMatrixRMaj elementLessThan( FMatrixRMaj A, FMatrixRMaj B, BMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, A.numRows, A.numCols);
 
         int N = A.getNumElements();
 
@@ -2756,13 +2606,8 @@ public class CommonOps_FDRM {
      * @param output (Optional) Storage for results.  Can be null. Is reshaped.
      * @return Boolean matrix with results
      */
-    public static BMatrixRMaj elementLessThanOrEqual(FMatrixRMaj A , FMatrixRMaj B , BMatrixRMaj output )
-    {
-        if( output == null ) {
-            output = new BMatrixRMaj(A.numRows,A.numCols);
-        }
-
-        output.reshape(A.numRows, A.numCols);
+    public static BMatrixRMaj elementLessThanOrEqual( FMatrixRMaj A, FMatrixRMaj B, BMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, A.numRows, A.numCols);
 
         int N = A.getNumElements();
 
@@ -2781,19 +2626,19 @@ public class CommonOps_FDRM {
      * @param output Storage for output row vector. Can be null.  Will be reshaped.
      * @return Row vector with marked elements
      */
-    public static FMatrixRMaj elements(FMatrixRMaj A , BMatrixRMaj marked , FMatrixRMaj output ) {
-        if( A.numRows != marked.numRows || A.numCols != marked.numCols )
-            throw new MatrixDimensionException("Input matrices must have the same shape");
-        if( output == null )
-            output = new FMatrixRMaj(1,1);
+    public static FMatrixRMaj elements( FMatrixRMaj A, BMatrixRMaj marked, @Nullable FMatrixRMaj output ) {
+        checkSameShape(A, marked, false);
 
-        output.reshape(countTrue(marked),1);
+        if (output == null)
+            output = new FMatrixRMaj(1, 1);
+
+        output.reshape(countTrue(marked), 1);
 
         int N = A.getNumElements();
 
         int index = 0;
         for (int i = 0; i < N; i++) {
-            if( marked.data[i] ) {
+            if (marked.data[i]) {
                 output.data[index++] = A.data[i];
             }
         }
@@ -2803,16 +2648,17 @@ public class CommonOps_FDRM {
 
     /**
      * Counts the number of elements in A which are true
+     *
      * @param A input matrix
      * @return number of true elements
      */
-    public static int countTrue(BMatrixRMaj A) {
+    public static int countTrue( BMatrixRMaj A ) {
         int total = 0;
 
         int N = A.getNumElements();
 
         for (int i = 0; i < N; i++) {
-            if( A.data[i] )
+            if (A.data[i])
                 total++;
         }
 
@@ -2822,15 +2668,17 @@ public class CommonOps_FDRM {
     /**
      * output = [a , b]
      */
-    public static void concatColumns(FMatrixRMaj a , FMatrixRMaj b , FMatrixRMaj output ) {
-        int rows = Math.max(a.numRows , b.numRows);
+    public static FMatrixRMaj concatColumns( FMatrixRMaj a, FMatrixRMaj b, @Nullable FMatrixRMaj output ) {
+        int rows = Math.max(a.numRows, b.numRows);
         int cols = a.numCols + b.numCols;
 
-        output.reshape(rows,cols);
+        output = reshapeOrDeclare(output,rows,cols);
         output.zero();
 
-        insert(a,output,0,0);
-        insert(b,output,0,a.numCols);
+        insert(a, output, 0, 0);
+        insert(b, output, 0, a.numCols);
+
+        return output;
     }
 
     /**
@@ -2842,19 +2690,19 @@ public class CommonOps_FDRM {
      * @param m Set of matrices
      * @return Resulting matrix
      */
-    public static FMatrixRMaj concatColumnsMulti(FMatrixRMaj ...m ) {
+    public static FMatrixRMaj concatColumnsMulti( FMatrixRMaj... m ) {
         int rows = 0;
         int cols = 0;
 
         for (int i = 0; i < m.length; i++) {
-            rows = Math.max(rows,m[i].numRows);
+            rows = Math.max(rows, m[i].numRows);
             cols += m[i].numCols;
         }
-        FMatrixRMaj R = new FMatrixRMaj(rows,cols);
+        FMatrixRMaj R = new FMatrixRMaj(rows, cols);
 
         int col = 0;
         for (int i = 0; i < m.length; i++) {
-            insert(m[i],R,0,col);
+            insert(m[i], R, 0, col);
             col += m[i].numCols;
         }
 
@@ -2864,15 +2712,15 @@ public class CommonOps_FDRM {
     /**
      * output = [a ; b]
      */
-    public static void concatRows(FMatrixRMaj a , FMatrixRMaj b , FMatrixRMaj output ) {
+    public static void concatRows( FMatrixRMaj a, FMatrixRMaj b, FMatrixRMaj output ) {
         int rows = a.numRows + b.numRows;
-        int cols = Math.max(a.numCols , b.numCols);
+        int cols = Math.max(a.numCols, b.numCols);
 
-        output.reshape(rows,cols);
+        output.reshape(rows, cols);
         output.zero();
 
-        insert(a,output,0,0);
-        insert(b,output,a.numRows,0);
+        insert(a, output, 0, 0);
+        insert(b, output, a.numRows, 0);
     }
 
     /**
@@ -2884,19 +2732,19 @@ public class CommonOps_FDRM {
      * @param m Set of matrices
      * @return Resulting matrix
      */
-    public static FMatrixRMaj concatRowsMulti(FMatrixRMaj ...m ) {
+    public static FMatrixRMaj concatRowsMulti( FMatrixRMaj... m ) {
         int rows = 0;
         int cols = 0;
 
         for (int i = 0; i < m.length; i++) {
             rows += m[i].numRows;
-            cols = Math.max(cols,m[i].numCols);
+            cols = Math.max(cols, m[i].numCols);
         }
-        FMatrixRMaj R = new FMatrixRMaj(rows,cols);
+        FMatrixRMaj R = new FMatrixRMaj(rows, cols);
 
         int row = 0;
         for (int i = 0; i < m.length; i++) {
-            insert(m[i],R,row,0);
+            insert(m[i], R, row, 0);
             row += m[i].numRows;
         }
 
@@ -2911,17 +2759,15 @@ public class CommonOps_FDRM {
      * @param input (Input) Matrix which is to be permuted
      * @param output (Output) Matrix which has the permutation stored in it.  Is reshaped.
      */
-    public static FMatrixRMaj permuteRowInv( int pinv[] , FMatrixRMaj input , FMatrixRMaj output ) {
-        if( input.numRows > pinv.length )
+    public static FMatrixRMaj permuteRowInv( int[] pinv, FMatrixRMaj input, FMatrixRMaj output ) {
+        if (input.numRows > pinv.length)
             throw new MatrixDimensionException("permutation vector must have at least as many elements as input has rows");
 
-        if( output == null )
-            output = new FMatrixRMaj(1,1);
-        output.reshape(input.numRows,input.numCols);
+        output = UtilEjml.reshapeOrDeclare(output, input.numRows, input.numCols);
 
         int m = input.numCols;
         for (int row = 0; row < input.numRows; row++) {
-            System.arraycopy(input.data,row*m,output.data,pinv[row]*m,m);
+            System.arraycopy(input.data, row*m, output.data, pinv[row]*m, m);
         }
         return output;
     }
@@ -2936,12 +2782,12 @@ public class CommonOps_FDRM {
      * @param a A matrix. Not modified.
      * @param c A matrix. Modified.
      */
-    public static void abs(FMatrixD1 a , FMatrixD1 c ) {
-        c.reshape(a.numRows,a.numCols);
+    public static void abs( FMatrixD1 a, FMatrixD1 c ) {
+        c.reshape(a.numRows, a.numCols);
 
         final int length = a.getNumElements();
 
-        for ( int i = 0; i < length; i++ ) {
+        for (int i = 0; i < length; i++) {
             c.data[i] = Math.abs(a.data[i]);
         }
     }
@@ -2955,10 +2801,10 @@ public class CommonOps_FDRM {
      *
      * @param a A matrix. Modified.
      */
-    public static void abs(FMatrixD1 a ) {
+    public static void abs( FMatrixD1 a ) {
         final int length = a.getNumElements();
 
-        for ( int i = 0; i < length; i++ ) {
+        for (int i = 0; i < length; i++) {
             a.data[i] = Math.abs(a.data[i]);
         }
     }
@@ -2969,16 +2815,15 @@ public class CommonOps_FDRM {
      *
      * @param A (Input) Lower triangular matrix (Output) symmetric matrix
      */
-    public static void symmLowerToFull( FMatrixRMaj A )
-    {
-        if( A.numRows != A.numCols )
+    public static void symmLowerToFull( FMatrixRMaj A ) {
+        if (A.numRows != A.numCols)
             throw new MatrixDimensionException("Must be a square matrix");
 
         final int cols = A.numCols;
 
         for (int row = 0; row < A.numRows; row++) {
-            for (int col = row+1; col < cols; col++) {
-                A.data[row*cols+col] = A.data[col*cols+row];
+            for (int col = row + 1; col < cols; col++) {
+                A.data[row*cols + col] = A.data[col*cols + row];
             }
         }
     }
@@ -2989,17 +2834,44 @@ public class CommonOps_FDRM {
      *
      * @param A (Input) Lower triangular matrix (Output) symmetric matrix
      */
-    public static void symmUpperToFull( FMatrixRMaj A )
-    {
-        if( A.numRows != A.numCols )
+    public static void symmUpperToFull( FMatrixRMaj A ) {
+        if (A.numRows != A.numCols)
             throw new MatrixDimensionException("Must be a square matrix");
 
         final int cols = A.numCols;
 
         for (int row = 0; row < A.numRows; row++) {
             for (int col = 0; col <= row; col++) {
-                A.data[row*cols+col] = A.data[col*cols+row];
+                A.data[row*cols + col] = A.data[col*cols + row];
             }
         }
+    }
+
+    /**
+     * This applies a given unary function on every value stored in the matrix
+     *
+     * <pre>
+     * output[i,j] = func(input[i,j])
+     * </pre>
+     *
+     * A and B can be the same instance.
+     *
+     * @param input (Input) input matrix. Not modified
+     * @param func Unary function accepting a float
+     * @param output (Output) Matrix. Can be same instance as A. Modified.
+     * @return The output matrix
+     */
+    public static FMatrixRMaj apply( FMatrixRMaj input, FOperatorUnary func, @Nullable FMatrixRMaj output ) {
+        output = UtilEjml.reshapeOrDeclare(output, input.numRows, input.numCols);
+
+        for (int i = 0; i < input.data.length; i++) {
+            output.data[i] = func.apply(input.data[i]);
+        }
+
+        return output;
+    }
+
+    public static FMatrixRMaj apply( FMatrixRMaj input, FOperatorUnary func ) {
+        return apply(input, func, input);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2019, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.sparse.csc.linsol.chol;
 
+import javax.annotation.Generated;
 import org.ejml.data.FGrowArray;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.data.FMatrixSparseCSC;
@@ -29,6 +30,7 @@ import org.ejml.sparse.csc.CommonOps_FSCC;
 import org.ejml.sparse.csc.decomposition.chol.CholeskyUpLooking_FSCC;
 import org.ejml.sparse.csc.misc.ApplyFillReductionPermutation_FSCC;
 import org.ejml.sparse.csc.misc.TriangularSolver_FSCC;
+import org.jetbrains.annotations.Nullable;
 
 import static org.ejml.UtilEjml.adjust;
 
@@ -37,7 +39,8 @@ import static org.ejml.UtilEjml.adjust;
  *
  * @author Peter Abeles
  */
-public class LinearSolverCholesky_FSCC implements LinearSolverSparse<FMatrixSparseCSC,FMatrixRMaj> {
+@Generated("org.ejml.sparse.csc.linsol.chol.LinearSolverCholesky_DSCC")
+public class LinearSolverCholesky_FSCC implements LinearSolverSparse<FMatrixSparseCSC, FMatrixRMaj> {
 
     CholeskyUpLooking_FSCC cholesky;
 
@@ -47,15 +50,19 @@ public class LinearSolverCholesky_FSCC implements LinearSolverSparse<FMatrixSpar
     FGrowArray gx = new FGrowArray();
     IGrowArray gw = new IGrowArray();
 
-    FMatrixSparseCSC tmp = new FMatrixSparseCSC(1,1,1);
+    FMatrixSparseCSC tmp = new FMatrixSparseCSC(1, 1, 1);
 
-    public LinearSolverCholesky_FSCC(CholeskyUpLooking_FSCC cholesky , ComputePermutation<FMatrixSparseCSC> fillReduce) {
+    // Number of rows in A
+    int AnumCols;
+
+    public LinearSolverCholesky_FSCC( CholeskyUpLooking_FSCC cholesky, @Nullable ComputePermutation<FMatrixSparseCSC> fillReduce ) {
         this.cholesky = cholesky;
-        this.reduce = new ApplyFillReductionPermutation_FSCC(fillReduce,true);
+        this.reduce = new ApplyFillReductionPermutation_FSCC(fillReduce, true);
     }
 
     @Override
-    public boolean setA(FMatrixSparseCSC A) {
+    public boolean setA( FMatrixSparseCSC A ) {
+        this.AnumCols = A.numCols;
         FMatrixSparseCSC C = reduce.apply(A);
         return cholesky.decompose(C);
     }
@@ -66,16 +73,18 @@ public class LinearSolverCholesky_FSCC implements LinearSolverSparse<FMatrixSpar
     }
 
     @Override
-    public void solveSparse(FMatrixSparseCSC B, FMatrixSparseCSC X) {
+    public void solveSparse( FMatrixSparseCSC B, FMatrixSparseCSC X ) {
+        X.reshape(AnumCols, B.numCols, X.numRows);
+
         IGrowArray gw1 = cholesky.getGw();
 
         FMatrixSparseCSC L = cholesky.getL();
 
-        tmp.reshape(L.numRows,B.numCols,1);
+        tmp.reshape(L.numRows, B.numCols, 1);
         int[] Pinv = reduce.getArrayPinv();
 
-        TriangularSolver_FSCC.solve(L,true,B,tmp,Pinv,gx,gw,gw1);
-        TriangularSolver_FSCC.solveTran(L,true,tmp,X,null,gx,gw,gw1);
+        TriangularSolver_FSCC.solve(L, true, B, tmp, Pinv, gx, gw, gw1);
+        TriangularSolver_FSCC.solveTran(L, true, tmp, X, null, gx, gw, gw1);
     }
 
     @Override
@@ -89,22 +98,23 @@ public class LinearSolverCholesky_FSCC implements LinearSolverSparse<FMatrixSpar
     }
 
     @Override
-    public void solve(FMatrixRMaj B, FMatrixRMaj X) {
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
+        X.reshape(AnumCols, B.numCols);
 
         FMatrixSparseCSC L = cholesky.getL();
 
         int N = L.numRows;
 
-        float[] b = adjust(gb,N);
-        float[] x = adjust(gx,N);
+        float[] b = adjust(gb, N);
+        float[] x = adjust(gx, N);
 
         int[] Pinv = reduce.getArrayPinv();
 
         for (int col = 0; col < B.numCols; col++) {
             int index = col;
-            for( int i = 0; i < N; i++ , index += B.numCols ) b[i] = B.data[index];
+            for (int i = 0; i < N; i++, index += B.numCols) b[i] = B.data[index];
 
-            if( Pinv != null ) {
+            if (Pinv != null) {
                 CommonOps_FSCC.permuteInv(Pinv, b, x, N);
                 TriangularSolver_FSCC.solveL(L, x);
                 TriangularSolver_FSCC.solveTranL(L, x);
@@ -115,7 +125,7 @@ public class LinearSolverCholesky_FSCC implements LinearSolverSparse<FMatrixSpar
             }
 
             index = col;
-            for( int i = 0; i < N; i++ , index += X.numCols ) X.data[index] = b[i];
+            for (int i = 0; i < N; i++, index += X.numCols) X.data[index] = b[i];
         }
     }
 

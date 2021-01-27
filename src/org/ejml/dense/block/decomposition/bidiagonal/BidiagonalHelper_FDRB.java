@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,38 +18,34 @@
 
 package org.ejml.dense.block.decomposition.bidiagonal;
 
+import javax.annotation.Generated;
 import org.ejml.data.FSubmatrixD1;
 
 import static org.ejml.dense.block.decomposition.qr.BlockHouseHolder_FDRB.*;
 
-
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.block.decomposition.bidiagonal.BidiagonalHelper_DDRB")
 public class BidiagonalHelper_FDRB {
 
     /**
      * Performs a standard bidiagonal decomposition just on the outer blocks of the provided matrix
-     *
-     * @param blockLength
-     * @param A
-     * @param gammasU
      */
 
-    public static boolean bidiagOuterBlocks( final int blockLength ,
-                                             final FSubmatrixD1 A ,
-                                             final float gammasU[],
-                                             final float gammasV[])
-    {
+    public static boolean bidiagOuterBlocks( final int blockLength,
+                                             final FSubmatrixD1 A,
+                                             final float[] gammasU,
+                                             final float[] gammasV ) {
 //        System.out.println("---------- Orig");
 //        A.original.print();
 
-        int width = Math.min(blockLength,A.col1-A.col0);
-        int height = Math.min(blockLength,A.row1-A.row0);
+        int width = Math.min(blockLength, A.col1 - A.col0);
+        int height = Math.min(blockLength, A.row1 - A.row0);
 
-        int min = Math.min(width,height);
+        int min = Math.min(width, height);
 
-        for( int i = 0; i < min; i++ ) {
+        for (int i = 0; i < min; i++) {
             //--- Apply reflector to the column
 
             // compute the householder vector
@@ -57,20 +53,20 @@ public class BidiagonalHelper_FDRB {
                 return false;
 
             // apply to rest of the columns in the column block
-            rank1UpdateMultR_Col(blockLength,A,i,gammasU[A.col0+i]);
+            rank1UpdateMultR_Col(blockLength, A, i, gammasU[A.col0 + i]);
 
             // apply to the top row block
-            rank1UpdateMultR_TopRow(blockLength,A,i,gammasU[A.col0+i]);
+            rank1UpdateMultR_TopRow(blockLength, A, i, gammasU[A.col0 + i]);
 
             System.out.println("After column stuff");
             A.original.print();
 
             //-- Apply reflector to the row
-            if(!computeHouseHolderRow(blockLength,A,gammasV,i))
+            if (!computeHouseHolderRow(blockLength, A, gammasV, i))
                 return false;
-            
+
             // apply to rest of the rows in the row block
-            rank1UpdateMultL_Row(blockLength,A,i,i+1,gammasV[A.row0+i]);
+            rank1UpdateMultL_Row(blockLength, A, i, i + 1, gammasV[A.row0 + i]);
 
             System.out.println("After update row");
             A.original.print();

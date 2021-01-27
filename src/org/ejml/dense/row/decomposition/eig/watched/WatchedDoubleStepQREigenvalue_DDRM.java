@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -22,67 +22,71 @@ import org.ejml.data.Complex_F64;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.decomposition.eig.EigenvalueExtractor_DDRM;
 
-
 /**
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
 public class WatchedDoubleStepQREigenvalue_DDRM implements EigenvalueExtractor_DDRM {
 
     WatchedDoubleStepQREigen_DDRM implicitQR;
 
-    int splits[];
+    int[] splits;
     int numSplits;
 
     int x1;
     int x2;
 
     public WatchedDoubleStepQREigenvalue_DDRM() {
-        implicitQR = new WatchedDoubleStepQREigen_DDRM();
+        this(new WatchedDoubleStepQREigen_DDRM());
+    }
+
+    public WatchedDoubleStepQREigenvalue_DDRM( WatchedDoubleStepQREigen_DDRM implicitQR ) {
+        this.implicitQR = implicitQR;
     }
 
     public void setup( DMatrixRMaj A ) {
         implicitQR.setup(A);
         implicitQR.setQ(null);
 
-        splits = new int[ A.numRows ];
+        splits = new int[A.numRows];
         numSplits = 0;
     }
 
     @Override
-    public boolean process(DMatrixRMaj origA) {
+    public boolean process( DMatrixRMaj origA ) {
         setup(origA);
 
         x1 = 0;
-        x2 = origA.numRows-1;
+        x2 = origA.numRows - 1;
 
-        while( implicitQR.numEigen < origA.numRows ) {
-            if( implicitQR.steps > implicitQR.maxIterations )
+        while (implicitQR.numEigen < origA.numRows) {
+            if (implicitQR.steps > implicitQR.maxIterations)
                 return false;
 
             implicitQR.incrementSteps();
 
-            if( x2 < x1 ) {
+            if (x2 < x1) {
                 moveToNextSplit();
-            } else if( x2-x1 == 0 ) {
+            } else if (x2 - x1 == 0) {
 //                implicitQR.A.print();
                 implicitQR.addEigenAt(x1);
                 x2--;
-            } else if( x2-x1 == 1 ) {
+            } else if (x2 - x1 == 1) {
 //                implicitQR.A.print();
-                implicitQR.addComputedEigen2x2(x1,x2);
+                implicitQR.addComputedEigen2x2(x1, x2);
                 x2 -= 2;
-            } else if( implicitQR.steps-implicitQR.lastExceptional > implicitQR.exceptionalThreshold ) {
+            } else if (implicitQR.steps - implicitQR.lastExceptional > implicitQR.exceptionalThreshold) {
                 // see if the matrix blew up
-                if( Double.isNaN(implicitQR.A.get(x2,x2))) {
+                if (Double.isNaN(implicitQR.A.get(x2, x2))) {
                     return false;
                 }
 
-                implicitQR.exceptionalShift(x1,x2);
-            } else if( implicitQR.isZero(x2,x2-1) ) {
+                implicitQR.exceptionalShift(x1, x2);
+            } else if (implicitQR.isZero(x2, x2 - 1)) {
 //                implicitQR.A.print();
                 implicitQR.addEigenAt(x2);
                 x2--;
-            }else {
+            } else {
                 performIteration();
             }
         }
@@ -91,13 +95,13 @@ public class WatchedDoubleStepQREigenvalue_DDRM implements EigenvalueExtractor_D
     }
 
     private void moveToNextSplit() {
-        if( numSplits <= 0 )
+        if (numSplits <= 0)
             throw new RuntimeException("bad");
 
         x2 = splits[--numSplits];
 
-        if( numSplits > 0 ) {
-            x1 = splits[numSplits-1]+1;
+        if (numSplits > 0) {
+            x1 = splits[numSplits - 1] + 1;
         } else {
             x1 = 0;
         }
@@ -107,18 +111,18 @@ public class WatchedDoubleStepQREigenvalue_DDRM implements EigenvalueExtractor_D
         boolean changed = false;
 
         // see if it can perform a split
-        for( int i = x2; i > x1; i-- ) {
-            if( implicitQR.isZero(i,i-1)) {
+        for (int i = x2; i > x1; i--) {
+            if (implicitQR.isZero(i, i - 1)) {
                 x1 = i;
-                splits[numSplits++] = i-1;
+                splits[numSplits++] = i - 1;
                 changed = true;
                 // reduce the scope of what it is looking at
                 break;
             }
         }
 
-        if( !changed )
-            implicitQR.implicitDoubleStep(x1,x2);
+        if (!changed)
+            implicitQR.implicitDoubleStep(x1, x2);
     }
 
     @Override

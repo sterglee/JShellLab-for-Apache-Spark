@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,25 +18,25 @@
 
 package org.ejml.dense.row.linsol.lu;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.decomposition.lu.LUDecompositionBase_FDRM;
 import org.ejml.dense.row.linsol.LinearSolverAbstract_FDRM;
 
-
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.linsol.lu.LinearSolverLuBase_DDRM")
 public abstract class LinearSolverLuBase_FDRM extends LinearSolverAbstract_FDRM {
 
     protected LUDecompositionBase_FDRM decomp;
 
-    public LinearSolverLuBase_FDRM(LUDecompositionBase_FDRM decomp) {
+    protected LinearSolverLuBase_FDRM( LUDecompositionBase_FDRM decomp ) {
         this.decomp = decomp;
-
     }
 
     @Override
-    public boolean setA(FMatrixRMaj A) {
+    public boolean setA( FMatrixRMaj A ) {
         _setA(A);
 
         return decomp.decompose(A);
@@ -48,24 +48,27 @@ public abstract class LinearSolverLuBase_FDRM extends LinearSolverAbstract_FDRM 
     }
 
     @Override
-    public void invert(FMatrixRMaj A_inv) {
-        float []vv = decomp._getVV();
+    public void invert( FMatrixRMaj A_inv ) {
+        if (A == null)
+            throw new RuntimeException("Must call setA() first");
+
+        float[] vv = decomp._getVV();
         FMatrixRMaj LU = decomp.getLU();
 
-        if( A_inv.numCols != LU.numCols || A_inv.numRows != LU.numRows )
+        if (A_inv.numCols != LU.numCols || A_inv.numRows != LU.numRows)
             throw new IllegalArgumentException("Unexpected matrix dimension");
 
         int n = A.numCols;
 
-        float dataInv[] = A_inv.data;
+        float[] dataInv = A_inv.data;
 
-        for( int j = 0; j < n; j++ ) {
+        for (int j = 0; j < n; j++) {
             // don't need to change inv into an identity matrix before hand
-            for( int i = 0; i < n; i++ ) vv[i] = i == j ? 1 : 0;
+            for (int i = 0; i < n; i++) vv[i] = i == j ? 1 : 0;
             decomp._solveVectorInternal(vv);
 //            for( int i = 0; i < n; i++ ) dataInv[i* n +j] = vv[i];
             int index = j;
-            for( int i = 0; i < n; i++ , index += n) dataInv[ index ] = vv[i];
+            for (int i = 0; i < n; i++, index += n) dataInv[index] = vv[i];
         }
     }
 
@@ -77,36 +80,37 @@ public abstract class LinearSolverLuBase_FDRM extends LinearSolverAbstract_FDRM 
      * @param b A matrix. Not modified.
      * @param x A matrix. Modified.
      */
-    public void improveSol(FMatrixRMaj b , FMatrixRMaj x )
-    {
-        if( b.numCols != x.numCols ) {
+    public void improveSol( FMatrixRMaj b, FMatrixRMaj x ) {
+        if (b.numCols != x.numCols) {
             throw new IllegalArgumentException("bad shapes");
         }
+        if (A == null)
+            throw new IllegalArgumentException("Must setA() first");
 
-        float dataA[] = A.data;
-        float dataB[] = b.data;
-        float dataX[] = x.data;
+        float[] dataA = A.data;
+        float[] dataB = b.data;
+        float[] dataX = x.data;
 
         final int nc = b.numCols;
         final int n = b.numCols;
 
-        float []vv = decomp._getVV();
+        float[] vv = decomp._getVV();
 
 //        BigDecimal sdp = new BigDecimal(0);
-        for( int k = 0; k < nc; k++ ) {
-            for( int i = 0; i < n; i++ ) {
+        for (int k = 0; k < nc; k++) {
+            for (int i = 0; i < n; i++) {
                 // *NOTE* in the book this is a long float.  extra precision might be required
-                float sdp = -dataB[ i * nc + k];
+                float sdp = -dataB[i*nc + k];
 //                BigDecimal sdp = new BigDecimal(-dataB[ i * nc + k]);
-                for( int j = 0; j < n; j++ ) {
-                    sdp += dataA[i* n +j] * dataX[ j * nc + k];
+                for (int j = 0; j < n; j++) {
+                    sdp += dataA[i*n + j]*dataX[j*nc + k];
 //                    sdp = sdp.add( BigDecimal.valueOf(dataA[i* n +j] * dataX[ j * nc + k]));
                 }
                 vv[i] = sdp;
 //                vv[i] = sdp.floatValue();
             }
             decomp._solveVectorInternal(vv);
-            for( int i = 0; i < n; i++ ) {
+            for (int i = 0; i < n; i++) {
                 dataX[i*nc + k] -= vv[i];
             }
         }

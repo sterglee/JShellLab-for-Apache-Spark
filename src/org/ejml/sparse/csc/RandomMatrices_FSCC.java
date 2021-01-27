@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,20 +18,21 @@
 
 package org.ejml.sparse.csc;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.data.FMatrixSparseCSC;
 import org.ejml.data.FMatrixSparseTriplet;
 import org.ejml.dense.row.CommonOps_FDRM;
-import org.ejml.ops.ConvertFMatrixStruct;
+import org.ejml.ops.FConvertMatrixStruct;
 
 import java.util.Arrays;
 import java.util.Random;
 
-
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.sparse.csc.RandomMatrices_DSCC")
 public class RandomMatrices_FSCC {
 
     /**
@@ -45,18 +46,21 @@ public class RandomMatrices_FSCC {
      * @param rand Random number generator
      * @return Randomly generated matrix
      */
-    public static FMatrixSparseCSC rectangle(int numRows , int numCols , int nz_total ,
-                                             float min , float max , Random rand ) {
+    public static FMatrixSparseCSC rectangle( int numRows, int numCols, int nz_total,
+                                              float min, float max, Random rand ) {
 
-        nz_total = Math.min(numCols*numRows,nz_total);
+        if (UtilEjml.exceedsMaxMatrixSize(numRows, numCols))
+            throw new IllegalArgumentException("Due to how a random matrix is created, rows*cols < Integer.MAX_VALUE");
+
+        nz_total = Math.min(numRows*numCols, nz_total);
         int[] selected = UtilEjml.shuffled(numRows*numCols, nz_total, rand);
-        Arrays.sort(selected,0,nz_total);
+        Arrays.sort(selected, 0, nz_total);
 
-        FMatrixSparseCSC ret = new FMatrixSparseCSC(numRows,numCols,nz_total);
+        FMatrixSparseCSC ret = new FMatrixSparseCSC(numRows, numCols, nz_total);
         ret.indicesSorted = true;
 
         // compute the number of elements in each column
-        int hist[] = new int[ numCols ];
+        int[] hist = new int[numCols];
         for (int i = 0; i < nz_total; i++) {
             hist[selected[i]/numRows]++;
         }
@@ -68,15 +72,14 @@ public class RandomMatrices_FSCC {
             int row = selected[i]%numRows;
 
             ret.nz_rows[i] = row;
-            ret.nz_values[i] = rand.nextFloat()*(max-min)+min;
+            ret.nz_values[i] = rand.nextFloat()*(max - min) + min;
         }
 
         return ret;
     }
 
-
-    public static FMatrixSparseCSC rectangle(int numRows , int numCols , int nz_total , Random rand ) {
-        return rectangle(numRows, numCols, nz_total, -1,1,rand);
+    public static FMatrixSparseCSC rectangle( int numRows, int numCols, int nz_total, Random rand ) {
+        return rectangle(numRows, numCols, nz_total, -1, 1, rand);
     }
 
     /**
@@ -90,42 +93,46 @@ public class RandomMatrices_FSCC {
      * @param rand Random number generator
      * @return Randomly generated matrix
      */
-    public static FMatrixSparseCSC symmetric( int N , int nz_total ,
-                                              float min , float max , Random rand) {
+    public static FMatrixSparseCSC symmetric( int N, int nz_total,
+                                              float min, float max, Random rand ) {
+        if (UtilEjml.exceedsMaxMatrixSize(N, N))
+            throw new IllegalArgumentException("Due to how a random matrix is created, N*N < Integer.MAX_VALUE");
+        if (N < 0)
+            throw new IllegalArgumentException("Matrix must have a positive size. N=" + N);
 
         // compute the number of elements in the triangle, including diagonal
-        int Ntriagle = (N*N+N)/2;
+        int Ntriagle = (N*N + N)/2;
         // create a list of open elements
-        int open[] = new int[Ntriagle];
+        int[] open = new int[Ntriagle];
         for (int row = 0, index = 0; row < N; row++) {
             for (int col = row; col < N; col++, index++) {
-                open[index] = row*N+col;
+                open[index] = row*N + col;
             }
         }
 
         // perform a random draw
-        UtilEjml.shuffle(open,open.length,0,nz_total,rand);
-        Arrays.sort(open,0,nz_total);
+        UtilEjml.shuffle(open, open.length, 0, nz_total, rand);
+        Arrays.sort(open, 0, nz_total);
 
         // construct the matrix
-        FMatrixSparseTriplet A = new FMatrixSparseTriplet(N,N,nz_total*2);
+        FMatrixSparseTriplet A = new FMatrixSparseTriplet(N, N, nz_total*2);
         for (int i = 0; i < nz_total; i++) {
             int index = open[i];
             int row = index/N;
             int col = index%N;
 
-            float value = rand.nextFloat()*(max-min)+min;
+            float value = rand.nextFloat()*(max - min) + min;
 
-            if( row == col ) {
-                A.addItem(row,col,value);
+            if (row == col) {
+                A.addItem(row, col, value);
             } else {
-                A.addItem(row,col,value);
-                A.addItem(col,row,value);
+                A.addItem(row, col, value);
+                A.addItem(col, row, value);
             }
         }
 
-        FMatrixSparseCSC B = new FMatrixSparseCSC(N,N,A.nz_length);
-        ConvertFMatrixStruct.convert(A,B);
+        FMatrixSparseCSC B = new FMatrixSparseCSC(N, N, A.nz_length);
+        FConvertMatrixStruct.convert(A, B);
 
         return B;
     }
@@ -142,43 +149,43 @@ public class RandomMatrices_FSCC {
      * @param rand Random number generator
      * @return Randomly generated matrix
      */
-    public static FMatrixSparseCSC triangleLower(int dimen , int hessenberg, int nz_total,
-                                                 float min , float max , Random rand ) {
+    public static FMatrixSparseCSC triangleLower( int dimen, int hessenberg, int nz_total,
+                                                  float min, float max, Random rand ) {
 
         // number of elements which are along the diagonal
-        int diag_total = dimen-hessenberg;
+        int diag_total = dimen - hessenberg;
 
         // pre compute element count in each row
-        int rowStart[] = new int[dimen];
-        int rowEnd[] = new int[dimen];
-        // diagonal is manditory and these indexes refer to a triangle -1 dimension
+        int[] rowStart = new int[dimen];
+        int[] rowEnd = new int[dimen];
+        // diagonal is mandatory and these indexes refer to a triangle -1 dimension
         int N = 0;
         for (int i = 0; i < dimen; i++) {
-            if( i < dimen-1+hessenberg) rowStart[i] = N;
-            N += i < hessenberg ? dimen : dimen-1-i+hessenberg;;
-            if( i < dimen-1+hessenberg) rowEnd[i] = N;
+            if (i < dimen - 1 + hessenberg) rowStart[i] = N;
+            N += i < hessenberg ? dimen : dimen - 1 - i + hessenberg;
+            if (i < dimen - 1 + hessenberg) rowEnd[i] = N;
         }
-        N += dimen-hessenberg;
+        N += dimen - hessenberg;
 
-        // contrain the total number of non-zero elements
-        nz_total = Math.min(N,nz_total);
-        nz_total = Math.max(diag_total,nz_total);
+        // constrain the total number of non-zero elements
+        nz_total = Math.min(N, nz_total);
+        nz_total = Math.max(diag_total, nz_total);
 
         // number of elements which are not the diagonal elements
-        int off_total = nz_total-diag_total;
+        int off_total = nz_total - diag_total;
 
-        int[] selected = UtilEjml.shuffled(N-diag_total, off_total, rand);
-        Arrays.sort(selected,0,off_total);
+        int[] selected = UtilEjml.shuffled(N - diag_total, off_total, rand);
+        Arrays.sort(selected, 0, off_total);
 
-        FMatrixSparseCSC L = new FMatrixSparseCSC(dimen,dimen,nz_total);
+        FMatrixSparseCSC L = new FMatrixSparseCSC(dimen, dimen, nz_total);
 
         // compute the number of elements in each column
-        int hist[] = new int[ dimen ];
+        int[] hist = new int[dimen];
         int s_index = 0;
         for (int col = 0; col < dimen; col++) {
-            if( col >= hessenberg )
+            if (col >= hessenberg)
                 hist[col]++;
-            while( s_index < off_total && selected[s_index] < rowEnd[col]  ) {
+            while (s_index < off_total && selected[s_index] < rowEnd[col]) {
                 hist[col]++;
                 s_index++;
             }
@@ -190,39 +197,39 @@ public class RandomMatrices_FSCC {
         int nz_index = 0;
         s_index = 0;
         for (int col = 0; col < dimen; col++) {
-            int offset = col >= hessenberg ? col - hessenberg+1 : 0;
+            int offset = col >= hessenberg ? col - hessenberg + 1 : 0;
 
             // assign the diagonal element a value
-            if( col >= hessenberg ) {
-                L.nz_rows[nz_index] = col-hessenberg;
-                L.nz_values[nz_index++] = rand.nextFloat() * (max - min) + min;
+            if (col >= hessenberg) {
+                L.nz_rows[nz_index] = col - hessenberg;
+                L.nz_values[nz_index++] = rand.nextFloat()*(max - min) + min;
             }
 
             // assign the other elements values
-            while( s_index < off_total && selected[s_index] < rowEnd[col]  ) {
+            while (s_index < off_total && selected[s_index] < rowEnd[col]) {
                 // the extra + 1 is because random elements were not allowed along the diagonal
                 int row = selected[s_index++] - rowStart[col] + offset;
 
                 L.nz_rows[nz_index] = row;
-                L.nz_values[nz_index++] = rand.nextFloat()*(max-min)+min;
+                L.nz_values[nz_index++] = rand.nextFloat()*(max - min) + min;
             }
         }
 
         return L;
     }
 
-    public static FMatrixSparseCSC triangleUpper(int dimen , int hessenberg, int nz_total,
-                                                 float min , float max , Random rand ) {
+    public static FMatrixSparseCSC triangleUpper( int dimen, int hessenberg, int nz_total,
+                                                  float min, float max, Random rand ) {
         FMatrixSparseCSC L = triangleLower(dimen, hessenberg, nz_total, min, max, rand);
         FMatrixSparseCSC U = L.createLike();
 
-        CommonOps_FSCC.transpose(L,U,null);
+        CommonOps_FSCC.transpose(L, U, null);
         return U;
     }
 
-    public static int nonzero( int numRows , int numCols , float minFill , float maxFill , Random rand  ) {
+    public static int nonzero( int numRows, int numCols, float minFill, float maxFill, Random rand ) {
         int N = numRows*numCols;
-        return (int)(N*(rand.nextFloat()*(maxFill-minFill)+minFill)+0.5f);
+        return (int)(N*(rand.nextFloat()*(maxFill - minFill) + minFill) + 0.5f);
     }
 
     /**
@@ -230,18 +237,18 @@ public class RandomMatrices_FSCC {
      *
      * @param upper true for upper triangular and false for lower
      * @param N number of rows and columns
-er      * @param minFill minimum fill fraction
+     * @param minFill minimum fill fraction
      * @param maxFill maximum fill fraction
      * @param rand random number generator
      * @return Random matrix
      */
-    public static FMatrixSparseCSC triangle( boolean upper , int N , float minFill , float maxFill , Random rand ) {
-        int nz = (int)(((N-1)*(N-1)/2)*(rand.nextFloat()*(maxFill-minFill)+minFill))+N;
+    public static FMatrixSparseCSC triangle( boolean upper, int N, float minFill, float maxFill, Random rand ) {
+        int nz = (int)(((N - 1)*(N - 1)/2)*(rand.nextFloat()*(maxFill - minFill) + minFill)) + N;
 
-        if( upper ) {
-            return triangleUpper(N,0,nz,-1,1,rand);
+        if (upper) {
+            return triangleUpper(N, 0, nz, -1, 1, rand);
         } else {
-            return triangleLower(N,0,nz,-1,1,rand);
+            return triangleLower(N, 0, nz, -1, 1, rand);
         }
     }
 
@@ -253,45 +260,136 @@ er      * @param minFill minimum fill fraction
      * @param rand random number generator
      * @return Random matrix
      */
-    public static FMatrixSparseCSC symmetricPosDef( int width , float probabilityZero , Random rand ) {
-        if( probabilityZero < 0 || probabilityZero > 1.0f )
+    public static FMatrixSparseCSC symmetricPosDef( int width, float probabilityZero, Random rand ) {
+        if (UtilEjml.exceedsMaxMatrixSize(width, width))
+            throw new IllegalArgumentException("Due to how a random matrix is created, width*width < Integer.MAX_VALUE");
+
+        if (probabilityZero < 0 || probabilityZero > 1.0f)
             throw new IllegalArgumentException("Invalid value for probabilityZero");
 
         // This is not formally proven to work.  It just seems to work.
-        FMatrixRMaj a = new FMatrixRMaj(width,1);
-        FMatrixRMaj b = new FMatrixRMaj(width,width);
+        FMatrixRMaj a = new FMatrixRMaj(width, 1);
+        FMatrixRMaj b = new FMatrixRMaj(width, width);
 
-        for( int i = 1; i < width; i++ ) {
-            if( rand.nextFloat() >= probabilityZero)
-                a.set(i,0,rand.nextFloat()*2-1.0f);
+        for (int i = 1; i < width; i++) {
+            if (rand.nextFloat() >= probabilityZero)
+                a.set(i, 0, rand.nextFloat()*2 - 1.0f);
         }
 
-        CommonOps_FDRM.multTransB(a,a,b);
+        CommonOps_FDRM.multTransB(a, a, b);
 
-        for( int i = 0; i < width; i++ ) {
-            b.add(i,i,1.0f + (float)(rand.nextFloat()*0.1f) );
+        for (int i = 0; i < width; i++) {
+            b.add(i, i, 1.0f + (float)(rand.nextFloat()*0.1f));
         }
 
-        FMatrixSparseCSC out = new FMatrixSparseCSC(width, width,width);
-        ConvertFMatrixStruct.convert(b,out, UtilEjml.TEST_F32);
+        FMatrixSparseCSC out = new FMatrixSparseCSC(width, width, width);
+        FConvertMatrixStruct.convert(b, out, UtilEjml.TEST_F32);
 
         return out;
     }
 
     /**
+     * Creates a random matrix where each column has exactly `nzEntriesPerColumn` non-zero entries.
+     * Compared to {@link #rectangle} this method can generate larger sparse matrices.
+     *
+     * @param numRows Number of rows
+     * @param numCols Number of columns
+     * @param nzEntriesPerColumn Amount of nz-entries per column
+     * @param min Minimum element value, inclusive
+     * @param max Maximum element value, inclusive
+     * @param rand Random number generator
+     * @return Randomly generated matrix
+     */
+    public static FMatrixSparseCSC generateUniform( int numRows, int numCols, int nzEntriesPerColumn,
+                                                    float min, float max, Random rand ) {
+        if (nzEntriesPerColumn > numRows) {
+            throw new IllegalArgumentException("numRows must be greater than nzEntriesPerColumn");
+        }
+
+        int nz_total = Math.toIntExact(nzEntriesPerColumn*numCols);
+
+        FMatrixSparseCSC matrix = new FMatrixSparseCSC(numRows, numCols, nz_total);
+        matrix.indicesSorted = true;
+
+        if (nzEntriesPerColumn == 0) {
+            return matrix;
+        }
+
+        int[] nz_hist = new int[numCols];
+        Arrays.fill(nz_hist, nzEntriesPerColumn);
+        matrix.histogramToStructure(nz_hist);
+
+        boolean[] selectedRows = new boolean[numRows];
+
+        // if the density is high enough, picking random rows will be very slow
+        // in this case we unselect (numRows-nzEntriesPerColumn) rows
+        boolean dropRows = ((float)nzEntriesPerColumn/numRows) > 0.5f;
+
+        for (int col = 0; col < numCols; col++) {
+            if (dropRows) {
+                // select all rows at first
+                Arrays.fill(selectedRows, true);
+            } else {
+                Arrays.fill(selectedRows, false);
+            }
+
+            int nz_index = col*nzEntriesPerColumn;
+
+            // selecting rows
+            if (dropRows) {
+                for (int colEntry = 0; colEntry < (numRows - nzEntriesPerColumn); colEntry++) {
+                    int row = rand.nextInt(numRows);
+
+                    while (!selectedRows[row]) {
+                        row = rand.nextInt(numRows);
+                    }
+
+                    selectedRows[row] = false;
+                }
+
+                for (int row = 0; row < selectedRows.length; row++) {
+                    if (selectedRows[row]) {
+                        matrix.nz_rows[nz_index] = row;
+                        matrix.nz_values[nz_index] = rand.nextFloat()*(max - min) + min;
+                        nz_index++;
+                    }
+                }
+            } else {
+                for (int colEntry = 0; colEntry < nzEntriesPerColumn; colEntry++) {
+                    int row = rand.nextInt(numRows);
+                    // avoid duplicate entries
+
+                    while (selectedRows[row]) {
+                        row = rand.nextInt(numRows);
+                    }
+
+                    selectedRows[row] = true;
+                    matrix.nz_rows[nz_index] = row;
+                    matrix.nz_values[nz_index] = rand.nextFloat()*(max - min) + min;
+                    nz_index++;
+                }
+
+                Arrays.sort(matrix.nz_rows, nz_index - nzEntriesPerColumn, nz_index);
+            }
+        }
+
+        return matrix;
+    }
+
+    /**
      * Modies the matrix to make sure that at least one element in each column has a value
      */
-    public static void ensureNotSingular( FMatrixSparseCSC A , Random rand ) {
+    public static void ensureNotSingular( FMatrixSparseCSC A, Random rand ) {
 //        if( A.numRows < A.numCols ) {
 //            throw new IllegalArgumentException("Fewer equations than variables");
 //        }
 
-        int []s = UtilEjml.shuffled(A.numRows,rand);
+        int[] s = UtilEjml.shuffled(A.numRows, rand);
         Arrays.sort(s);
 
-        int N = Math.min(A.numCols,A.numRows);
+        int N = Math.min(A.numCols, A.numRows);
         for (int col = 0; col < N; col++) {
-            A.set(s[col],col,rand.nextFloat()+0.5f);
+            A.set(s[col], col, rand.nextFloat() + 0.5f);
         }
     }
 }

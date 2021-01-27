@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2019, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,10 +18,12 @@
 
 package org.ejml.sparse.csc.misc;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixSparseCSC;
 import org.ejml.data.IGrowArray;
 import org.ejml.sparse.ComputePermutation;
 import org.ejml.sparse.csc.CommonOps_FSCC;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Applies the fill reduction row pivots to the input matrix to reduce fill in during decomposition/solve.
@@ -30,20 +32,21 @@ import org.ejml.sparse.csc.CommonOps_FSCC;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.sparse.csc.misc.ApplyFillReductionPermutation_DSCC")
 public class ApplyFillReductionPermutation_FSCC {
     // fill reduction permutation
-    private ComputePermutation<FMatrixSparseCSC> fillReduce;
+    private @Nullable ComputePermutation<FMatrixSparseCSC> fillReduce;
 
     // storage for permuted A matrix
-    FMatrixSparseCSC Aperm = new FMatrixSparseCSC(1,1,0);
-    int [] pinv = new int[1]; // inverse row pivots
+    FMatrixSparseCSC Aperm = new FMatrixSparseCSC(1, 1, 0);
+    int[] pinv = new int[1]; // inverse row pivots
 
     IGrowArray gw = new IGrowArray();
 
     boolean symmetric;
 
-    public ApplyFillReductionPermutation_FSCC(ComputePermutation<FMatrixSparseCSC> fillReduce,
-                                              boolean symmetric ) {
+    public ApplyFillReductionPermutation_FSCC( @Nullable ComputePermutation<FMatrixSparseCSC> fillReduce,
+                                               boolean symmetric ) {
         this.fillReduce = fillReduce;
         this.symmetric = symmetric;
     }
@@ -51,34 +54,40 @@ public class ApplyFillReductionPermutation_FSCC {
     /**
      * Computes and applies the fill reduction permutation. Either A is returned (unmodified) or the permutated
      * version of A.
+     *
      * @param A Input matrix. unmodified.
      * @return A permuted matrix. Might be A or a different matrix.
      */
     public FMatrixSparseCSC apply( FMatrixSparseCSC A ) {
-        if( fillReduce == null )
+        if (fillReduce == null)
             return A;
         fillReduce.process(A);
 
         IGrowArray gp = fillReduce.getRow();
+        if (gp == null)
+            throw new RuntimeException("No row permutation matrix");
 
-        if( pinv.length < gp.length)
-            pinv = new int[ gp.length ];
+        if (pinv.length < gp.length)
+            pinv = new int[gp.length];
         CommonOps_FSCC.permutationInverse(gp.data, pinv, gp.length);
-        if( symmetric )
+        if (symmetric)
             CommonOps_FSCC.permuteSymmetric(A, pinv, Aperm, gw);
         else
-            CommonOps_FSCC.permuteRowInv(pinv, A ,Aperm);
+            CommonOps_FSCC.permuteRowInv(pinv, A, Aperm);
         return Aperm;
     }
 
-    public int[] getArrayPinv() {
+    public @Nullable int[] getArrayPinv() {
         return fillReduce == null ? null : pinv;
     }
-    public int[] getArrayP() {
+
+    @SuppressWarnings("NullAway")
+    public @Nullable int[] getArrayP() {
         return fillReduce == null ? null : fillReduce.getRow().data;
     }
 
-    public int[] getArrayQ() {
+    @SuppressWarnings("NullAway")
+    public @Nullable int[] getArrayQ() {
         return fillReduce == null ? null : fillReduce.getColumn().data;
     }
 
@@ -86,11 +95,11 @@ public class ApplyFillReductionPermutation_FSCC {
         return gw;
     }
 
-    public void setGw(IGrowArray gw) {
+    public void setGw( IGrowArray gw ) {
         this.gw = gw;
     }
 
-    public ComputePermutation<FMatrixSparseCSC> getFillReduce() {
+    public @Nullable ComputePermutation<FMatrixSparseCSC> getFillReduce() {
         return fillReduce;
     }
 

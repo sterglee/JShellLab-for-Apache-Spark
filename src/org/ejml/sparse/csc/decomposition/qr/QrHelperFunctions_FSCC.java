@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,18 +18,21 @@
 
 package org.ejml.sparse.csc.decomposition.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FGrowArray;
 import org.ejml.data.FMatrixSparseCSC;
 import org.ejml.data.FScalar;
 import org.ejml.data.IGrowArray;
 import org.ejml.sparse.csc.CommonOps_FSCC;
 import org.ejml.sparse.csc.misc.ImplCommonOps_FSCC;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Functions used with a sparse QR decomposition
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.sparse.csc.decomposition.qr.QrHelperFunctions_DSCC")
 public class QrHelperFunctions_FSCC {
 
     /**
@@ -44,10 +47,10 @@ public class QrHelperFunctions_FSCC {
      * @param beta scalar
      * @param x (Input and Output) vector that the Householder is applied to. Modified.
      */
-    public static void applyHouseholder(FMatrixSparseCSC V , int colV, float beta ,
-                                        float []x) {
+    public static void applyHouseholder( FMatrixSparseCSC V, int colV, float beta,
+                                         float[] x ) {
         int idx0 = V.col_idx[colV];
-        int idx1 = V.col_idx[colV+1];
+        int idx1 = V.col_idx[colV + 1];
 
         // Compute tau = v'*x
         float tau = 0;
@@ -78,11 +81,10 @@ public class QrHelperFunctions_FSCC {
      * to be made more generic.
      * </p>
      */
-    public static void rank1UpdateMultR(FMatrixSparseCSC V , int colV, float gamma ,
-                                        FMatrixSparseCSC A , FMatrixSparseCSC C,
-                                        IGrowArray gw , FGrowArray gx )
-    {
-        if( V.numRows != A.numRows )
+    public static void rank1UpdateMultR( FMatrixSparseCSC V, int colV, float gamma,
+                                         FMatrixSparseCSC A, FMatrixSparseCSC C,
+                                         @Nullable IGrowArray gw, @Nullable FGrowArray gx ) {
+        if (V.numRows != A.numRows)
             throw new IllegalArgumentException("Number of rows in V and A must match");
 
         C.nz_length = 0;
@@ -90,8 +92,8 @@ public class QrHelperFunctions_FSCC {
         C.numCols = 0;
 
         for (int i = 0; i < A.numCols; i++) {
-            float tau = CommonOps_FSCC.dotInnerColumns(V,colV,A,i,gw,gx);
-            ImplCommonOps_FSCC.addColAppend(1.0f,A,i,-gamma*tau,V,colV,C,gw);
+            float tau = CommonOps_FSCC.dotInnerColumns(V, colV, A, i, gw, gx);
+            ImplCommonOps_FSCC.addColAppend(1.0f, A, i, -gamma*tau, V, colV, C, gw);
         }
     }
 
@@ -101,26 +103,27 @@ public class QrHelperFunctions_FSCC {
      * (I-gamma*v*v')*x = tau*e1
      *
      * <p>NOTE: Same as cs_house in csparse</p>
+     *
      * @param x (Input) Vector x (Output) Vector v. Modified.
      * @param xStart First index in X that is to be processed
      * @param xEnd Last + 1 index in x that is to be processed.
      * @param gamma (Output) Storage for computed gamma
      * @return variable tau
      */
-    public static float computeHouseholder(float []x , int xStart , int xEnd , float max , FScalar gamma ) {
+    public static float computeHouseholder( float[] x, int xStart, int xEnd, float max, FScalar gamma ) {
         float tau = 0;
-        for (int i = xStart; i < xEnd ; i++) {
+        for (int i = xStart; i < xEnd; i++) {
             float val = x[i] /= max;
             tau += val*val;
         }
         tau = (float)Math.sqrt(tau);
-        if( x[xStart] < 0 ) {
+        if (x[xStart] < 0) {
             tau = -tau;
         }
         float u_0 = x[xStart] + tau;
         gamma.value = u_0/tau;
         x[xStart] = 1;
-        for (int i = xStart+1; i < xEnd ; i++) {
+        for (int i = xStart + 1; i < xEnd; i++) {
             x[i] /= u_0;
         }
 

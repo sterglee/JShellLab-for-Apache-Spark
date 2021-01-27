@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,19 +18,16 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
+// import lombok.Data;
+
 /**
  * Scalar value. Useful when a function needs more than one output.
  *
  * @author Peter Abeles
  */
+// @Data
+@Generated("org.ejml.data.DScalar")
 public class FScalar {
     public float value;
-
-    public float getValue() {
-        return value;
-    }
-
-    public void setValue(float value) {
-        this.value = value;
-    }
 }

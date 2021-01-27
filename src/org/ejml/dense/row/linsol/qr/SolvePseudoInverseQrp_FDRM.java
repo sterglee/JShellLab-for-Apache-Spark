@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.linsol.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
 import org.ejml.dense.row.decomposition.TriangularSolver_FDRM;
@@ -31,13 +32,14 @@ import org.ejml.interfaces.decomposition.QRPDecomposition_F32;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.linsol.qr.SolvePseudoInverseQrp_DDRM")
 public class SolvePseudoInverseQrp_FDRM extends BaseLinearSolverQrp_FDRM {
 
     // stores the orthogonal Q matrix from QR decomposition
-    private FMatrixRMaj Q=new FMatrixRMaj(1,1);
+    private FMatrixRMaj Q = new FMatrixRMaj(1, 1);
 
     // storage for basic solution
-    private FMatrixRMaj x_basic =new FMatrixRMaj(1,1);
+    private FMatrixRMaj x_basic = new FMatrixRMaj(1, 1);
 
     /**
      * Configure and provide decomposition
@@ -45,14 +47,14 @@ public class SolvePseudoInverseQrp_FDRM extends BaseLinearSolverQrp_FDRM {
      * @param decomposition Decomposition used.
      * @param norm2Solution If true the basic solution will be returned, false the minimal 2-norm solution.
      */
-    public SolvePseudoInverseQrp_FDRM(QRPDecomposition_F32<FMatrixRMaj> decomposition,
-                                     boolean norm2Solution) {
-        super(decomposition,norm2Solution);
+    public SolvePseudoInverseQrp_FDRM( QRPDecomposition_F32<FMatrixRMaj> decomposition,
+                                       boolean norm2Solution ) {
+        super(decomposition, norm2Solution);
     }
 
     @Override
-    public boolean setA(FMatrixRMaj A) {
-        if( !super.setA(A))
+    public boolean setA( FMatrixRMaj A ) {
+        if (!super.setA(A))
             return false;
 
         Q.reshape(A.numRows, A.numRows);
@@ -63,25 +65,25 @@ public class SolvePseudoInverseQrp_FDRM extends BaseLinearSolverQrp_FDRM {
     }
 
     @Override
-    public void solve(FMatrixRMaj B, FMatrixRMaj X) {
-        if( B.numRows != numRows )
-            throw new IllegalArgumentException("Unexpected dimensions for X: X rows = "+X.numRows+" expected = "+numCols);
-        X.reshape(numCols,B.numCols);
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
+        if (B.numRows != numRows)
+            throw new IllegalArgumentException("Unexpected dimensions for X: X rows = " + X.numRows + " expected = " + numCols);
+        X.reshape(numCols, B.numCols);
 
 
         int BnumCols = B.numCols;
 
         // get the pivots and transpose them
         int pivots[] = decomposition.getColPivots();
-        
+
         // solve each column one by one
-        for( int colB = 0; colB < BnumCols; colB++ ) {
+        for (int colB = 0; colB < BnumCols; colB++) {
             x_basic.reshape(numRows, 1);
-            Y.reshape(numRows,1);
+            Y.reshape(numRows, 1);
 
             // make a copy of this column in the vector
-            for( int i = 0; i < numRows; i++ ) {
-                Y.data[i] = B.get(i,colB);
+            for (int i = 0; i < numRows; i++) {
+                Y.data[i] = B.get(i, colB);
             }
 
             // Solve Q*a=b => a = Q'*b
@@ -92,15 +94,15 @@ public class SolvePseudoInverseQrp_FDRM extends BaseLinearSolverQrp_FDRM {
 
             // finish the basic solution by filling in zeros
             x_basic.reshape(numCols, 1, true);
-            for( int i = rank; i < numCols; i++)
+            for (int i = rank; i < numCols; i++)
                 x_basic.data[i] = 0;
-            
-            if( norm2Solution && rank < numCols )
+
+            if (norm2Solution && rank < numCols)
                 upgradeSolution(x_basic);
-            
+
             // save the results
-            for( int i = 0; i < numCols; i++ ) {
-                X.set(pivots[i],colB,x_basic.data[i]);
+            for (int i = 0; i < numCols; i++) {
+                X.set(pivots[i], colB, x_basic.data[i]);
             }
         }
     }

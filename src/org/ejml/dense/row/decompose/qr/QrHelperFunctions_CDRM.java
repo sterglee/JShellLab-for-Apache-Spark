@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,9 +18,9 @@
 
 package org.ejml.dense.row.decompose.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.CMatrixRMaj;
-
 
 /**
  * <p>
@@ -43,27 +43,29 @@ import org.ejml.data.CMatrixRMaj;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.decompose.qr.QrHelperFunctions_ZDRM")
 public class QrHelperFunctions_CDRM {
 
     /**
      * Returns the maximum magnitude of the complex numbers
+     *
      * @param u Array of complex numbers
      * @param startU first index to consider in u
      * @param length Number of complex numebrs to consider
      * @return magnitude
      */
-    public static float findMax( float[] u, int startU , int length ) {
+    public static float findMax( float[] u, int startU, int length ) {
         float max = -1;
 
         int index = startU*2;
         int stopIndex = (startU + length)*2;
-        for( ; index < stopIndex;) {
+        for (; index < stopIndex; ) {
             float real = u[index++];
             float img = u[index++];
 
             float val = real*real + img*img;
 
-            if( val > max ) {
+            if (val > max) {
                 max = val;
             }
         }
@@ -76,17 +78,17 @@ public class QrHelperFunctions_CDRM {
      * u[(startU+j):(startU+numRows)] /= A<br>
      * were u and A are a complex
      */
-    public static void divideElements(final int j, final int numRows , final float[] u,
-                                      final int startU ,
-                                      final float realA, final float imagA ) {
+    public static void divideElements( final int j, final int numRows, final float[] u,
+                                       final int startU,
+                                       final float realA, final float imagA ) {
 
         float mag2 = realA*realA + imagA*imagA;
 
-        int index = (startU+j)*2;
+        int index = (startU + j)*2;
 
-        for( int i = j; i < numRows; i++ ) {
+        for (int i = j; i < numRows; i++) {
             float realU = u[index];
-            float imagU = u[index+1];
+            float imagU = u[index + 1];
 
             // u[i+startU] /= u_0;
             u[index++] = (realU*realA + imagU*imagA)/mag2;
@@ -111,9 +113,9 @@ public class QrHelperFunctions_CDRM {
      * @param tau Storage for tau
      * @return Returns gamma
      */
-    public static float computeTauGammaAndDivide(final int start, final int stop,
-                                                  final float[] x, final float max,
-                                                  Complex_F32 tau) {
+    public static float computeTauGammaAndDivide( final int start, final int stop,
+                                                   final float[] x, final float max,
+                                                   Complex_F32 tau ) {
 
         int index = start*2;
         float nx = 0;
@@ -121,47 +123,47 @@ public class QrHelperFunctions_CDRM {
             float realX = x[index++] /= max;
             float imagX = x[index++] /= max;
 
-            nx += realX * realX + imagX * imagX;
+            nx += realX*realX + imagX*imagX;
         }
 
         nx = (float)Math.sqrt(nx);
 
         float real_x0 = x[2*start];
-        float imag_x0 = x[2*start+1];
+        float imag_x0 = x[2*start + 1];
         float mag_x0 = (float)Math.sqrt(real_x0*real_x0 + imag_x0*imag_x0);
 
         // TODO Could stability be improved by computing theta so that this
         // special case doesn't need to be handled?
-        if( mag_x0 == 0 ) {
+        if (mag_x0 == 0) {
             tau.real = nx;
             tau.imaginary = 0;
         } else {
-            tau.real = real_x0 / mag_x0 * nx;
-            tau.imaginary = imag_x0 / mag_x0 * nx;
+            tau.real = real_x0/mag_x0*nx;
+            tau.imaginary = imag_x0/mag_x0*nx;
         }
 
-        float top,bottom;
+        float top, bottom;
 
         // if there is a chance they can cancel swap the sign
         // TODO not sure if this is right...
-        float m0 = mag(real_x0+tau.real , imag_x0+tau.imaginary);
-        float m1 = mag(real_x0-tau.real , imag_x0-tau.imaginary);
+        float m0 = mag(real_x0 + tau.real, imag_x0 + tau.imaginary);
+        float m1 = mag(real_x0 - tau.real, imag_x0 - tau.imaginary);
 
         // if ( real_x0*tau.real<0) { // This is the previous rule until the m0 m1 code came into play
-        if ( m1 > m0 ) {
+        if (m1 > m0) {
             tau.real = -tau.real;
             tau.imaginary = -tau.imaginary;
-            top = nx * nx - nx *mag_x0;
-            bottom = mag_x0*mag_x0 - 2.0f* nx *mag_x0 + nx * nx;
+            top = nx*nx - nx*mag_x0;
+            bottom = mag_x0*mag_x0 - 2.0f*nx*mag_x0 + nx*nx;
         } else {
-            top = nx * nx + nx *mag_x0;
-            bottom = mag_x0*mag_x0 + 2.0f* nx *mag_x0 + nx * nx;
+            top = nx*nx + nx*mag_x0;
+            bottom = mag_x0*mag_x0 + 2.0f*nx*mag_x0 + nx*nx;
         }
 
         return bottom/top; // gamma
     }
 
-    private static float mag( float r , float i ) {
+    private static float mag( float r, float i ) {
         return r*r + i*i;
     }
 
@@ -181,13 +183,12 @@ public class QrHelperFunctions_CDRM {
      * @param w1 last index + 1 in sub-array in u and row sub-matrix in A
      * @param _temp temporary storage.  Same size as u.
      */
-    public static void rank1UpdateMultR(CMatrixRMaj A,
-                                        float u[], int offsetU,
-                                        float gamma ,
-                                        int colA0,
-                                        int w0, int w1,
-                                        float _temp[])
-    {
+    public static void rank1UpdateMultR( CMatrixRMaj A,
+                                         float[] u, int offsetU,
+                                         float gamma,
+                                         int colA0,
+                                         int w0, int w1,
+                                         float[] _temp ) {
 //        for( int i = colA0; i < A.numCols; i++ ) {
 //            float val = 0;
 //
@@ -198,14 +199,14 @@ public class QrHelperFunctions_CDRM {
 //        }
 
         // reordered to reduce cpu cache issues
-        int indexU = (w0+offsetU)*2;
+        int indexU = (w0 + offsetU)*2;
         float realU = u[indexU];
-        float imagU = -u[indexU+1];
+        float imagU = -u[indexU + 1];
 
         int indexA = (w0*A.numCols + colA0)*2;
         int indexTmp = colA0*2;
 
-        for( int i = colA0; i < A.numCols; i++ ) {
+        for (int i = colA0; i < A.numCols; i++) {
             float realA = A.data[indexA++];
             float imagA = A.data[indexA++];
 
@@ -213,15 +214,15 @@ public class QrHelperFunctions_CDRM {
             _temp[indexTmp++] = realU*imagA + imagU*realA;
         }
 
-        for( int k = w0+1; k < w1; k++ ) {
+        for (int k = w0 + 1; k < w1; k++) {
             indexA = (k*A.numCols + colA0)*2;
-            indexU = (k+offsetU)*2;
+            indexU = (k + offsetU)*2;
             indexTmp = colA0*2;
 
             realU = u[indexU];
-            imagU = -u[indexU+1];
+            imagU = -u[indexU + 1];
 
-            for( int i = colA0; i < A.numCols; i++ ) {
+            for (int i = colA0; i < A.numCols; i++) {
                 float realA = A.data[indexA++];
                 float imagA = A.data[indexA++];
 
@@ -231,22 +232,22 @@ public class QrHelperFunctions_CDRM {
         }
 
         indexTmp = colA0*2;
-        for( int i = colA0; i < A.numCols; i++ ) {
+        for (int i = colA0; i < A.numCols; i++) {
             _temp[indexTmp++] *= gamma;
             _temp[indexTmp++] *= gamma;
         }
 
         // end of reorder
 
-        for( int i = w0; i < w1; i++ ) {
+        for (int i = w0; i < w1; i++) {
             indexA = (i*A.numCols + colA0)*2;
-            indexU = (i+offsetU)*2;
+            indexU = (i + offsetU)*2;
             indexTmp = colA0*2;
 
             realU = u[indexU];
-            imagU = u[indexU+1];
+            imagU = u[indexU + 1];
 
-            for( int j = colA0; j < A.numCols; j++ ) {
+            for (int j = colA0; j < A.numCols; j++) {
                 float realTmp = _temp[indexTmp++];
                 float imagTmp = _temp[indexTmp++];
 
@@ -272,17 +273,16 @@ public class QrHelperFunctions_CDRM {
      * to be made more generic.
      * </p>
      */
-    public static void rank1UpdateMultL(CMatrixRMaj A , float u[] , int offsetU,
-                                        float gammaR ,
-                                        int colA0,
-                                        int w0 , int w1 )
-    {
-        for( int i = colA0; i < A.numRows; i++ ) {
-            int startIndex = (i*A.numCols+w0)*2;
-            float realSum = 0,imagSum=0;
+    public static void rank1UpdateMultL( CMatrixRMaj A, float[] u, int offsetU,
+                                         float gammaR,
+                                         int colA0,
+                                         int w0, int w1 ) {
+        for (int i = colA0; i < A.numRows; i++) {
+            int startIndex = (i*A.numCols + w0)*2;
+            float realSum = 0, imagSum = 0;
             int rowIndex = startIndex;
-            int indexU = (offsetU+w0)*2;
-            for( int j = w0; j < w1; j++ ) {
+            int indexU = (offsetU + w0)*2;
+            for (int j = w0; j < w1; j++) {
                 float realA = A.data[rowIndex++];
                 float imajA = A.data[rowIndex++];
 
@@ -296,8 +296,8 @@ public class QrHelperFunctions_CDRM {
             float imagTmp = -gammaR*imagSum;
 
             rowIndex = startIndex;
-            indexU = (offsetU+w0)*2;
-            for( int j = w0; j < w1; j++ ) {
+            indexU = (offsetU + w0)*2;
+            for (int j = w0; j < w1; j++) {
                 float realU = u[indexU++];
                 float imagU = -u[indexU++];
 
@@ -309,6 +309,7 @@ public class QrHelperFunctions_CDRM {
 
     /**
      * Extracts a house holder vector from the column of A and stores it in u
+     *
      * @param A Complex matrix with householder vectors stored in the lower left triangle
      * @param row0 first row in A (implicitly assumed to be r + i0)
      * @param row1 last row + 1 in A
@@ -316,23 +317,23 @@ public class QrHelperFunctions_CDRM {
      * @param u Output array storage
      * @param offsetU first index in U
      */
-    public static void extractHouseholderColumn( CMatrixRMaj A ,
-                                                 int row0 , int row1 ,
-                                                 int col , float u[], int offsetU )
-    {
-        int indexU = (row0+offsetU)*2;
+    public static void extractHouseholderColumn( CMatrixRMaj A,
+                                                 int row0, int row1,
+                                                 int col, float[] u, int offsetU ) {
+        int indexU = (row0 + offsetU)*2;
         u[indexU++] = 1;
         u[indexU++] = 0;
 
-        for (int row = row0+1; row < row1; row++) {
-            int indexA = A.getIndex(row,col);
+        for (int row = row0 + 1; row < row1; row++) {
+            int indexA = A.getIndex(row, col);
             u[indexU++] = A.data[indexA];
-            u[indexU++] = A.data[indexA+1];
+            u[indexU++] = A.data[indexA + 1];
         }
     }
 
     /**
      * Extracts a house holder vector from the rows of A and stores it in u
+     *
      * @param A Complex matrix with householder vectors stored in the upper right triangle
      * @param row Row in A
      * @param col0 first row in A (implicitly assumed to be r + i0)
@@ -340,16 +341,15 @@ public class QrHelperFunctions_CDRM {
      * @param u Output array storage
      * @param offsetU first index in U
      */
-    public static void extractHouseholderRow( CMatrixRMaj A ,
-                                              int row ,
-                                              int col0, int col1 , float u[], int offsetU )
-    {
-        int indexU = (offsetU+col0)*2;
-        u[indexU]   = 1;
-        u[indexU+1] = 0;
+    public static void extractHouseholderRow( CMatrixRMaj A,
+                                              int row,
+                                              int col0, int col1, float[] u, int offsetU ) {
+        int indexU = (offsetU + col0)*2;
+        u[indexU] = 1;
+        u[indexU + 1] = 0;
 
-        int indexA = (row*A.numCols + (col0+1))*2;
-        System.arraycopy(A.data,indexA,u,indexU+2,(col1-col0-1)*2);
+        int indexA = (row*A.numCols + (col0 + 1))*2;
+        System.arraycopy(A.data, indexA, u, indexU + 2, (col1 - col0 - 1)*2);
     }
 
     /**
@@ -369,26 +369,26 @@ public class QrHelperFunctions_CDRM {
      * @param offsetU first index in U
      * @return magnitude of largest element
      */
-    public static float extractColumnAndMax( CMatrixRMaj A ,
-                                              int row0 , int row1 ,
-                                              int col , float u[], int offsetU) {
-        int indexU = (offsetU+row0)*2;
+    public static float extractColumnAndMax( CMatrixRMaj A,
+                                              int row0, int row1,
+                                              int col, float[] u, int offsetU ) {
+        int indexU = (offsetU + row0)*2;
 
         // find the largest value in this column
         // this is used to normalize the column and mitigate overflow/underflow
         float max = 0;
 
-        int indexA = A.getIndex(row0,col);
-        float h[] = A.data;
+        int indexA = A.getIndex(row0, col);
+        float[] h = A.data;
 
-        for( int i = row0; i < row1; i++, indexA += A.numCols*2 ) {
+        for (int i = row0; i < row1; i++, indexA += A.numCols*2) {
             // copy the householder vector to an array to reduce cache misses
             // big improvement on larger matrices and a relatively small performance hit on small matrices.
             float realVal = u[indexU++] = h[indexA];
-            float imagVal = u[indexU++] = h[indexA+1];
+            float imagVal = u[indexU++] = h[indexA + 1];
 
             float magVal = realVal*realVal + imagVal*imagVal;
-            if( max < magVal ) {
+            if (max < magVal) {
                 max = magVal;
             }
         }
@@ -397,25 +397,26 @@ public class QrHelperFunctions_CDRM {
 
     /**
      * Finds the magnitude of the largest element in the row
+     *
      * @param A Complex matrix
      * @param row Row in A
      * @param col0 First column in A to be copied
      * @param col1 Last column in A + 1 to be copied
      * @return magnitude of largest element
      */
-    public static float computeRowMax( CMatrixRMaj A ,
-                                        int row , int col0 , int col1 ) {
+    public static float computeRowMax( CMatrixRMaj A,
+                                        int row, int col0, int col1 ) {
         float max = 0;
 
-        int indexA = A.getIndex(row,col0);
-        float h[] = A.data;
+        int indexA = A.getIndex(row, col0);
+        float[] h = A.data;
 
         for (int i = col0; i < col1; i++) {
             float realVal = h[indexA++];
             float imagVal = h[indexA++];
 
             float magVal = realVal*realVal + imagVal*imagVal;
-            if( max < magVal ) {
+            if (max < magVal) {
                 max = magVal;
             }
         }

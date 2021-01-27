@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,8 +18,10 @@
 
 package org.ejml.dense.row.decomposition.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 
+//CONCURRENT_INLINE import org.ejml.concurrency.EjmlConcurrency;
 
 /**
  * <p>
@@ -42,31 +44,32 @@ import org.ejml.data.FMatrixRMaj;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.decomposition.qr.QrHelperFunctions_DDRM")
 public class QrHelperFunctions_FDRM {
-
-    public static float findMax( float[] u, int startU , int length ) {
+    //CONCURRENT_OMIT_BEGIN
+    public static float findMax( float[] u, int startU, int length ) {
         float max = -1;
 
         int index = startU;
         int stopIndex = startU + length;
-        for( ; index < stopIndex; index++ ) {
+        for (; index < stopIndex; index++) {
             float val = u[index];
             val = (val < 0.0f) ? -val : val;
-            if( val > max )
+            if (val > max)
                 max = val;
         }
 
         return max;
     }
 
-    public static void divideElements(final int j, final int numRows ,
-                                      final float[] u, final float u_0 ) {
+    public static void divideElements( final int j, final int numRows,
+                                       final float[] u, final float u_0 ) {
 //        float div_u = 1.0f/u_0;
 //
 //        if( Float.isInfinite(div_u)) {
-            for( int i = j; i < numRows; i++ ) {
-                u[i] /= u_0;
-            }
+        for (int i = j; i < numRows; i++) {
+            u[i] /= u_0;
+        }
 //        } else {
 //            for( int i = j; i < numRows; i++ ) {
 //                u[i] *= div_u;
@@ -74,13 +77,13 @@ public class QrHelperFunctions_FDRM {
 //        }
     }
 
-    public static void divideElements(int j, int numRows , float[] u, int startU , float u_0 ) {
+    public static void divideElements( int j, int numRows, float[] u, int startU, float u_0 ) {
 //        float div_u = 1.0f/u_0;
 //
 //        if( Float.isInfinite(div_u)) {
-            for( int i = j; i < numRows; i++ ) {
-                u[i+startU] /= u_0;
-            }
+        for (int i = j; i < numRows; i++) {
+            u[i + startU] /= u_0;
+        }
 //        } else {
 //            for( int i = j; i < numRows; i++ ) {
 //                u[i+startU] *= div_u;
@@ -88,15 +91,15 @@ public class QrHelperFunctions_FDRM {
 //        }
     }
 
-    public static void divideElements_Brow(int j, int numRows , float[] u,
-                                             float b[] , int startB ,
-                                             float u_0 ) {
+    public static void divideElements_Brow( int j, int numRows, float[] u,
+                                            float[] b, int startB,
+                                            float u_0 ) {
 //        float div_u = 1.0f/u_0;
 //
 //        if( Float.isInfinite(div_u)) {
-            for( int i = j; i < numRows; i++ ) {
-                u[i] = b[i+startB] /= u_0;
-            }
+        for (int i = j; i < numRows; i++) {
+            u[i] = b[i + startB] /= u_0;
+        }
 //        } else {
 //            for( int i = j; i < numRows; i++ ) {
 //                u[i] = b[i+startB] *= div_u;
@@ -104,17 +107,17 @@ public class QrHelperFunctions_FDRM {
 //        }
     }
 
-    public static void divideElements_Bcol(int j, int numRows , int numCols ,
-                                             float[] u,
-                                             float b[] , int startB ,
-                                             float u_0 ) {
+    public static void divideElements_Bcol( int j, int numRows, int numCols,
+                                            float[] u,
+                                            float[] b, int startB,
+                                            float u_0 ) {
 //        float div_u = 1.0f/u_0;
 //
 //        if( Float.isInfinite(div_u)) {
-            int indexB = j*numCols+startB;
-            for( int i = j; i < numRows; i++ , indexB += numCols ) {
-                b[indexB] = u[i] /= u_0;
-            }
+        int indexB = j*numCols + startB;
+        for (int i = j; i < numRows; i++, indexB += numCols) {
+            b[indexB] = u[i] /= u_0;
+        }
 //        } else {
 //            int indexB = j*numCols+startB;
 //            for( int i = j; i < numRows; i++ , indexB += numCols ) {
@@ -123,17 +126,17 @@ public class QrHelperFunctions_FDRM {
 //        }
     }
 
-    public static float computeTauAndDivide(int j, int numRows , float[] u, int startU , float max) {
+    public static float computeTauAndDivide( int j, int numRows, float[] u, int startU, float max ) {
         // compute the norm2 of the matrix, with each element
         // normalized by the max value to avoid overflow problems
         float tau = 0;
 //        float div_max = 1.0f/max;
 //        if( Float.isInfinite(div_max)) {
-            // more accurate
-            for( int i = j; i < numRows; i++ ) {
-                float d = u[startU+i] /= max;
-                tau += d*d;
-            }
+        // more accurate
+        for (int i = j; i < numRows; i++) {
+            float d = u[startU + i] /= max;
+            tau += d*d;
+        }
 //        } else {
 //            // faster
 //            for( int i = j; i < numRows; i++ ) {
@@ -143,7 +146,7 @@ public class QrHelperFunctions_FDRM {
 //        }
         tau = (float)Math.sqrt(tau);
 
-        if( u[startU+j] < 0 )
+        if (u[startU + j] < 0)
             tau = -tau;
 
         return tau;
@@ -170,15 +173,15 @@ public class QrHelperFunctions_FDRM {
      * @param max Max value in 'u' that is used to normalize it.
      * @return norm2 of 'u'
      */
-    public static float computeTauAndDivide(final int j, final int numRows ,
-                                             final float[] u , final float max) {
+    public static float computeTauAndDivide( final int j, final int numRows,
+                                              final float[] u, final float max ) {
         float tau = 0;
 //        float div_max = 1.0f/max;
 //        if( Float.isInfinite(div_max)) {
-            for( int i = j; i < numRows; i++ ) {
-                float d = u[i] /= max;
-                tau += d*d;
-            }
+        for (int i = j; i < numRows; i++) {
+            float d = u[i] /= max;
+            tau += d*d;
+        }
 //        } else {
 //            for( int i = j; i < numRows; i++ ) {
 //                float d = u[i] *= div_max;
@@ -187,11 +190,12 @@ public class QrHelperFunctions_FDRM {
 //        }
         tau = (float)Math.sqrt(tau);
 
-        if( u[j] < 0 )
+        if (u[j] < 0)
             tau = -tau;
 
         return tau;
     }
+    //CONCURRENT_OMIT_END
 
     /**
      * <p>
@@ -209,11 +213,10 @@ public class QrHelperFunctions_FDRM {
      * to be made more generic.
      * </p>
      */
-    public static void rank1UpdateMultR(FMatrixRMaj A , float u[] , float gamma ,
-                                        int colA0,
-                                        int w0, int w1 ,
-                                        float _temp[] )
-    {
+    public static void rank1UpdateMultR( FMatrixRMaj A, float[] u, float gamma,
+                                         int colA0,
+                                         int w0, int w1,
+                                         float[] _temp ) {
 //        for( int i = colA0; i < A.numCols; i++ ) {
 //            float val = 0;
 //
@@ -224,40 +227,94 @@ public class QrHelperFunctions_FDRM {
 //        }
 
         // reordered to reduce cpu cache issues
-        for( int i = colA0; i < A.numCols; i++ ) {
-            _temp[i] = u[w0]*A.data[w0 *A.numCols +i];
+        for (int i = colA0; i < A.numCols; i++) {
+            _temp[i] = u[w0]*A.data[w0*A.numCols + i];
         }
 
-        for( int k = w0+1; k < w1; k++ ) {
+        for (int k = w0 + 1; k < w1; k++) {
             int indexA = k*A.numCols + colA0;
             float valU = u[k];
-            for( int i = colA0; i < A.numCols; i++ ) {
+            for (int i = colA0; i < A.numCols; i++) {
                 _temp[i] += valU*A.data[indexA++];
             }
         }
-        for( int i = colA0; i < A.numCols; i++ ) {
+
+        for (int i = colA0; i < A.numCols; i++) {
             _temp[i] *= gamma;
         }
 
         // end of reorder
 
-        for( int i = w0; i < w1; i++ ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(w0, w1, i->{
+        for (int i = w0; i < w1; i++) {
             float valU = u[i];
 
             int indexA = i*A.numCols + colA0;
-            for( int j = colA0; j < A.numCols; j++ ) {
+            for (int j = colA0; j < A.numCols; j++) {
                 A.data[indexA++] -= valU*_temp[j];
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
-    public static void rank1UpdateMultR(FMatrixRMaj A,
-                                        float u[], int offsetU,
-                                        float gamma,
-                                        int colA0,
-                                        int w0, int w1,
-                                        float _temp[])
-    {
+    // Useful for concurrent implementations where you don't want to modify u[0] to set it to 1.0f
+    public static void rank1UpdateMultR_u0( FMatrixRMaj A, float[] u, final float u_0,
+                                            final float gamma,
+                                            final int colA0,
+                                            final int w0, final int w1,
+                                            final float[] _temp ) {
+//        for( int i = colA0; i < A.numCols; i++ ) {
+//            float val = 0;
+//
+//            for( int k = w0; k < w1; k++ ) {
+//                val += u[k]*A.data[k*A.numCols +i];
+//            }
+//            _temp[i] = gamma*val;
+//        }
+
+        // reordered to reduce cpu cache issues
+        for (int i = colA0; i < A.numCols; i++) {
+            _temp[i] = u_0*A.data[w0*A.numCols + i];
+        }
+
+        for (int k = w0 + 1; k < w1; k++) {
+            int indexA = k*A.numCols + colA0;
+            float valU = u[k];
+            for (int i = colA0; i < A.numCols; i++) {
+                _temp[i] += valU*A.data[indexA++];
+            }
+        }
+
+        for (int i = colA0; i < A.numCols; i++) {
+            _temp[i] *= gamma;
+        }
+
+        // end of reorder
+        {
+            int indexA = w0*A.numCols + colA0;
+            for (int j = colA0; j < A.numCols; j++) {
+                A.data[indexA++] -= u_0*_temp[j];
+            }
+        }
+
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(w0+1, w1, i->{
+        for (int i = w0 + 1; i < w1; i++) {
+            final float valU = u[i];
+
+            int indexA = i*A.numCols + colA0;
+            for (int j = colA0; j < A.numCols; j++) {
+                A.data[indexA++] -= valU*_temp[j];
+            }
+        }
+        //CONCURRENT_ABOVE });
+    }
+
+    public static void rank1UpdateMultR( FMatrixRMaj A,
+                                         float[] u, int offsetU,
+                                         float gamma,
+                                         int colA0,
+                                         int w0, int w1,
+                                         float[] _temp ) {
 //        for( int i = colA0; i < A.numCols; i++ ) {
 //            float val = 0;
 //
@@ -268,31 +325,33 @@ public class QrHelperFunctions_FDRM {
 //        }
 
         // reordered to reduce cpu cache issues
-        for( int i = colA0; i < A.numCols; i++ ) {
-            _temp[i] = u[w0+offsetU]*A.data[w0 *A.numCols +i];
+        for (int i = colA0; i < A.numCols; i++) {
+            _temp[i] = u[w0 + offsetU]*A.data[w0*A.numCols + i];
         }
 
-        for( int k = w0+1; k < w1; k++ ) {
+        for (int k = w0 + 1; k < w1; k++) {
             int indexA = k*A.numCols + colA0;
-            float valU = u[k+offsetU];
-            for( int i = colA0; i < A.numCols; i++ ) {
+            float valU = u[k + offsetU];
+            for (int i = colA0; i < A.numCols; i++) {
                 _temp[i] += valU*A.data[indexA++];
             }
         }
-        for( int i = colA0; i < A.numCols; i++ ) {
+        for (int i = colA0; i < A.numCols; i++) {
             _temp[i] *= gamma;
         }
 
         // end of reorder
 
-        for( int i = w0; i < w1; i++ ) {
-            float valU = u[i+offsetU];
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(w0, w1, i->{
+        for (int i = w0; i < w1; i++) {
+            float valU = u[i + offsetU];
 
             int indexA = i*A.numCols + colA0;
-            for( int j = colA0; j < A.numCols; j++ ) {
+            for (int j = colA0; j < A.numCols; j++) {
                 A.data[indexA++] -= valU*_temp[j];
             }
         }
+        //CONCURRENT_ABOVE });
     }
 
     /**
@@ -311,24 +370,25 @@ public class QrHelperFunctions_FDRM {
      * to be made more generic.
      * </p>
      */
-    public static void rank1UpdateMultL(FMatrixRMaj A , float u[] ,
-                                        float gamma ,
-                                        int colA0,
-                                        int w0 , int w1 )
-    {
-        for( int i = colA0; i < A.numRows; i++ ) {
-            int startIndex = i*A.numCols+w0;
+    public static void rank1UpdateMultL( FMatrixRMaj A, float[] u,
+                                         float gamma,
+                                         int colA0,
+                                         int w0, int w1 ) {
+        //CONCURRENT_BELOW EjmlConcurrency.loopFor(colA0, A.numRows, i->{
+        for (int i = colA0; i < A.numRows; i++) {
+            int startIndex = i*A.numCols + w0;
             float sum = 0;
             int rowIndex = startIndex;
-            for( int j = w0; j < w1; j++ ) {
+            for (int j = w0; j < w1; j++) {
                 sum += A.data[rowIndex++]*u[j];
             }
             sum = -gamma*sum;
 
             rowIndex = startIndex;
-            for( int j = w0; j < w1; j++ ) {
+            for (int j = w0; j < w1; j++) {
                 A.data[rowIndex++] += sum*u[j];
             }
         }
+        //CONCURRENT_ABOVE });
     }
 }

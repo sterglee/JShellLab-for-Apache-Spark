@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,11 +18,13 @@
 
 package org.ejml.dense.row;
 
+import javax.annotation.Generated;
 import org.ejml.data.CMatrixRMaj;
 
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.NormOps_ZDRM")
 public class NormOps_CDRM {
     /**
      * <p>
@@ -42,18 +44,18 @@ public class NormOps_CDRM {
 
         float scale = CommonOps_CDRM.elementMaxAbs(a);
 
-        if( scale == 0.0f )
+        if (scale == 0.0f)
             return 0.0f;
 
         final int size = a.getDataLength();
 
-        for( int i = 0; i < size; i += 2 ) {
+        for (int i = 0; i < size; i += 2) {
             float real = a.data[i]/scale;
-            float imag = a.data[i+1]/scale;
+            float imag = a.data[i + 1]/scale;
 
             total += real*real + imag*imag;
         }
 
-        return scale* (float)Math.sqrt(total);
+        return scale * (float)Math.sqrt(total);
     }
 }

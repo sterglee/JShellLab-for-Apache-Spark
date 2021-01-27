@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row;
 
+import javax.annotation.Generated;
 import org.ejml.data.*;
 import org.ejml.dense.row.decompose.chol.CholeskyDecompositionInner_CDRM;
 import org.ejml.dense.row.mult.VectorVectorMult_CDRM;
@@ -30,13 +31,13 @@ import org.ejml.dense.row.mult.VectorVectorMult_CDRM;
  * @author Peter Abeles
  */
 @SuppressWarnings("Duplicates")
+@Generated("org.ejml.dense.row.MatrixFeatures_ZDRM")
 public class MatrixFeatures_CDRM {
 
     /**
      * Checks to see if the matrix is a vector or not.
      *
      * @param mat A matrix. Not modified.
-     *
      * @return True if it is a vector and false if it is not.
      */
     public static boolean isVector( Matrix mat ) {
@@ -55,14 +56,14 @@ public class MatrixFeatures_CDRM {
      * @param tol Numerical tolerance.
      * @return True if they are the negative of each other within tolerance.
      */
-    public static boolean isNegative(CMatrixD1 a, CMatrixD1 b, float tol) {
-        if( a.numRows != b.numRows || a.numCols != b.numCols )
+    public static boolean isNegative( CMatrixD1 a, CMatrixD1 b, float tol ) {
+        if (a.numRows != b.numRows || a.numCols != b.numCols)
             throw new IllegalArgumentException("Matrix dimensions must match");
 
         int length = a.getNumElements()*2;
 
-        for( int i = 0; i < length; i++ ) {
-            if( !(Math.abs(a.data[i]+b.data[i]) <= tol) )
+        for (int i = 0; i < length; i++) {
+            if (!(Math.abs(a.data[i] + b.data[i]) <= tol))
                 return false;
         }
 
@@ -75,12 +76,11 @@ public class MatrixFeatures_CDRM {
      * @param m A matrix. Not modified.
      * @return True if any element in the matrix is NaN.
      */
-    public static boolean hasNaN( CMatrixD1 m )
-    {
+    public static boolean hasNaN( CMatrixD1 m ) {
         int length = m.getDataLength();
 
-        for( int i = 0; i < length; i++ ) {
-            if( Float.isNaN(m.data[i]))
+        for (int i = 0; i < length; i++) {
+            if (Float.isNaN(m.data[i]))
                 return true;
         }
         return false;
@@ -92,13 +92,12 @@ public class MatrixFeatures_CDRM {
      * @param m A matrix. Not modified.
      * @return True if any element in the matrix is NaN of Infinite.
      */
-    public static boolean hasUncountable( CMatrixD1 m )
-    {
+    public static boolean hasUncountable( CMatrixD1 m ) {
         int length = m.getDataLength();
 
-        for( int i = 0; i < length; i++ ) {
+        for (int i = 0; i < length; i++) {
             float a = m.data[i];
-            if( Float.isNaN(a) || Float.isInfinite(a))
+            if (Float.isNaN(a) || Float.isInfinite(a))
                 return true;
         }
         return false;
@@ -119,14 +118,14 @@ public class MatrixFeatures_CDRM {
      * @param b A matrix. Not modified.
      * @return true if identical and false otherwise.
      */
-    public static boolean isEquals(CMatrixD1 a, CMatrixD1 b ) {
-        if( a.numRows != b.numRows || a.numCols != b.numCols ) {
+    public static boolean isEquals( CMatrixD1 a, CMatrixD1 b ) {
+        if (a.numRows != b.numRows || a.numCols != b.numCols) {
             return false;
         }
 
         final int length = a.getDataLength();
-        for( int i = 0; i < length; i++ ) {
-            if( !(a.data[i] == b.data[i]) ) {
+        for (int i = 0; i < length; i++) {
+            if (!(a.data[i] == b.data[i])) {
                 return false;
             }
         }
@@ -151,19 +150,18 @@ public class MatrixFeatures_CDRM {
      * @param tol How close to being identical each element needs to be.
      * @return true if equals and false otherwise.
      */
-    public static boolean isEquals(CMatrixD1 a , CMatrixD1 b , float tol )
-    {
-        if( a.numRows != b.numRows || a.numCols != b.numCols ) {
+    public static boolean isEquals( CMatrixD1 a, CMatrixD1 b, float tol ) {
+        if (a.numRows != b.numRows || a.numCols != b.numCols) {
             return false;
         }
 
-        if( tol == 0.0f )
-            return isEquals(a,b);
+        if (tol == 0.0f)
+            return isEquals(a, b);
 
         final int length = a.getDataLength();
 
-        for( int i = 0; i < length; i++ ) {
-            if( !(tol >= Math.abs(a.data[i] - b.data[i])) ) {
+        for (int i = 0; i < length; i++) {
+            if (!(tol >= Math.abs(a.data[i] - b.data[i]))) {
                 return false;
             }
         }
@@ -189,30 +187,30 @@ public class MatrixFeatures_CDRM {
      * @param tol Tolerance for equality.
      * @return true if identical and false otherwise.
      */
-    public static boolean isIdentical(CMatrixD1 a, CMatrixD1 b , float tol ) {
-        if( a.numRows != b.numRows || a.numCols != b.numCols ) {
+    public static boolean isIdentical( CMatrixD1 a, CMatrixD1 b, float tol ) {
+        if (a.numRows != b.numRows || a.numCols != b.numCols) {
             return false;
         }
-        if( tol < 0 )
+        if (tol < 0)
             throw new IllegalArgumentException("Tolerance must be greater than or equal to zero.");
 
         final int length = a.getDataLength();
-        for( int i = 0; i < length; i++ ) {
+        for (int i = 0; i < length; i++) {
             float valA = a.data[i];
             float valB = b.data[i];
 
             // if either is negative or positive infinity the result will be positive infinity
             // if either is NaN the result will be NaN
-            float diff = Math.abs(valA-valB);
+            float diff = Math.abs(valA - valB);
 
             // diff = NaN == false
             // diff = infinity == false
-            if( tol >= diff )
+            if (tol >= diff)
                 continue;
 
-            if( Float.isNaN(valA) ) {
+            if (Float.isNaN(valA)) {
                 return Float.isNaN(valB);
-            } else if( Float.isInfinite(valA) ) {
+            } else if (Float.isInfinite(valA)) {
                 return valA == valB;
             } else {
                 return false;
@@ -229,7 +227,7 @@ public class MatrixFeatures_CDRM {
      * @param tol Tolerance.
      * @return True if it is within tolerance to an identify matrix.
      */
-    public static boolean isIdentity(CMatrix mat , float tol ) {
+    public static boolean isIdentity( CMatrix mat, float tol ) {
         // see if the result is an identity matrix
         Complex_F32 c = new Complex_F32();
         for (int i = 0; i < mat.getNumRows(); i++) {
@@ -261,21 +259,21 @@ public class MatrixFeatures_CDRM {
      * @param tol Tolerance.
      * @return True if it passes the test.
      */
-    public static boolean isHermitian(CMatrixRMaj Q , float tol ) {
-        if( Q.numCols != Q.numRows )
+    public static boolean isHermitian( CMatrixRMaj Q, float tol ) {
+        if (Q.numCols != Q.numRows)
             return false;
 
         Complex_F32 a = new Complex_F32();
         Complex_F32 b = new Complex_F32();
 
-        for( int i = 0; i < Q.numCols; i++ ) {
-            for( int j = i; j < Q.numCols; j++ ) {
-                Q.get(i,j,a);
-                Q.get(j,i,b);
+        for (int i = 0; i < Q.numCols; i++) {
+            for (int j = i; j < Q.numCols; j++) {
+                Q.get(i, j, a);
+                Q.get(j, i, b);
 
-                if( Math.abs(a.real-b.real)>tol)
+                if (Math.abs(a.real - b.real) > tol)
                     return false;
-                if( Math.abs(a.imaginary+b.imaginary)>tol)
+                if (Math.abs(a.imaginary + b.imaginary) > tol)
                     return false;
             }
         }
@@ -291,33 +289,34 @@ public class MatrixFeatures_CDRM {
      * <p>
      * This is the complex equivalent of orthogonal matrix.
      * </p>
+     *
      * @param Q The matrix being tested. Not modified.
      * @param tol Tolerance.
      * @return True if it passes the test.
      */
-    public static boolean isUnitary(CMatrixRMaj Q , float tol ) {
-        if( Q.numRows < Q.numCols ) {
+    public static boolean isUnitary( CMatrixRMaj Q, float tol ) {
+        if (Q.numRows < Q.numCols) {
             throw new IllegalArgumentException("The number of rows must be more than or equal to the number of columns");
         }
 
         Complex_F32 prod = new Complex_F32();
 
-        CMatrixRMaj u[] = CommonOps_CDRM.columnsToVector(Q, null);
+        CMatrixRMaj[] u = CommonOps_CDRM.columnsToVector(Q, null);
 
-        for( int i = 0; i < u.length; i++ ) {
+        for (int i = 0; i < u.length; i++) {
             CMatrixRMaj a = u[i];
 
             VectorVectorMult_CDRM.innerProdH(a, a, prod);
 
-            if( Math.abs(prod.real-1) > tol)
+            if (Math.abs(prod.real - 1) > tol)
                 return false;
-            if( Math.abs(prod.imaginary) > tol)
+            if (Math.abs(prod.imaginary) > tol)
                 return false;
 
-            for( int j = i+1; j < u.length; j++ ) {
+            for (int j = i + 1; j < u.length; j++) {
                 VectorVectorMult_CDRM.innerProdH(a, u[j], prod);
 
-                if( !(prod.getMagnitude2() <= tol*tol))
+                if (!(prod.getMagnitude2() <= tol*tol))
                     return false;
             }
         }
@@ -335,21 +334,20 @@ public class MatrixFeatures_CDRM {
      * </p>
      *
      * @param A square hermitian matrix. Not modified.
-     *
      * @return True if it is positive definite and false if it is not.
      */
     public static boolean isPositiveDefinite( CMatrixRMaj A ) {
-        if( A.numCols != A.numRows)
+        if (A.numCols != A.numRows)
             return false;
 
         CholeskyDecompositionInner_CDRM chol = new CholeskyDecompositionInner_CDRM(true);
-        if( chol.inputModified() )
+        if (chol.inputModified())
             A = A.copy();
 
         return chol.decompose(A);
     }
 
-        /**
+    /**
      * <p>
      * Checks to see if a matrix is upper triangular or Hessenberg. A Hessenberg matrix of degree N
      * has the following property:<br>
@@ -358,23 +356,24 @@ public class MatrixFeatures_CDRM {
      * <br>
      * A triangular matrix is a Hessenberg matrix of degree 0.
      * </p>
+     *
      * @param A Matrix being tested.  Not modified.
      * @param hessenberg The degree of being hessenberg.
      * @param tol How close to zero the lower left elements need to be.
      * @return If it is an upper triangular/hessenberg matrix or not.
      */
-    public static boolean isUpperTriangle(CMatrixRMaj A , int hessenberg , float tol ) {
+    public static boolean isUpperTriangle( CMatrixRMaj A, int hessenberg, float tol ) {
         tol *= tol;
-        for( int i = hessenberg+1; i < A.numRows; i++ ) {
-            int maxCol = Math.min(i-hessenberg, A.numCols);
-            for( int j = 0; j < maxCol; j++ ) {
-                int index = (i*A.numCols+j)*2;
+        for (int i = hessenberg + 1; i < A.numRows; i++) {
+            int maxCol = Math.min(i - hessenberg, A.numCols);
+            for (int j = 0; j < maxCol; j++) {
+                int index = (i*A.numCols + j)*2;
 
                 float real = A.data[index];
-                float imag = A.data[index+1];
+                float imag = A.data[index + 1];
                 float mag = real*real + imag*imag;
 
-                if( !(mag <= tol) ) {
+                if (!(mag <= tol)) {
                     return false;
                 }
             }
@@ -391,22 +390,23 @@ public class MatrixFeatures_CDRM {
      * <br>
      * A triangular matrix is a Hessenberg matrix of degree 0.
      * </p>
+     *
      * @param A Matrix being tested.  Not modified.
      * @param hessenberg The degree of being hessenberg.
      * @param tol How close to zero the lower left elements need to be.
      * @return If it is an upper triangular/hessenberg matrix or not.
      */
-    public static boolean isLowerTriangle(CMatrixRMaj A , int hessenberg , float tol ) {
+    public static boolean isLowerTriangle( CMatrixRMaj A, int hessenberg, float tol ) {
         tol *= tol;
-        for( int i = 0; i < A.numRows-hessenberg-1; i++ ) {
-            for( int j = i+hessenberg+1; j < A.numCols; j++ ) {
-                int index = (i*A.numCols+j)*2;
+        for (int i = 0; i < A.numRows - hessenberg - 1; i++) {
+            for (int j = i + hessenberg + 1; j < A.numCols; j++) {
+                int index = (i*A.numCols + j)*2;
 
                 float real = A.data[index];
-                float imag = A.data[index+1];
+                float imag = A.data[index + 1];
                 float mag = real*real + imag*imag;
 
-                if( !(mag <= tol) ) {
+                if (!(mag <= tol)) {
                     return false;
                 }
             }
@@ -420,12 +420,11 @@ public class MatrixFeatures_CDRM {
      * @param m A matrix. Not modified.
      * @return True if all elements are zeros or false if not
      */
-    public static boolean isZeros(CMatrixD1 m , float tol )
-    {
+    public static boolean isZeros( CMatrixD1 m, float tol ) {
         int length = m.getNumElements()*2;
 
-        for( int i = 0; i < length; i++ ) {
-            if( Math.abs(m.data[i]) > tol )
+        for (int i = 0; i < length; i++) {
+            if (Math.abs(m.data[i]) > tol)
                 return false;
         }
         return true;

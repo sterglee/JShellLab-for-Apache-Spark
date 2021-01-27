@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.block.linsol.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRBlock;
 import org.ejml.data.FSubmatrixD1;
 import org.ejml.dense.block.MatrixOps_FDRB;
@@ -27,10 +28,15 @@ import org.ejml.dense.row.SpecializedOps_FDRM;
 import org.ejml.interfaces.decomposition.QRDecomposition;
 import org.ejml.interfaces.linsol.LinearSolverDense;
 
+//CONCURRENT_INLINE import org.ejml.dense.block.*;
+//CONCURRENT_INLINE import org.ejml.dense.block.decomposition.qr.QRDecompositionHouseholder_MT_FDRB;
+
+//CONCURRENT_MACRO QRDecompositionHouseholder_FDRB QRDecompositionHouseholder_MT_FDRB
+//CONCURRENT_MACRO TriangularSolver_FDRB TriangularSolver_MT_FDRB
 
 /**
  * <p>
- * A solver for {@link org.ejml.dense.block.decomposition.qr.QRDecompositionHouseholder_FDRB}.  Systems are solved for using the standard
+ * A solver for {@link org.ejml.dense.block.decomposition.qr.QRDecompositionHouseholder_FDRB}. Systems are solved for using the standard
  * QR decomposition method, sketched below.
  * </p>
  *
@@ -46,6 +52,8 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.block.linsol.qr.QrHouseHolderSolver_DDRB")
 public class QrHouseHolderSolver_FDRB implements LinearSolverDense<FMatrixRBlock> {
 
     // QR decomposition algorithm
@@ -53,7 +61,6 @@ public class QrHouseHolderSolver_FDRB implements LinearSolverDense<FMatrixRBlock
 
     // the input matrix which has been decomposed
     protected FMatrixRBlock QR;
-
 
     public QrHouseHolderSolver_FDRB() {
         decomposer.setSaveW(false);
@@ -66,12 +73,12 @@ public class QrHouseHolderSolver_FDRB implements LinearSolverDense<FMatrixRBlock
      * @return true if the decomposition was successful.
      */
     @Override
-    public boolean setA(FMatrixRBlock A) {
-        if( A.numRows < A.numCols )
-            throw new IllegalArgumentException("Number of rows must be more than or equal to the number of columns.  " +
+    public boolean setA( FMatrixRBlock A ) {
+        if (A.numRows < A.numCols)
+            throw new IllegalArgumentException("Number of rows must be more than or equal to the number of columns. " +
                     "Can't solve an underdetermined system.");
 
-        if( !decomposer.decompose(A))
+        if (!decomposer.decompose(A))
             return false;
 
         this.QR = decomposer.getQR();
@@ -90,12 +97,12 @@ public class QrHouseHolderSolver_FDRB implements LinearSolverDense<FMatrixRBlock
     }
 
     @Override
-    public void solve(FMatrixRBlock B, FMatrixRBlock X) {
+    public void solve( FMatrixRBlock B, FMatrixRBlock X ) {
 
-        if( B.numRows != QR.numRows )
+        if (B.numRows != QR.numRows)
             throw new IllegalArgumentException("Row of B and A do not match");
 
-        X.reshape(QR.numCols,B.numCols);
+        X.reshape(QR.numCols, B.numCols);
 
         // The system being solved for can be described as:
         // Q*R*X = B
@@ -106,14 +113,13 @@ public class QrHouseHolderSolver_FDRB implements LinearSolverDense<FMatrixRBlock
 
         // Second solve for Y using the upper triangle matrix R and the just computed Y
         // X = R^-1 * Y
-        MatrixOps_FDRB.extractAligned(B,X);
+        MatrixOps_FDRB.extractAligned(B, X);
 
         // extract a block aligned matrix
-        int M = Math.min(QR.numRows,QR.numCols);
+        int M = Math.min(QR.numRows, QR.numCols);
 
-        TriangularSolver_FDRB.solve(QR.blockLength,true,
-                new FSubmatrixD1(QR,0,M,0,M),new FSubmatrixD1(X),false);
-
+        TriangularSolver_FDRB.solve(QR.blockLength, true,
+                new FSubmatrixD1(QR, 0, M, 0, M), new FSubmatrixD1(X), false);
     }
 
     /**
@@ -122,10 +128,10 @@ public class QrHouseHolderSolver_FDRB implements LinearSolverDense<FMatrixRBlock
      * @param A_inv Where the inverted matrix saved. Modified.
      */
     @Override
-    public void invert(FMatrixRBlock A_inv) {
-        int M = Math.min(QR.numRows,QR.numCols);
-        if( A_inv.numRows != M || A_inv.numCols != M )
-            throw new IllegalArgumentException("A_inv must be square an have dimension "+M);
+    public void invert( FMatrixRBlock A_inv ) {
+        int M = Math.min(QR.numRows, QR.numCols);
+        if (A_inv.numRows != M || A_inv.numCols != M)
+            throw new IllegalArgumentException("A_inv must be square an have dimension " + M);
 
 
         // Solve for A^-1
@@ -139,8 +145,8 @@ public class QrHouseHolderSolver_FDRB implements LinearSolverDense<FMatrixRBlock
         // Solve using upper triangular R matrix
         // R*A^-1 = y
         // A^-1 = R^-1*y
-        TriangularSolver_FDRB.solve(QR.blockLength,true,
-                new FSubmatrixD1(QR,0,M,0,M),new FSubmatrixD1(A_inv),false);
+        TriangularSolver_FDRB.solve(QR.blockLength, true,
+                new FSubmatrixD1(QR, 0, M, 0, M), new FSubmatrixD1(A_inv), false);
     }
 
     @Override

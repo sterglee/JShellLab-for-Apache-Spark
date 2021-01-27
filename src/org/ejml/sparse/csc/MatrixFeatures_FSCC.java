@@ -18,6 +18,7 @@
 
 package org.ejml.sparse.csc;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.data.FGrowArray;
 import org.ejml.data.FMatrixSparseCSC;
@@ -28,6 +29,7 @@ import org.ejml.sparse.csc.decomposition.chol.CholeskyUpLooking_FSCC;
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.sparse.csc.MatrixFeatures_DSCC")
 public class MatrixFeatures_FSCC {
 
     public static boolean isEquals(FMatrixSparseCSC a , FMatrixSparseCSC b ) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.decomposition.eig;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
@@ -25,7 +26,6 @@ import org.ejml.dense.row.NormOps_FDRM;
 import org.ejml.dense.row.SpecializedOps_FDRM;
 import org.ejml.dense.row.factory.LinearSolverFactory_FDRM;
 import org.ejml.interfaces.linsol.LinearSolverDense;
-
 
 /**
  * <p>
@@ -49,32 +49,31 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
  * to none dominant eigen vectors.
  * </p>
  *
- *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.decomposition.eig.EigenPowerMethod_DDRM")
 public class EigenPowerMethod_FDRM {
 
     // used to determine convergence
     private float tol = UtilEjml.TESTP_F32;
 
-
-    private FMatrixRMaj q0,q1,q2;
+    private FMatrixRMaj q0, q1, q2;
 
     private int maxIterations = 20;
 
     private FMatrixRMaj B;
+    @SuppressWarnings("NullAway.Init")
     private FMatrixRMaj seed;
 
     /**
-     *
      * @param size The size of the matrix which can be processed.
      */
-    public EigenPowerMethod_FDRM(int size ) {
-        q0 = new FMatrixRMaj(size,1);
-        q1 = new FMatrixRMaj(size,1);
-        q2 = new FMatrixRMaj(size,1);
+    public EigenPowerMethod_FDRM( int size ) {
+        q0 = new FMatrixRMaj(size, 1);
+        q1 = new FMatrixRMaj(size, 1);
+        q2 = new FMatrixRMaj(size, 1);
 
-        B = new FMatrixRMaj(size,size);
+        B = new FMatrixRMaj(size, size);
     }
 
     /**
@@ -82,16 +81,11 @@ public class EigenPowerMethod_FDRM {
      *
      * @param seed The initial seed vector in the iteration.
      */
-    public void setSeed(FMatrixRMaj seed) {
+    public void setSeed( FMatrixRMaj seed ) {
         this.seed = seed;
     }
 
-    /**
-     *
-     * @param maxIterations
-     * @param tolerance
-     */
-    public void setOptions(int maxIterations, float tolerance) {
+    public void setOptions( int maxIterations, float tolerance ) {
         this.maxIterations = maxIterations;
         this.tol = tolerance;
     }
@@ -100,7 +94,7 @@ public class EigenPowerMethod_FDRM {
      * This method computes the eigen vector with the largest eigen value by using the
      * direct power method. This technique is the easiest to implement, but the slowest to converge.
      * Works only if all the eigenvalues are real.
-     * 
+     *
      * @param A The matrix. Not modified.
      * @return If it converged or not.
      */
@@ -110,12 +104,12 @@ public class EigenPowerMethod_FDRM {
 
         boolean converged = false;
 
-        for( int i = 0; i < maxIterations && !converged; i++ ) {
+        for (int i = 0; i < maxIterations && !converged; i++) {
 //            q0.print();
-            
-            CommonOps_FDRM.mult(A,q0,q1);
+
+            CommonOps_FDRM.mult(A, q0, q1);
             float s = NormOps_FDRM.normPInf(q1);
-            CommonOps_FDRM.divide(q1,s,q2);
+            CommonOps_FDRM.divide(q1, s, q2);
 
             converged = checkConverged(A);
         }
@@ -123,15 +117,14 @@ public class EigenPowerMethod_FDRM {
         return converged;
     }
 
-
-    private void initPower(FMatrixRMaj A ) {
-        if( A.numRows != A.numCols )
+    private void initPower( FMatrixRMaj A ) {
+        if (A.numRows != A.numCols)
             throw new IllegalArgumentException("A must be a square matrix.");
 
-        if( seed != null ) {
+        if (seed != null) {
             q0.set(seed);
         } else {
-            for( int i = 0; i < A.numRows; i++ ) {
+            for (int i = 0; i < A.numRows; i++) {
                 q0.data[i] = 1;
             }
         }
@@ -144,14 +137,14 @@ public class EigenPowerMethod_FDRM {
      * to a non-dominant eigen vector.    At least in the case I looked at.  I haven't devoted
      * a lot of time into this issue...
      */
-    private boolean checkConverged(FMatrixRMaj A) {
+    private boolean checkConverged( FMatrixRMaj A ) {
         float worst = 0;
         float worst2 = 0;
-        for( int j = 0; j < A.numRows; j++ ) {
+        for (int j = 0; j < A.numRows; j++) {
             float val = Math.abs(q2.data[j] - q0.data[j]);
-            if( val > worst ) worst = val;
+            if (val > worst) worst = val;
             val = Math.abs(q2.data[j] + q0.data[j]);
-            if( val > worst2 ) worst2 = val;
+            if (val > worst2) worst2 = val;
         }
 
         // swap vectors
@@ -159,9 +152,9 @@ public class EigenPowerMethod_FDRM {
         q0 = q2;
         q2 = temp;
 
-        if( worst < tol )
+        if (worst < tol)
             return true;
-        else if( worst2 < tol )
+        else if (worst2 < tol)
             return true;
         else
             return false;
@@ -177,8 +170,8 @@ public class EigenPowerMethod_FDRM {
      * @param alpha Shifting factor.
      * @return If it converged or not.
      */
-    public boolean computeShiftDirect(FMatrixRMaj A , float alpha) {
-        SpecializedOps_FDRM.addIdentity(A,B,-alpha);
+    public boolean computeShiftDirect( FMatrixRMaj A, float alpha ) {
+        SpecializedOps_FDRM.addIdentity(A, B, -alpha);
 
         return computeDirect(B);
     }
@@ -192,25 +185,25 @@ public class EigenPowerMethod_FDRM {
      * @param alpha Shifting factor.
      * @return If it converged or not.
      */
-    public boolean computeShiftInvert(FMatrixRMaj A , float alpha ) {
+    public boolean computeShiftInvert( FMatrixRMaj A, float alpha ) {
         initPower(A);
 
         LinearSolverDense solver = LinearSolverFactory_FDRM.linear(A.numCols);
 
-        SpecializedOps_FDRM.addIdentity(A,B,-alpha);
+        SpecializedOps_FDRM.addIdentity(A, B, -alpha);
         solver.setA(B);
 
         boolean converged = false;
 
-        for( int i = 0; i < maxIterations && !converged; i++ ) {
-            solver.solve(q0,q1);
+        for (int i = 0; i < maxIterations && !converged; i++) {
+            solver.solve(q0, q1);
             float s = NormOps_FDRM.normPInf(q1);
-            CommonOps_FDRM.divide(q1,s,q2);
+            CommonOps_FDRM.divide(q1, s, q2);
 
             converged = checkConverged(A);
         }
 
-         return converged;
+        return converged;
     }
 
     public FMatrixRMaj getEigenVector() {

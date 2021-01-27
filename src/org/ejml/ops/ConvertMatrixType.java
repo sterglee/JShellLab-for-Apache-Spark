@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -26,7 +26,14 @@ import org.ejml.data.*;
  * @author Peter Abeles
  */
 public class ConvertMatrixType {
-    public static Matrix convert( Matrix matrix , MatrixType desired ) {
+    /**
+     * Converts a matrix of one data type into another data type. If no conversion is known then an exception
+     * is thrown.
+     *
+     * @return The converted matrix
+     */
+    @SuppressWarnings("MissingCasesInEnumSwitch")
+    public static Matrix convert(Matrix matrix , MatrixType desired ) {
         Matrix m=null;
 
         switch( matrix.getType() ) {
@@ -52,7 +59,7 @@ public class ConvertMatrixType {
 
                     case DSCC: {
                         m = new DMatrixSparseCSC(matrix.getNumRows(),matrix.getNumCols());
-                        ConvertDMatrixStruct.convert((DMatrixRMaj) matrix, (DMatrixSparseCSC)m);
+                        DConvertMatrixStruct.convert((DMatrixRMaj) matrix, (DMatrixSparseCSC)m);
                     } break;
 
                     case FSCC: {
@@ -89,7 +96,7 @@ public class ConvertMatrixType {
 
                     case FSCC: {
                         m = new FMatrixSparseCSC(matrix.getNumRows(),matrix.getNumCols());
-                        ConvertFMatrixStruct.convert((FMatrixRMaj) matrix, (FMatrixSparseCSC)m);
+                        FConvertMatrixStruct.convert((FMatrixRMaj) matrix, (FMatrixSparseCSC)m);
                     } break;
                 }
             } break;
@@ -116,7 +123,7 @@ public class ConvertMatrixType {
                 switch( desired ) {
                     case DDRM: {
                         m = new DMatrixRMaj(matrix.getNumRows(),matrix.getNumCols());
-                        ConvertDMatrixStruct.convert((DMatrixSparseCSC) matrix, (DMatrixRMaj)m);
+                        DConvertMatrixStruct.convert((DMatrixSparseCSC) matrix, (DMatrixRMaj)m);
                     } break;
 
                     case FDRM: {
@@ -150,7 +157,7 @@ public class ConvertMatrixType {
 
                     case FDRM: {
                         m = new FMatrixRMaj(matrix.getNumRows(),matrix.getNumCols());
-                        ConvertFMatrixStruct.convert((FMatrixSparseCSC) matrix, (FMatrixRMaj)m);
+                        FConvertMatrixStruct.convert((FMatrixSparseCSC) matrix, (FMatrixRMaj)m);
                     } break;
 
                     case ZDRM: {
@@ -169,6 +176,10 @@ public class ConvertMatrixType {
                     } break;
                 }
             } break;
+        }
+
+        if( m == null ) {
+            throw new IllegalArgumentException("Unknown "+matrix.getType()+" "+desired);
         }
 
         return m;

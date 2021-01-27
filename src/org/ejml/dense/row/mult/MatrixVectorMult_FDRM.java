@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2019, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,12 +18,12 @@
 
 package org.ejml.dense.row.mult;
 
+import javax.annotation.Generated;
 import org.ejml.MatrixDimensionException;
 import org.ejml.data.FMatrix1Row;
 import org.ejml.data.FMatrixD1;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
-
 
 /**
  * <p>
@@ -41,6 +41,7 @@ import org.ejml.dense.row.CommonOps_FDRM;
  * @author Peter Abeles
  */
 @SuppressWarnings({"ForLoopReplaceableByForEach"})
+@Generated("org.ejml.dense.row.mult.MatrixVectorMult_DDRM")
 public class MatrixVectorMult_FDRM {
 
     /**
@@ -60,34 +61,33 @@ public class MatrixVectorMult_FDRM {
      * @param B A vector that has length n. Not modified.
      * @param C A column vector that has length m. Modified.
      */
-    public static void mult(FMatrix1Row A, FMatrixD1 B, FMatrixD1 C)
-    {
-        if( B.numRows == 1 ) {
-            if( A.numCols != B.numCols ) {
+    public static void mult( FMatrix1Row A, FMatrixD1 B, FMatrixD1 C ) {
+        if (B.numRows == 1) {
+            if (A.numCols != B.numCols) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
-        } else if( B.numCols == 1 ) {
-            if( A.numCols != B.numRows ) {
+        } else if (B.numCols == 1) {
+            if (A.numCols != B.numRows) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
         } else {
             throw new MatrixDimensionException("B is not a vector");
         }
-        C.reshape(A.numRows,1);
+        C.reshape(A.numRows, 1);
 
-        if( A.numCols == 0 ) {
-            CommonOps_FDRM.fill(C,0);
+        if (A.numCols == 0) {
+            CommonOps_FDRM.fill(C, 0);
             return;
         }
 
         int indexA = 0;
         int cIndex = 0;
         float b0 = B.get(0);
-        for( int i = 0; i < A.numRows; i++ ) {
-            float total = A.get(indexA++) * b0;
+        for (int i = 0; i < A.numRows; i++) {
+            float total = A.get(indexA++)*b0;
 
-            for( int j = 1; j < A.numCols; j++ ) {
-                total += A.get(indexA++) * B.get(j);
+            for (int j = 1; j < A.numCols; j++) {
+                total += A.get(indexA++)*B.get(j);
             }
 
             C.set(cIndex++, total);
@@ -111,35 +111,35 @@ public class MatrixVectorMult_FDRM {
      * @param B A vector that has length n. Not modified.
      * @param C A column vector that has length m. Modified.
      */
-    public static void multAdd(FMatrix1Row A , FMatrixD1 B , FMatrixD1 C )
-    {
-        if( B.numRows == 1 ) {
-            if( A.numCols != B.numCols ) {
+    public static void multAdd( FMatrix1Row A, FMatrixD1 B, FMatrixD1 C ) {
+        if (B.numRows == 1) {
+            if (A.numCols != B.numCols) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
-        } else if( B.numCols == 1 ) {
-            if( A.numCols != B.numRows ) {
+        } else if (B.numCols == 1) {
+            if (A.numCols != B.numRows) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
         } else {
             throw new MatrixDimensionException("B is not a vector");
         }
-        C.reshape(A.numRows,1);
+        if (A.numRows != C.getNumElements())
+            throw new MatrixDimensionException("C is not compatible with A");
 
-        if( A.numCols == 0 ) {
+        if (A.numCols == 0) {
             return;
         }
 
         int indexA = 0;
         int cIndex = 0;
-        for( int i = 0; i < A.numRows; i++ ) {
-            float total = A.get(indexA++) * B.get(0);
+        for (int i = 0; i < A.numRows; i++) {
+            float total = A.get(indexA++)*B.get(0);
 
-            for( int j = 1; j < A.numCols; j++ ) {
-                total += A.get(indexA++) * B.get(j);
+            for (int j = 1; j < A.numCols; j++) {
+                total += A.get(indexA++)*B.get(j);
             }
 
-            C.plus(cIndex++ , total );
+            C.plus(cIndex++, total);
         }
     }
 
@@ -166,33 +166,32 @@ public class MatrixVectorMult_FDRM {
      * @param B A that has length m and is a column. Not modified.
      * @param C A column vector that has length n. Modified.
      */
-    public static void multTransA_small(FMatrix1Row A , FMatrixD1 B , FMatrixD1 C )
-    {
-        if( B.numRows == 1 ) {
-            if( A.numRows != B.numCols ) {
+    public static void multTransA_small( FMatrix1Row A, FMatrixD1 B, FMatrixD1 C ) {
+        if (B.numRows == 1) {
+            if (A.numRows != B.numCols) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
-        } else if( B.numCols == 1 ) {
-            if( A.numRows != B.numRows ) {
+        } else if (B.numCols == 1) {
+            if (A.numRows != B.numRows) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
         } else {
             throw new MatrixDimensionException("B is not a vector");
         }
 
-        C.reshape(A.numCols,1);
+        C.reshape(A.numCols, 1);
 
         int cIndex = 0;
-        for( int i = 0; i < A.numCols; i++ ) {
+        for (int i = 0; i < A.numCols; i++) {
             float total = 0.0f;
 
             int indexA = i;
-            for( int j = 0; j < A.numRows; j++ ) {
-                total += A.get(indexA) * B.get(j);
+            for (int j = 0; j < A.numRows; j++) {
+                total += A.get(indexA)*B.get(j);
                 indexA += A.numCols;
             }
 
-            C.set(cIndex++ , total);
+            C.set(cIndex++, total);
         }
     }
 
@@ -204,36 +203,35 @@ public class MatrixVectorMult_FDRM {
      * @param B A Vector that has length m. Not modified.
      * @param C A column vector that has length n. Modified.
      */
-    public static void multTransA_reorder(FMatrix1Row A , FMatrixD1 B , FMatrixD1 C )
-    {
-        if( B.numRows == 1 ) {
-            if( A.numRows != B.numCols ) {
+    public static void multTransA_reorder( FMatrix1Row A, FMatrixD1 B, FMatrixD1 C ) {
+        if (B.numRows == 1) {
+            if (A.numRows != B.numCols) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
-        } else if( B.numCols == 1 ) {
-            if( A.numRows != B.numRows ) {
+        } else if (B.numCols == 1) {
+            if (A.numRows != B.numRows) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
         } else {
             throw new MatrixDimensionException("B is not a vector");
         }
-        C.reshape(A.numCols,1);
+        C.reshape(A.numCols, 1);
 
-        if( A.numRows == 0 ) {
-            CommonOps_FDRM.fill(C,0);
+        if (A.numRows == 0) {
+            CommonOps_FDRM.fill(C, 0);
             return;
         }
 
         float B_val = B.get(0);
-        for( int i = 0; i < A.numCols; i++ ) {
-            C.set( i , A.get(i) * B_val );
+        for (int i = 0; i < A.numCols; i++) {
+            C.set(i, A.get(i)*B_val);
         }
 
         int indexA = A.numCols;
-        for( int i = 1; i < A.numRows; i++ ) {
+        for (int i = 1; i < A.numRows; i++) {
             B_val = B.get(i);
-            for( int j = 0; j < A.numCols; j++ ) {
-                C.plus(  j , A.get(indexA++) * B_val );
+            for (int j = 0; j < A.numCols; j++) {
+                C.plus(j, A.get(indexA++)*B_val);
             }
         }
     }
@@ -259,32 +257,32 @@ public class MatrixVectorMult_FDRM {
      * @param B A vector that has length m. Not modified.
      * @param C A column vector that has length n. Modified.
      */
-    public static void multAddTransA_small(FMatrix1Row A , FMatrixD1 B , FMatrixD1 C )
-    {
-        if( B.numRows == 1 ) {
-            if( A.numRows != B.numCols ) {
+    public static void multAddTransA_small( FMatrix1Row A, FMatrixD1 B, FMatrixD1 C ) {
+        if (B.numRows == 1) {
+            if (A.numRows != B.numCols) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
-        } else if( B.numCols == 1 ) {
-            if( A.numRows != B.numRows ) {
+        } else if (B.numCols == 1) {
+            if (A.numRows != B.numRows) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
         } else {
             throw new MatrixDimensionException("B is not a vector");
         }
-        C.reshape(A.numCols,1);
+        if (A.numCols != C.getNumElements())
+            throw new MatrixDimensionException("C is not compatible with A");
 
         int cIndex = 0;
-        for( int i = 0; i < A.numCols; i++ ) {
+        for (int i = 0; i < A.numCols; i++) {
             float total = 0.0f;
 
             int indexA = i;
-            for( int j = 0; j < A.numRows; j++ ) {
-                total += A.get(indexA) * B.get(j);
+            for (int j = 0; j < A.numRows; j++) {
+                total += A.get(indexA)*B.get(j);
                 indexA += A.numCols;
             }
 
-            C.plus( cIndex++ , total );
+            C.plus(cIndex++, total);
         }
     }
 
@@ -296,32 +294,26 @@ public class MatrixVectorMult_FDRM {
      * @param B A vector that has length m. Not modified.
      * @param C A column vector that has length n. Modified.
      */
-    public static void multAddTransA_reorder(FMatrix1Row A , FMatrixD1 B , FMatrixD1 C )
-    {
-        if( C.numCols != 1 ) {
-            throw new MatrixDimensionException("C is not a column vector");
-        } else if( C.numRows != A.numCols ) {
-            throw new MatrixDimensionException("C is not the expected length");
-        }
-        if( B.numRows == 1 ) {
-            if( A.numRows != B.numCols ) {
+    public static void multAddTransA_reorder( FMatrix1Row A, FMatrixD1 B, FMatrixD1 C ) {
+        if (B.numRows == 1) {
+            if (A.numRows != B.numCols) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
-        } else if( B.numCols == 1 ) {
-            if( A.numRows != B.numRows ) {
+        } else if (B.numCols == 1) {
+            if (A.numRows != B.numRows) {
                 throw new MatrixDimensionException("A and B are not compatible");
             }
         } else {
             throw new MatrixDimensionException("B is not a vector");
         }
-
-        C.reshape(A.numCols,1);
+        if (A.numCols != C.getNumElements())
+            throw new MatrixDimensionException("C is not compatible with A");
 
         int indexA = 0;
-        for( int j = 0; j < A.numRows; j++ ) {
+        for (int j = 0; j < A.numRows; j++) {
             float B_val = B.get(j);
-            for( int i = 0; i < A.numCols; i++ ) {
-                C.plus( i , A.get(indexA++) * B_val );
+            for (int i = 0; i < A.numCols; i++) {
+                C.plus(i, A.get(indexA++)*B_val);
             }
         }
     }
@@ -330,18 +322,17 @@ public class MatrixVectorMult_FDRM {
      * scalar = A<sup>T</sup>*B*C
      *
      * @param a (Input) vector
-     * @param offsetA  Input) first index in vector a
+     * @param offsetA Input) first index in vector a
      * @param B (Input) Matrix
      * @param c (Output) vector
      * @param offsetC (Output) first index in vector c
      */
-    public static float innerProduct( float a[] , int offsetA ,
-                                       FMatrix1Row B ,
-                                       float c[] , int offsetC )
-    {
-        if( a.length-offsetA < B.numRows)
+    public static float innerProduct( float a[], int offsetA,
+                                       FMatrix1Row B,
+                                       float c[], int offsetC ) {
+        if (a.length - offsetA < B.numRows)
             throw new IllegalArgumentException("Length of 'a' isn't long enough");
-        if( c.length-offsetC < B.numCols)
+        if (c.length - offsetC < B.numCols)
             throw new IllegalArgumentException("Length of 'c' isn't long enough");
 
         int cols = B.numCols;
@@ -350,9 +341,9 @@ public class MatrixVectorMult_FDRM {
         for (int k = 0; k < B.numCols; k++) {
             float sum = 0;
             for (int i = 0; i < B.numRows; i++) {
-                sum += a[offsetA+i]*B.data[k+i*cols];
+                sum += a[offsetA + i]*B.data[k + i*cols];
             }
-            output += sum*c[offsetC+k];
+            output += sum*c[offsetC + k];
         }
 
         return output;

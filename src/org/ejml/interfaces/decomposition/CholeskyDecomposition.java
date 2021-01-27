@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -19,6 +19,7 @@
 package org.ejml.interfaces.decomposition;
 
 import org.ejml.data.Matrix;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -59,5 +60,5 @@ public interface CholeskyDecomposition<MatrixType extends Matrix>
      * @param T If not null then the decomposed matrix is written here.
      * @return A lower or upper triangular matrix.
      */
-    MatrixType getT(MatrixType T);
+    MatrixType getT(@Nullable MatrixType T);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,13 +18,13 @@
 
 package org.ejml.dense.row.linsol.qr;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.CommonOps_FDRM;
 import org.ejml.dense.row.SpecializedOps_FDRM;
 import org.ejml.dense.row.decomposition.TriangularSolver_FDRM;
 import org.ejml.dense.row.linsol.LinearSolverAbstract_FDRM;
 import org.ejml.interfaces.decomposition.QRDecomposition;
-
 
 /**
  * <p>
@@ -40,6 +40,8 @@ import org.ejml.interfaces.decomposition.QRDecomposition;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.linsol.qr.LinearSolverQr_DDRM")
 public class LinearSolverQr_FDRM extends LinearSolverAbstract_FDRM {
 
     private QRDecomposition<FMatrixRMaj> decomposer;
@@ -50,13 +52,12 @@ public class LinearSolverQr_FDRM extends LinearSolverAbstract_FDRM {
     protected FMatrixRMaj Q;
     protected FMatrixRMaj R;
 
-    private FMatrixRMaj Y,Z;
+    private FMatrixRMaj Y, Z;
 
     /**
      * Creates a linear solver that uses QR decomposition.
-     *
      */
-    public LinearSolverQr_FDRM(QRDecomposition<FMatrixRMaj> decomposer) {
+    public LinearSolverQr_FDRM( QRDecomposition<FMatrixRMaj> decomposer ) {
         this.decomposer = decomposer;
     }
 
@@ -66,15 +67,15 @@ public class LinearSolverQr_FDRM extends LinearSolverAbstract_FDRM {
      * @param maxRows Maximum number of rows in the matrix it will decompose.
      * @param maxCols Maximum number of columns in the matrix it will decompose.
      */
-    public void setMaxSize( int maxRows , int maxCols )
-    {
-        this.maxRows = maxRows; this.maxCols = maxCols;
+    public void setMaxSize( int maxRows, int maxCols ) {
+        this.maxRows = maxRows;
+        this.maxCols = maxCols;
 
-        Q = new FMatrixRMaj(maxRows,maxRows);
-        R = new FMatrixRMaj(maxRows,maxCols);
+        Q = new FMatrixRMaj(maxRows, maxRows);
+        R = new FMatrixRMaj(maxRows, maxCols);
 
-        Y = new FMatrixRMaj(maxRows,1);
-        Z = new FMatrixRMaj(maxRows,1);
+        Y = new FMatrixRMaj(maxRows, 1);
+        Z = new FMatrixRMaj(maxRows, 1);
     }
 
     /**
@@ -83,19 +84,19 @@ public class LinearSolverQr_FDRM extends LinearSolverAbstract_FDRM {
      * @param A not modified.
      */
     @Override
-    public boolean setA(FMatrixRMaj A) {
-        if( A.numRows > maxRows || A.numCols > maxCols ) {
-            setMaxSize(A.numRows,A.numCols);
+    public boolean setA( FMatrixRMaj A ) {
+        if (A.numRows > maxRows || A.numCols > maxCols) {
+            setMaxSize(A.numRows, A.numCols);
         }
 
         _setA(A);
-        if( !decomposer.decompose(A) )
+        if (!decomposer.decompose(A))
             return false;
 
-        Q.reshape(numRows,numRows, false);
-        R.reshape(numRows,numCols, false);
-        decomposer.getQ(Q,false);
-        decomposer.getR(R,false);
+        Q.reshape(numRows, numRows, false);
+        R.reshape(numRows, numCols, false);
+        decomposer.getQ(Q, false);
+        decomposer.getR(R, false);
 
         return true;
     }
@@ -112,34 +113,34 @@ public class LinearSolverQr_FDRM extends LinearSolverAbstract_FDRM {
      * @param X An n by m matrix where the solution is written to.  Modified.
      */
     @Override
-    public void solve(FMatrixRMaj B, FMatrixRMaj X) {
-        if( B.numRows != numRows )
-            throw new IllegalArgumentException("Unexpected dimensions for X: X rows = "+X.numRows+" expected = "+numCols);
-        X.reshape(numCols,B.numCols);
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
+        if (B.numRows != numRows)
+            throw new IllegalArgumentException("Unexpected dimensions for X: X rows = " + X.numRows + " expected = " + numCols);
+        X.reshape(numCols, B.numCols);
 
         int BnumCols = B.numCols;
 
-        Y.reshape(numRows,1, false);
-        Z.reshape(numRows,1, false);
+        Y.reshape(numRows, 1, false);
+        Z.reshape(numRows, 1, false);
 
         // solve each column one by one
-        for( int colB = 0; colB < BnumCols; colB++ ) {
+        for (int colB = 0; colB < BnumCols; colB++) {
 
             // make a copy of this column in the vector
-            for( int i = 0; i < numRows; i++ ) {
-                Y.data[i] = B.get(i,colB);
+            for (int i = 0; i < numRows; i++) {
+                Y.data[i] = B.get(i, colB);
             }
 
             // Solve Qa=b
             // a = Q'b
-            CommonOps_FDRM.multTransA(Q,Y,Z);
+            CommonOps_FDRM.multTransA(Q, Y, Z);
 
             // solve for Rx = b using the standard upper triangular solver
-            TriangularSolver_FDRM.solveU(R.data,Z.data,numCols);
+            TriangularSolver_FDRM.solveU(R.data, Z.data, numCols);
 
             // save the results
-            for( int i = 0; i < numCols; i++ ) {
-                X.set(i,colB,Z.data[i]);
+            for (int i = 0; i < numCols; i++) {
+                X.set(i, colB, Z.data[i]);
             }
         }
     }

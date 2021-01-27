@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2018, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -28,36 +28,37 @@ import org.ejml.interfaces.decomposition.SingularValueDecomposition_F64;
 /**
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
 public class SolveNullSpaceSvd_DDRM implements SolveNullSpace<DMatrixRMaj> {
 
     boolean compact = true;
-    SingularValueDecomposition_F64<DMatrixRMaj> svd = DecompositionFactory_DDRM.svd(1,1,false,true,compact);
+    SingularValueDecomposition_F64<DMatrixRMaj> svd = DecompositionFactory_DDRM.svd(1, 1, false, true, compact);
     DMatrixRMaj V;
 
     @Override
-    public boolean process(DMatrixRMaj input, int numberOfSingular, DMatrixRMaj nullspace) {
-        if( input.numCols > input.numRows ) {
-            if( compact ) {
+    public boolean process( DMatrixRMaj input, int numberOfSingular, DMatrixRMaj nullspace ) {
+        if (input.numCols > input.numRows) {
+            if (compact) {
                 svd = DecompositionFactory_DDRM.svd(1, 1, false, true, false);
                 compact = false;
             }
         } else {
-            if( !compact ) {
+            if (!compact) {
                 svd = DecompositionFactory_DDRM.svd(1, 1, false, true, true);
                 compact = true;
             }
         }
 
-        if( !svd.decompose(input))
+        if (!svd.decompose(input))
             return false;
 
-        double []singularValues = svd.getSingularValues();
-        V = svd.getV(V,false);
+        double[] singularValues = svd.getSingularValues();
+        V = svd.getV(V, false);
 
-        SingularOps_DDRM.descendingOrder(null,false,singularValues,svd.numberOfSingularValues(),V,false);
+        SingularOps_DDRM.descendingOrder(null, false, singularValues, svd.numberOfSingularValues(), V, false);
 
-        nullspace.reshape(V.numRows,numberOfSingular);
-        CommonOps_DDRM.extract(V,0,V.numRows,V.numCols-numberOfSingular,V.numCols,nullspace,0,0);
+        nullspace.reshape(V.numRows, numberOfSingular);
+        CommonOps_DDRM.extract(V, 0, V.numRows, V.numCols - numberOfSingular, V.numCols, nullspace, 0, 0);
 
         return true;
     }

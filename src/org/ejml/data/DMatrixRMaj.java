@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -19,7 +19,7 @@
 package org.ejml.data;
 
 import org.ejml.UtilEjml;
-import org.ejml.ops.ConvertDArrays;
+import org.ejml.ops.DConvertArrays;
 import org.ejml.ops.MatrixIO;
 
 import java.io.ByteArrayOutputStream;
@@ -334,11 +334,19 @@ public class DMatrixRMaj extends DMatrix1Row {
     }
 
     /**
+     * Sets all elements equal to the specified value.
+     */
+    public void fill(double value) {
+        Arrays.fill(data, 0, getNumElements(), value);
+    }
+
+    /**
      * Creates and returns a matrix which is idential to this one.
      *
      * @return A new identical matrix.
      */
     @SuppressWarnings({"unchecked"})
+    @Override
     public DMatrixRMaj copy() {
         return new DMatrixRMaj(this);
     }
@@ -398,6 +406,6 @@ public class DMatrixRMaj extends DMatrix1Row {
      * @param input 2D array which this matrix will be set to
      */
     public void set( double[][]input ) {
-        ConvertDArrays.convert(input,this);
+        DConvertArrays.convert(input,this);
     }
 }

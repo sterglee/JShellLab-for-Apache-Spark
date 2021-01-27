@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2019, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.simple.ops;
 
+import javax.annotation.Generated;
 import org.ejml.data.Complex_F64;
 import org.ejml.data.Matrix;
 import org.ejml.data.CMatrixRMaj;
@@ -36,259 +37,259 @@ import java.io.PrintStream;
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.simple.ops.SimpleOperations_ZDRM")
 public class SimpleOperations_CDRM implements SimpleOperations<CMatrixRMaj> {
     @Override
-    public void set(CMatrixRMaj A, int row, int column, /**/double value) {
-        A.set(row,column, (float)value, 0);
+    public void set( CMatrixRMaj A, int row, int column, /**/double value ) {
+        A.set(row, column, (float)value, 0);
     }
 
     @Override
-    public void set(CMatrixRMaj A, int row, int column, /**/double real, /**/double imaginary) {
-        A.set(row,column, (float)real, (float)imaginary);
+    public void set( CMatrixRMaj A, int row, int column, /**/double real, /**/double imaginary ) {
+        A.set(row, column, (float)real, (float)imaginary);
     }
 
     @Override
-    public /**/double get(CMatrixRMaj A, int row, int column) {
-        return (float)A.getReal(row,column);
+    public /**/double get( CMatrixRMaj A, int row, int column ) {
+        return (float)A.getReal(row, column);
     }
 
     @Override
-    public void get(CMatrixRMaj A, int row, int column, Complex_F64 value) {
-        int index = A.getIndex(row,column);
+    public void get( CMatrixRMaj A, int row, int column, Complex_F64 value ) {
+        int index = A.getIndex(row, column);
         value.real = A.data[index];
-        value.imaginary = A.data[index+1];
+        value.imaginary = A.data[index + 1];
     }
 
     @Override
-    public void fill(CMatrixRMaj A, /**/double value) {
-        CommonOps_CDRM.fill(A, (float)value,0);
+    public void fill( CMatrixRMaj A, /**/double value ) {
+        CommonOps_CDRM.fill(A, (float)value, 0);
     }
 
     @Override
-    public void transpose(CMatrixRMaj input, CMatrixRMaj output) {
-        CommonOps_CDRM.transpose(input,output);
+    public void transpose( CMatrixRMaj input, CMatrixRMaj output ) {
+        CommonOps_CDRM.transpose(input, output);
     }
 
     @Override
-    public void mult(CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output) {
-        CommonOps_CDRM.mult(A,B,output);
+    public void mult( CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output ) {
+        CommonOps_CDRM.mult(A, B, output);
     }
 
     @Override
-    public void multTransA(CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output) {
-        CommonOps_CDRM.multTransA(A,B,output);
+    public void multTransA( CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output ) {
+        CommonOps_CDRM.multTransA(A, B, output);
     }
 
     @Override
-    public void kron(CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output) {
+    public void kron( CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output ) {
 //        CommonOps_CDRM.kron(A,B,output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void plus(CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output) {
-        CommonOps_CDRM.add(A,B,output);
+    public void plus( CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output ) {
+        CommonOps_CDRM.add(A, B, output);
     }
 
     @Override
-    public void minus(CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output) {
-        CommonOps_CDRM.subtract(A,B,output);
+    public void minus( CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output ) {
+        CommonOps_CDRM.subtract(A, B, output);
     }
 
     @Override
-    public void minus(CMatrixRMaj A, /**/double b, CMatrixRMaj output) {
+    public void minus( CMatrixRMaj A, /**/double b, CMatrixRMaj output ) {
 //        CommonOps_CDRM.subtract(A, (float)b, output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void plus(CMatrixRMaj A, /**/double b, CMatrixRMaj output) {
+    public void plus( CMatrixRMaj A, /**/double b, CMatrixRMaj output ) {
 //        CommonOps_CDRM.add(A, (float)b, output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void plus(CMatrixRMaj A, /**/double beta, CMatrixRMaj b, CMatrixRMaj output) {
+    public void plus( CMatrixRMaj A, /**/double beta, CMatrixRMaj b, CMatrixRMaj output ) {
 //        CommonOps_CDRM.add(A, (float)beta, b, output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void plus( /**/double alpha, CMatrixRMaj A, /**/double beta, CMatrixRMaj b, CMatrixRMaj output) {
+    public void plus( /**/double alpha, CMatrixRMaj A, /**/double beta, CMatrixRMaj b, CMatrixRMaj output ) {
         throw new UnsupportedOperation();
     }
 
     @Override
-    public /**/double dot(CMatrixRMaj A, CMatrixRMaj v) {
+    public /**/double dot( CMatrixRMaj A, CMatrixRMaj v ) {
 //        return VectorVectorMult_FDRM.innerProd(A, v);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void scale(CMatrixRMaj A, /**/double val, CMatrixRMaj output) {
+    public void scale( CMatrixRMaj A, /**/double val, CMatrixRMaj output ) {
 //        CommonOps_CDRM.scale( (float)val, 0,A,output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void divide(CMatrixRMaj A, /**/double val, CMatrixRMaj output) {
+    public void divide( CMatrixRMaj A, /**/double val, CMatrixRMaj output ) {
 //        CommonOps_CDRM.divide( A, (float)val,output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public boolean invert(CMatrixRMaj A, CMatrixRMaj output) {
-        return CommonOps_CDRM.invert(A,output);
+    public boolean invert( CMatrixRMaj A, CMatrixRMaj output ) {
+        return CommonOps_CDRM.invert(A, output);
     }
 
     @Override
-    public void setIdentity(CMatrixRMaj A) {
+    public void setIdentity( CMatrixRMaj A ) {
         CommonOps_CDRM.setIdentity(A);
     }
 
     @Override
-    public void pseudoInverse(CMatrixRMaj A, CMatrixRMaj output) {
+    public void pseudoInverse( CMatrixRMaj A, CMatrixRMaj output ) {
 //        CommonOps_CDRM.pinv(A,output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public boolean solve(CMatrixRMaj A, CMatrixRMaj X, CMatrixRMaj B) {
-        return CommonOps_CDRM.solve(A,B,X);
+    public boolean solve( CMatrixRMaj A, CMatrixRMaj X, CMatrixRMaj B ) {
+        return CommonOps_CDRM.solve(A, B, X);
     }
 
     @Override
-    public void zero(CMatrixRMaj A) {
+    public void zero( CMatrixRMaj A ) {
         A.zero();
     }
 
     @Override
-    public /**/double normF(CMatrixRMaj A) {
+    public /**/double normF( CMatrixRMaj A ) {
         return NormOps_CDRM.normF(A);
     }
 
     @Override
-    public /**/double conditionP2(CMatrixRMaj A) {
+    public /**/double conditionP2( CMatrixRMaj A ) {
 //        return NormOps_CDRM.conditionP2(A);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public /**/double determinant(CMatrixRMaj A) {
+    public /**/double determinant( CMatrixRMaj A ) {
         return CommonOps_CDRM.det(A).real;
     }
 
     @Override
-    public /**/double trace(CMatrixRMaj A) {
+    public /**/double trace( CMatrixRMaj A ) {
 //        return CommonOps_CDRM.trace(A);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void setRow(CMatrixRMaj A, int row, int startColumn, /**/double... values) {
+    public void setRow( CMatrixRMaj A, int row, int startColumn, /**/double... values ) {
         for (int i = 0; i < values.length; i++) {
-            A.set(row, startColumn + i, (float)values[i],0);
+            A.set(row, startColumn + i, (float)values[i], 0);
         }
     }
 
     @Override
-    public void setColumn(CMatrixRMaj A, int column, int startRow,  /**/double... values) {
+    public void setColumn( CMatrixRMaj A, int column, int startRow,  /**/double... values ) {
         for (int i = 0; i < values.length; i++) {
-            A.set(startRow + i, column, (float)values[i],0);
+            A.set(startRow + i, column, (float)values[i], 0);
         }
     }
 
     @Override
-    public void extract(CMatrixRMaj src, int srcY0, int srcY1, int srcX0, int srcX1, CMatrixRMaj dst, int dstY0, int dstX0) {
-        CommonOps_CDRM.extract(src,srcY0,srcY1,srcX0,srcX1,dst,dstY0,dstX0);
+    public void extract( CMatrixRMaj src, int srcY0, int srcY1, int srcX0, int srcX1, CMatrixRMaj dst, int dstY0, int dstX0 ) {
+        CommonOps_CDRM.extract(src, srcY0, srcY1, srcX0, srcX1, dst, dstY0, dstX0);
     }
 
     @Override
-    public CMatrixRMaj diag(CMatrixRMaj A) {
+    public CMatrixRMaj diag( CMatrixRMaj A ) {
         CMatrixRMaj output;
         if (MatrixFeatures_CDRM.isVector(A)) {
-            int N = Math.max(A.numCols,A.numRows);
-            output = new CMatrixRMaj(N,N);
-            CommonOps_CDRM.diag(output,N,A.data);
+            int N = Math.max(A.numCols, A.numRows);
+            output = new CMatrixRMaj(N, N);
+            CommonOps_CDRM.diag(output, N, A.data);
         } else {
-            int N = Math.min(A.numCols,A.numRows);
-            output = new CMatrixRMaj(N,1);
-            CommonOps_CDRM.extractDiag(A,output);
+            int N = Math.min(A.numCols, A.numRows);
+            output = new CMatrixRMaj(N, 1);
+            CommonOps_CDRM.extractDiag(A, output);
         }
         return output;
     }
 
     @Override
-    public boolean hasUncountable(CMatrixRMaj M) {
+    public boolean hasUncountable( CMatrixRMaj M ) {
         return MatrixFeatures_CDRM.hasUncountable(M);
     }
 
     @Override
-    public void changeSign(CMatrixRMaj a) {
+    public void changeSign( CMatrixRMaj a ) {
 //        CommonOps_CDRM.changeSign(a);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public /**/double elementMaxAbs(CMatrixRMaj A) {
+    public /**/double elementMaxAbs( CMatrixRMaj A ) {
         return CommonOps_CDRM.elementMaxAbs(A);
     }
 
     @Override
-    public /**/double elementMinAbs(CMatrixRMaj A) {
+    public /**/double elementMinAbs( CMatrixRMaj A ) {
         return CommonOps_CDRM.elementMinAbs(A);
     }
 
     @Override
-    public /**/double elementSum(CMatrixRMaj A) {
+    public /**/double elementSum( CMatrixRMaj A ) {
 //        return CommonOps_CDRM.elementSum(A);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void elementMult(CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output) {
+    public void elementMult( CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output ) {
 //        CommonOps_CDRM.elementMult(A,B,output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void elementDiv(CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output) {
+    public void elementDiv( CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output ) {
 //        CommonOps_CDRM.elementDiv(A,B,output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void elementPower(CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output) {
+    public void elementPower( CMatrixRMaj A, CMatrixRMaj B, CMatrixRMaj output ) {
 //        CommonOps_CDRM.elementPower(A,B,output);
         throw new UnsupportedOperation();
-
     }
 
     @Override
-    public void elementPower(CMatrixRMaj A, /**/double b, CMatrixRMaj output) {
+    public void elementPower( CMatrixRMaj A, /**/double b, CMatrixRMaj output ) {
 //        CommonOps_CDRM.elementPower(A, (float)b, output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void elementExp(CMatrixRMaj A, CMatrixRMaj output) {
+    public void elementExp( CMatrixRMaj A, CMatrixRMaj output ) {
 //        CommonOps_CDRM.elementExp(A,output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public void elementLog(CMatrixRMaj A, CMatrixRMaj output) {
+    public void elementLog( CMatrixRMaj A, CMatrixRMaj output ) {
 //        CommonOps_CDRM.elementLog(A,output);
         throw new UnsupportedOperation();
     }
 
     @Override
-    public boolean isIdentical(CMatrixRMaj A, CMatrixRMaj B, /**/double tol) {
+    public boolean isIdentical( CMatrixRMaj A, CMatrixRMaj B, /**/double tol ) {
         return MatrixFeatures_CDRM.isIdentical(A, B, (float)tol);
     }
 
     @Override
-    public void print(PrintStream out, Matrix mat, String format) {
+    public void print( PrintStream out, Matrix mat, String format ) {
         MatrixIO.print(out, (CMatrixRMaj)mat, format);
     }
 }

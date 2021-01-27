@@ -18,6 +18,7 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
 import org.ejml.EjmlParameters;
 import org.ejml.UtilEjml;
 
@@ -29,6 +30,7 @@ import java.util.Arrays;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.data.DMatrixRBlock")
 public class FMatrixRBlock extends FMatrixD1 {
     public int blockLength;
 
@@ -157,12 +159,12 @@ public class FMatrixRBlock extends FMatrixD1 {
 
     @Override
     public <T extends Matrix> T createLike() {
-        return (T)new FMatrixRBlock(numRows,numCols);
+        return (T)new FMatrixRBlock(numRows,numCols,blockLength);
     }
 
     @Override
     public <T extends Matrix> T create(int numRows, int numCols) {
-        return (T)new FMatrixRBlock(numRows,numCols);
+        return (T)new FMatrixRBlock(numRows,numCols,blockLength);
     }
 
     @Override
@@ -185,6 +187,7 @@ public class FMatrixRBlock extends FMatrixD1 {
         return numRows*numCols;
     }
 
+    @Override
     public FMatrixRBlock copy() {
         FMatrixRBlock A = new FMatrixRBlock(numRows,numCols,blockLength);
         A.set(this);

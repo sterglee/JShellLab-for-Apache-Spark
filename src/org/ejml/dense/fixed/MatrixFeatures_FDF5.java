@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,9 +18,10 @@
 
 package org.ejml.dense.fixed;
 
-import org.ejml.UtilEjml;
+import javax.annotation.Generated;
 import org.ejml.data.FMatrix5;
 import org.ejml.data.FMatrix5x5;
+import org.ejml.UtilEjml;
 
 /**
  * <p>Matrix features for fixed sized matrices which are 5 x 5 or 5 element vectors.</p>
@@ -28,6 +29,7 @@ import org.ejml.data.FMatrix5x5;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.fixed.GenerateFixedFeatures")
 public class MatrixFeatures_FDF5 {
     public static boolean isIdentical(FMatrix5x5 a , FMatrix5x5 b , float tol ) {
         if( !UtilEjml.isIdentical(a.a11,b.a11,tol))

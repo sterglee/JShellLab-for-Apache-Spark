@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2019, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.sparse.csc.decomposition.chol;
 
+import javax.annotation.Generated;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.FGrowArray;
 import org.ejml.data.FMatrixSparseCSC;
@@ -25,6 +26,7 @@ import org.ejml.data.IGrowArray;
 import org.ejml.interfaces.decomposition.CholeskySparseDecomposition_F32;
 import org.ejml.sparse.csc.misc.ColumnCounts_FSCC;
 import org.ejml.sparse.csc.misc.TriangularSolver_FSCC;
+import org.jetbrains.annotations.Nullable;
 
 import static org.ejml.UtilEjml.adjust;
 
@@ -35,21 +37,21 @@ import static org.ejml.UtilEjml.adjust;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.sparse.csc.decomposition.chol.CholeskyUpLooking_DSCC")
 public class CholeskyUpLooking_FSCC implements
-        CholeskySparseDecomposition_F32<FMatrixSparseCSC>
-{
+        CholeskySparseDecomposition_F32<FMatrixSparseCSC> {
     private int N;
 
     // storage for decomposition
-    FMatrixSparseCSC L = new FMatrixSparseCSC(1,1,0);
+    FMatrixSparseCSC L = new FMatrixSparseCSC(1, 1, 0);
 
     // workspace storage
     IGrowArray gw = new IGrowArray(1);
     IGrowArray gs = new IGrowArray(1);
     FGrowArray gx = new FGrowArray(1);
-    int []parent = new int[1];
-    int []post = new int[1];
-    int []counts = new int[1];
+    int[] parent = new int[1];
+    int[] post = new int[1];
+    int[] counts = new int[1];
     ColumnCounts_FSCC columnCounter = new ColumnCounts_FSCC(false);
 
     // true if it has successfully decomposed a matrix
@@ -58,14 +60,14 @@ public class CholeskyUpLooking_FSCC implements
     private boolean locked = false;
 
     @Override
-    public boolean decompose(FMatrixSparseCSC orig) {
-        if( orig.numCols != orig.numRows )
+    public boolean decompose( FMatrixSparseCSC orig ) {
+        if (orig.numCols != orig.numRows)
             throw new IllegalArgumentException("Must be a square matrix");
 
-        if( !locked || !decomposed)
+        if (!locked || !decomposed)
             performSymbolic(orig);
 
-        if( performDecomposition(orig) ) {
+        if (performDecomposition(orig)) {
             decomposed = true;
             return true;
         } else {
@@ -73,19 +75,19 @@ public class CholeskyUpLooking_FSCC implements
         }
     }
 
-    public void performSymbolic(FMatrixSparseCSC A) {
+    public void performSymbolic( FMatrixSparseCSC A ) {
         init(A.numCols);
 
-        TriangularSolver_FSCC.eliminationTree(A,false,parent, gw);
-        TriangularSolver_FSCC.postorder(parent,N,post, gw);
-        columnCounter.process(A,parent,post,counts);
-        L.reshape(A.numRows,A.numCols,0);
+        TriangularSolver_FSCC.eliminationTree(A, false, parent, gw);
+        TriangularSolver_FSCC.postorder(parent, N, post, gw);
+        columnCounter.process(A, parent, post, counts);
+        L.reshape(A.numRows, A.numCols, 0);
         L.histogramToStructure(counts);
     }
 
     private void init( int N ) {
         this.N = N;
-        if( parent.length < N ) {
+        if (parent.length < N) {
             parent = new int[N];
             post = new int[N];
             counts = new int[N];
@@ -93,25 +95,25 @@ public class CholeskyUpLooking_FSCC implements
         }
     }
 
-    private boolean performDecomposition(FMatrixSparseCSC A) {
-        int []c = adjust(gw,N);
-        int []s = adjust(gs,N);
-        float []x = adjust(gx,N);
+    private boolean performDecomposition( FMatrixSparseCSC A ) {
+        int[] c = adjust(gw, N);
+        int[] s = adjust(gs, N);
+        float[] x = adjust(gx, N);
 
         System.arraycopy(L.col_idx, 0, c, 0, N);
 
         for (int k = 0; k < N; k++) {
             //----  Nonzero pattern of L(k,:)
-            int top = TriangularSolver_FSCC.searchNzRowsElim(A,k,parent,s,c);
+            int top = TriangularSolver_FSCC.searchNzRowsElim(A, k, parent, s, c);
 
             // x(0:k) is now zero
             x[k] = 0;
             int idx0 = A.col_idx[k];
-            int idx1 = A.col_idx[k+1];
+            int idx1 = A.col_idx[k + 1];
 
             // x = full(triu(C(:,k)))
             for (int p = idx0; p < idx1; p++) {
-                if( A.nz_rows[p] <= k) {
+                if (A.nz_rows[p] <= k) {
                     x[A.nz_rows[p]] = A.nz_values[p];
                 }
             }
@@ -119,11 +121,11 @@ public class CholeskyUpLooking_FSCC implements
             x[k] = 0; // clear x for k+1 iteration
 
             //---- Triangular Solve
-            for(; top < N; top++ ) {
+            for (; top < N; top++) {
                 int i = s[top];
                 float lki = x[i]/L.nz_values[L.col_idx[i]]; // L(k,i) = x(i) / L(i,i)
                 x[i] = 0;
-                for (int p = L.col_idx[i]+1; p < c[i]; p++) {
+                for (int p = L.col_idx[i] + 1; p < c[i]; p++) {
                     x[L.nz_rows[p]] -= L.nz_values[p]*lki;
                 }
                 d -= lki*lki; // d = d - L(k,i)**L(k,i)
@@ -133,7 +135,7 @@ public class CholeskyUpLooking_FSCC implements
             }
 
             //----- Compute L(k,k)
-            if( d <= 0 ) {
+            if (d <= 0) {
                 // it's not positive definite
                 return false;
             }
@@ -156,9 +158,9 @@ public class CholeskyUpLooking_FSCC implements
     }
 
     @Override
-    public FMatrixSparseCSC getT(FMatrixSparseCSC T) {
-        if( T == null ) {
-            T = new FMatrixSparseCSC(L.numRows,L.numCols,L.nz_length);
+    public FMatrixSparseCSC getT( @Nullable FMatrixSparseCSC T ) {
+        if (T == null) {
+            T = new FMatrixSparseCSC(L.numRows, L.numCols, L.nz_length);
         }
         T.set(L);
         return T;
@@ -170,13 +172,12 @@ public class CholeskyUpLooking_FSCC implements
         for (int i = 0; i < N; i++) {
             value *= L.nz_values[L.col_idx[i]];
         }
-        return new Complex_F32(value*value,0);
+        return new Complex_F32(value*value, 0);
     }
 
     public FGrowArray getGx() {
         return gx;
     }
-
 
     public FMatrixSparseCSC getL() {
         return L;

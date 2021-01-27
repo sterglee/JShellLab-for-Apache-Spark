@@ -18,9 +18,11 @@
 
 package org.ejml.ops;
 
+import javax.annotation.Generated;
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.ops.SortCoupledArray_F64")
 public class SortCoupledArray_F32 {
 
     int tmp[] = new int[0];

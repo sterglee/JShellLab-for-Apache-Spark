@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,14 +18,17 @@
 
 package org.ejml.dense.row;
 
+import javax.annotation.Generated;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.CMatrixRMaj;
 import org.ejml.dense.row.mult.VectorVectorMult_CDRM;
 import org.ejml.interfaces.linsol.LinearSolverDense;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.SpecializedOps_ZDRM")
 public class SpecializedOps_CDRM {
 
     /**
@@ -39,8 +42,8 @@ public class SpecializedOps_CDRM {
      * @param u A vector. Not modified.
      * @return An orthogonal reflector.
      */
-    public static CMatrixRMaj createReflector(CMatrixRMaj u ) {
-        if( !MatrixFeatures_CDRM.isVector(u))
+    public static CMatrixRMaj createReflector( CMatrixRMaj u ) {
+        if (!MatrixFeatures_CDRM.isVector(u))
             throw new IllegalArgumentException("u must be a vector");
 
         float norm = NormOps_CDRM.normF(u);
@@ -48,7 +51,7 @@ public class SpecializedOps_CDRM {
 
         CMatrixRMaj Q = CommonOps_CDRM.identity(u.getNumElements());
 
-        CommonOps_CDRM.multAddTransB(gamma,0,u,u,Q);
+        CommonOps_CDRM.multAddTransB(gamma, 0, u, u, Q);
 
         return Q;
     }
@@ -64,12 +67,12 @@ public class SpecializedOps_CDRM {
      * @param gamma To produce a reflector gamma needs to be equal to 2/||u||.
      * @return An orthogonal reflector.
      */
-    public static CMatrixRMaj createReflector(CMatrixRMaj u , float gamma) {
-        if( !MatrixFeatures_CDRM.isVector(u))
+    public static CMatrixRMaj createReflector( CMatrixRMaj u, float gamma ) {
+        if (!MatrixFeatures_CDRM.isVector(u))
             throw new IllegalArgumentException("u must be a vector");
 
         CMatrixRMaj Q = CommonOps_CDRM.identity(u.getNumElements());
-        CommonOps_CDRM.multAddTransB(-gamma,0,u,u,Q);
+        CommonOps_CDRM.multAddTransB(-gamma, 0, u, u, Q);
 
         return Q;
     }
@@ -90,23 +93,23 @@ public class SpecializedOps_CDRM {
      * @param transposed If the transpose of the matrix is returned.
      * @return A pivot matrix.
      */
-    public static CMatrixRMaj pivotMatrix(CMatrixRMaj ret, int pivots[], int numPivots, boolean transposed ) {
+    public static CMatrixRMaj pivotMatrix( @Nullable CMatrixRMaj ret, int[] pivots, int numPivots, boolean transposed ) {
 
-        if( ret == null ) {
+        if (ret == null) {
             ret = new CMatrixRMaj(numPivots, numPivots);
         } else {
-            if( ret.numCols != numPivots || ret.numRows != numPivots )
+            if (ret.numCols != numPivots || ret.numRows != numPivots)
                 throw new IllegalArgumentException("Unexpected matrix dimension");
-            CommonOps_CDRM.fill(ret, 0,0);
+            CommonOps_CDRM.fill(ret, 0, 0);
         }
 
-        if( transposed ) {
-            for( int i = 0; i < numPivots; i++ ) {
-                ret.set(pivots[i],i,1,0);
+        if (transposed) {
+            for (int i = 0; i < numPivots; i++) {
+                ret.set(pivots[i], i, 1, 0);
             }
         } else {
-            for( int i = 0; i < numPivots; i++ ) {
-                ret.set(i,pivots[i],1,0);
+            for (int i = 0; i < numPivots; i++) {
+                ret.set(i, pivots[i], 1, 0);
             }
         }
 
@@ -123,20 +126,20 @@ public class SpecializedOps_CDRM {
      * @param a A matrix. Not modified.
      * @return The max magnitude squared
      */
-    public static float elementDiagMaxMagnitude2(CMatrixRMaj a) {
-        final int size = Math.min(a.numRows,a.numCols);
+    public static float elementDiagMaxMagnitude2( CMatrixRMaj a ) {
+        final int size = Math.min(a.numRows, a.numCols);
 
         int rowStride = a.getRowStride();
         float max = 0;
-        for( int i = 0; i < size; i++ ) {
+        for (int i = 0; i < size; i++) {
             int index = i*rowStride + i*2;
 
             float real = a.data[index];
-            float imaginary = a.data[index+1];
+            float imaginary = a.data[index + 1];
 
             float m = real*real + imaginary*imaginary;
 
-            if( m > max ) {
+            if (m > max) {
                 max = m;
             }
         }
@@ -153,13 +156,12 @@ public class SpecializedOps_CDRM {
      *
      * @return the quality of the system.
      */
-    public static float qualityTriangular(CMatrixRMaj T)
-    {
-        int N = Math.min(T.numRows,T.numCols);
+    public static float qualityTriangular( CMatrixRMaj T ) {
+        int N = Math.min(T.numRows, T.numCols);
 
         float max = elementDiagMaxMagnitude2(T);
 
-        if( max == 0.0f )
+        if (max == 0.0f)
             return 0.0f;
 
         max = (float)Math.sqrt(max);
@@ -168,7 +170,7 @@ public class SpecializedOps_CDRM {
         float qualityR = 1.0f;
         float qualityI = 0.0f;
 
-        for( int i = 0; i < N; i++ ) {
+        for (int i = 0; i < N; i++) {
             int index = i*rowStride + i*2;
 
             float real = T.data[index]/max;
@@ -187,17 +189,17 @@ public class SpecializedOps_CDRM {
     /**
      * Q = I - gamma*u*u<sup>H</sup>
      */
-    public static CMatrixRMaj householder(CMatrixRMaj u , float gamma ) {
+    public static CMatrixRMaj householder( CMatrixRMaj u, float gamma ) {
         int N = u.getDataLength()/2;
         // u*u^H
-        CMatrixRMaj uut = new CMatrixRMaj(N,N);
+        CMatrixRMaj uut = new CMatrixRMaj(N, N);
         VectorVectorMult_CDRM.outerProdH(u, u, uut);
         // foo = -gamma*u*u^H
-        CommonOps_CDRM.elementMultiply(uut,-gamma,0,uut);
+        CommonOps_CDRM.elementMultiply(uut, -gamma, 0, uut);
 
         // I + foo
         for (int i = 0; i < N; i++) {
-            int index = (i*uut.numCols+i)*2;
+            int index = (i*uut.numCols + i)*2;
             uut.data[index] = 1 + uut.data[index];
         }
 
@@ -214,7 +216,7 @@ public class SpecializedOps_CDRM {
      * @param x Input vector.  Unmodified.
      * @return The found householder reflector vector
      */
-    public static CMatrixRMaj householderVector(CMatrixRMaj x ) {
+    public static CMatrixRMaj householderVector( CMatrixRMaj x ) {
         CMatrixRMaj u = x.copy();
 
         float max = CommonOps_CDRM.elementMaxAbs(u);
@@ -223,11 +225,11 @@ public class SpecializedOps_CDRM {
 
         float nx = NormOps_CDRM.normF(u);
         Complex_F32 c = new Complex_F32();
-        u.get(0,0,c);
+        u.get(0, 0, c);
 
-        float realTau,imagTau;
+        float realTau, imagTau;
 
-        if( c.getMagnitude() == 0 ) {
+        if (c.getMagnitude() == 0) {
             realTau = nx;
             imagTau = 0;
         } else {
@@ -235,8 +237,8 @@ public class SpecializedOps_CDRM {
             imagTau = c.imaginary/c.getMagnitude()*nx;
         }
 
-        u.set(0,0,c.real + realTau,c.imaginary + imagTau);
-        CommonOps_CDRM.elementDivide(u,u.getReal(0,0),u.getImag(0,0),u);
+        u.set(0, 0, c.real + realTau, c.imaginary + imagTau);
+        CommonOps_CDRM.elementDivide(u, u.getReal(0, 0), u.getImag(0, 0), u);
 
         return u;
     }

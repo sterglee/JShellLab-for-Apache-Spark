@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,12 +18,14 @@
 
 package org.ejml.dense.row.linsol.chol;
 
+import javax.annotation.Generated;
+import org.ejml.data.FMatrixRBlock;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.block.MatrixOps_FDRB;
 import org.ejml.dense.block.linsol.chol.CholeskyOuterSolver_FDRB;
 import org.ejml.dense.row.linsol.LinearSolver_FDRB_to_FDRM;
 import org.ejml.interfaces.decomposition.CholeskyDecomposition_F32;
-
+import org.ejml.interfaces.linsol.LinearSolverDense;
 
 /**
  * A wrapper around {@link CholeskyDecomposition_F32}(FMatrixRBlock) that allows
@@ -31,28 +33,33 @@ import org.ejml.interfaces.decomposition.CholeskyDecomposition_F32;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.linsol.chol.LinearSolverChol_DDRB")
 public class LinearSolverChol_FDRB extends LinearSolver_FDRB_to_FDRM {
 
     public LinearSolverChol_FDRB() {
         super(new CholeskyOuterSolver_FDRB());
     }
 
+    public LinearSolverChol_FDRB( LinearSolverDense<FMatrixRBlock> alg ) {
+        super(alg);
+    }
+
     /**
      * Only converts the B matrix and passes that onto solve.  Te result is then copied into
      * the input 'X' matrix.
-     * 
+     *
      * @param B A matrix &real; <sup>m &times; p</sup>.  Not modified.
      * @param X A matrix &real; <sup>n &times; p</sup>, where the solution is written to.  Modified.
      */
     @Override
-    public void solve(FMatrixRMaj B, FMatrixRMaj X) {
-        blockB.reshape(B.numRows,B.numCols,false);
-        MatrixOps_FDRB.convert(B,blockB);
+    @SuppressWarnings("NullAway") // known special case for solve()
+    public void solve( FMatrixRMaj B, FMatrixRMaj X ) {
+        blockB.reshape(B.numRows, B.numCols, false);
+        MatrixOps_FDRB.convert(B, blockB);
 
         // since overwrite B is true X does not need to be passed in
-        alg.solve(blockB,null);
+        alg.solve(blockB, null);
 
-        MatrixOps_FDRB.convert(blockB,X);
+        MatrixOps_FDRB.convert(blockB, X);
     }
-
 }

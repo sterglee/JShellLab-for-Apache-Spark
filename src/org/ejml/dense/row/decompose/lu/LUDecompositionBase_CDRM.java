@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.row.decompose.lu;
 
+import javax.annotation.Generated;
 import org.ejml.UtilEjml;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.IGrowArray;
@@ -26,47 +27,49 @@ import org.ejml.dense.row.SpecializedOps_CDRM;
 import org.ejml.dense.row.decompose.TriangularSolver_CDRM;
 import org.ejml.dense.row.decompose.UtilDecompositons_CDRM;
 import org.ejml.interfaces.decomposition.LUDecomposition_F32;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
  * Contains common data structures and operations for LU decomposition algorithms.
  * </p>
+ *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.decompose.lu.LUDecompositionBase_ZDRM")
 public abstract class LUDecompositionBase_CDRM
         implements LUDecomposition_F32<CMatrixRMaj> {
     // the decomposed matrix
     protected CMatrixRMaj LU;
 
     // it can decompose a matrix up to this size
-    protected int maxWidth=-1;
+    protected int maxWidth = -1;
 
     // the shape of the matrix
-    protected int m,n,stride;
+    protected int m, n, stride;
     // data in the matrix
-    protected float dataLU[];
+    protected float[] dataLU;
 
     // used in set, solve, invert
-    protected float vv[];
+    protected float[] vv;
     // used in set
-    protected int indx[];
-    protected int pivot[];
+    protected int[] indx;
+    protected int[] pivot;
 
     // used by determinant
     protected float pivsign;
     protected Complex_F32 det = new Complex_F32();
 
-    public void setExpectedMaxSize( int numRows , int numCols )
-    {
-        LU = new CMatrixRMaj(numRows,numCols);
+    public void setExpectedMaxSize( int numRows, int numCols ) {
+        LU = new CMatrixRMaj(numRows, numCols);
 
         this.dataLU = LU.data;
-        maxWidth = Math.max(numRows,numCols);
+        maxWidth = Math.max(numRows, numCols);
 
-        vv = new float[ maxWidth*2 ];
-        indx = new int[ maxWidth ];
-        pivot = new int[ maxWidth ];
+        vv = new float[maxWidth*2];
+        indx = new int[maxWidth];
+        pivot = new int[maxWidth];
     }
 
     public CMatrixRMaj getLU() {
@@ -92,39 +95,38 @@ public abstract class LUDecompositionBase_CDRM
      * @param lower Where the lower triangular matrix is written to.
      */
     @Override
-    public CMatrixRMaj getLower(CMatrixRMaj lower )
-    {
+    public CMatrixRMaj getLower( @Nullable CMatrixRMaj lower ) {
         int numRows = LU.numRows;
         int numCols = LU.numRows < LU.numCols ? LU.numRows : LU.numCols;
 
-        lower = UtilDecompositons_CDRM.checkZerosUT(lower, numRows,numCols);
+        lower = UtilDecompositons_CDRM.checkZerosUT(lower, numRows, numCols);
 
-        for( int i = 0; i < numCols; i++ ) {
-            lower.set(i,i,1.0f,0.0f);
+        for (int i = 0; i < numCols; i++) {
+            lower.set(i, i, 1.0f, 0.0f);
 
-            for( int j = 0; j < i; j++ ) {
-                int indexLU = LU.getIndex(i,j);
-                int indexL = lower.getIndex(i,j);
+            for (int j = 0; j < i; j++) {
+                int indexLU = LU.getIndex(i, j);
+                int indexL = lower.getIndex(i, j);
 
                 float real = LU.data[indexLU];
-                float imaginary = LU.data[indexLU+1];
+                float imaginary = LU.data[indexLU + 1];
 
                 lower.data[indexL] = real;
-                lower.data[indexL+1] = imaginary;
+                lower.data[indexL + 1] = imaginary;
             }
         }
 
-        if( numRows > numCols ) {
-            for( int i = numCols; i < numRows; i++ ) {
-                for( int j = 0; j < numCols; j++ ) {
-                    int indexLU = LU.getIndex(i,j);
-                    int indexL = lower.getIndex(i,j);
+        if (numRows > numCols) {
+            for (int i = numCols; i < numRows; i++) {
+                for (int j = 0; j < numCols; j++) {
+                    int indexLU = LU.getIndex(i, j);
+                    int indexL = lower.getIndex(i, j);
 
                     float real = LU.data[indexLU];
-                    float imaginary = LU.data[indexLU+1];
+                    float imaginary = LU.data[indexLU + 1];
 
                     lower.data[indexL] = real;
-                    lower.data[indexL+1] = imaginary;
+                    lower.data[indexL + 1] = imaginary;
                 }
             }
         }
@@ -137,23 +139,22 @@ public abstract class LUDecompositionBase_CDRM
      * @param upper Where the upper triangular matrix is writen to.
      */
     @Override
-    public CMatrixRMaj getUpper(CMatrixRMaj upper )
-    {
+    public CMatrixRMaj getUpper( @Nullable CMatrixRMaj upper ) {
         int numRows = LU.numRows < LU.numCols ? LU.numRows : LU.numCols;
         int numCols = LU.numCols;
 
-        upper = UtilDecompositons_CDRM.checkZerosLT(upper, numRows,numCols);
+        upper = UtilDecompositons_CDRM.checkZerosLT(upper, numRows, numCols);
 
-        for( int i = 0; i < numRows; i++ ) {
-            for( int j = i; j < numCols; j++ ) {
-                int indexLU = LU.getIndex(i,j);
-                int indexU = upper.getIndex(i,j);
+        for (int i = 0; i < numRows; i++) {
+            for (int j = i; j < numCols; j++) {
+                int indexLU = LU.getIndex(i, j);
+                int indexU = upper.getIndex(i, j);
 
                 float real = LU.data[indexLU];
-                float imaginary = LU.data[indexLU+1];
+                float imaginary = LU.data[indexLU + 1];
 
                 upper.data[indexU] = real;
-                upper.data[indexU+1] = imaginary;
+                upper.data[indexU + 1] = imaginary;
             }
         }
 
@@ -161,18 +162,18 @@ public abstract class LUDecompositionBase_CDRM
     }
 
     @Override
-    public CMatrixRMaj getRowPivot(CMatrixRMaj pivot ) {
+    public CMatrixRMaj getRowPivot( @Nullable CMatrixRMaj pivot ) {
         return SpecializedOps_CDRM.pivotMatrix(pivot, this.pivot, LU.numRows, false);
     }
 
     @Override
-    public int[] getRowPivotV(IGrowArray pivot) {
-        return UtilEjml.pivotVector(this.pivot,LU.numRows,pivot);
+    public int[] getRowPivotV( @Nullable IGrowArray pivot ) {
+        return UtilEjml.pivotVector(this.pivot, LU.numRows, pivot);
     }
 
-    protected void decomposeCommonInit(CMatrixRMaj a) {
-        if( a.numRows > maxWidth || a.numCols > maxWidth ) {
-            setExpectedMaxSize(a.numRows,a.numCols);
+    protected void decomposeCommonInit( CMatrixRMaj a ) {
+        if (a.numRows > maxWidth || a.numCols > maxWidth) {
+            setExpectedMaxSize(a.numRows, a.numCols);
         }
 
         m = a.numRows;
@@ -195,13 +196,13 @@ public abstract class LUDecompositionBase_CDRM
     @Override
     public boolean isSingular() {
 
-        for( int i = 0; i < m; i++ ) {
-            float real = dataLU[i*stride+i*2];
-            float imaginary = dataLU[i*stride+i*2+1];
+        for (int i = 0; i < m; i++) {
+            float real = dataLU[i*stride + i*2];
+            float imaginary = dataLU[i*stride + i*2 + 1];
 
             float mag2 = real*real + imaginary*imaginary;
 
-            if( mag2 < UtilEjml.F_EPS*UtilEjml.F_EPS )
+            if (mag2 < UtilEjml.F_EPS*UtilEjml.F_EPS)
                 return true;
         }
         return false;
@@ -214,16 +215,16 @@ public abstract class LUDecompositionBase_CDRM
      */
     @Override
     public Complex_F32 computeDeterminant() {
-        if( m != n )
+        if (m != n)
             throw new IllegalArgumentException("Must be a square matrix.");
 
         float realRet = pivsign;
         float realImg = 0;
 
         int total = m*stride;
-        for( int i = 0; i < total; i += stride + 2 ) {
+        for (int i = 0; i < total; i += stride + 2) {
             float real = dataLU[i];
-            float imaginary = dataLU[i+1];
+            float imaginary = dataLU[i + 1];
 
             float r = realRet*real - realImg*imaginary;
             float t = realRet*imaginary + realImg*real;
@@ -232,7 +233,7 @@ public abstract class LUDecompositionBase_CDRM
             realImg = t;
         }
 
-        det.set(realRet,realImg);
+        det.set(realRet, realImg);
         return det;
     }
 
@@ -243,8 +244,7 @@ public abstract class LUDecompositionBase_CDRM
     /**
      * a specialized version of solve that avoid additional checks that are not needed.
      */
-    public void _solveVectorInternal( float []vv )
-    {
+    public void _solveVectorInternal( float[] vv ) {
         // Solve L*Y = B
         solveL(vv);
 
@@ -256,37 +256,37 @@ public abstract class LUDecompositionBase_CDRM
      * Solve the using the lower triangular matrix in LU.  Diagonal elements are assumed
      * to be 1
      */
-    protected void solveL(float[] vv) {
+    protected void solveL( float[] vv ) {
 
         int ii = 0;
 
-        for( int i = 0; i < n; i++ ) {
+        for (int i = 0; i < n; i++) {
             int ip = indx[i];
             float sumReal = vv[ip*2];
-            float sumImg = vv[ip*2+1];
+            float sumImg = vv[ip*2 + 1];
 
             vv[ip*2] = vv[i*2];
-            vv[ip*2+1] = vv[i*2+1];
+            vv[ip*2 + 1] = vv[i*2 + 1];
 
-            if( ii != 0 ) {
+            if (ii != 0) {
 //                for( int j = ii-1; j < i; j++ )
 //                    sum -= dataLU[i* n +j]*vv[j];
-                int index = i*stride + (ii-1)*2;
-                for( int j = ii-1; j < i; j++ ){
+                int index = i*stride + (ii - 1)*2;
+                for (int j = ii - 1; j < i; j++) {
                     float luReal = dataLU[index++];
-                    float luImg  = dataLU[index++];
+                    float luImg = dataLU[index++];
 
                     float vvReal = vv[j*2];
-                    float vvImg  = vv[j*2+1];
+                    float vvImg = vv[j*2 + 1];
 
                     sumReal -= luReal*vvReal - luImg*vvImg;
-                    sumImg  -= luReal*vvImg  + luImg*vvReal;
+                    sumImg -= luReal*vvImg + luImg*vvReal;
                 }
-            } else if( sumReal*sumReal + sumImg*sumImg != 0.0f ) {
-                ii=i+1;
+            } else if (sumReal*sumReal + sumImg*sumImg != 0.0f) {
+                ii = i + 1;
             }
             vv[i*2] = sumReal;
-            vv[i*2+1] = sumImg;
+            vv[i*2 + 1] = sumImg;
         }
     }
 

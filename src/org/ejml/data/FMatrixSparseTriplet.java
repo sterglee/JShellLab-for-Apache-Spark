@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
 import org.ejml.ops.MatrixIO;
 
 import java.util.Iterator;
@@ -31,8 +32,8 @@ import java.util.Iterator;
  *
  * @author Peter Abeles
  */
-public class FMatrixSparseTriplet implements FMatrixSparse
-{
+@Generated("org.ejml.data.DMatrixSparseTriplet")
+public class FMatrixSparseTriplet implements FMatrixSparse {
     /**
      * Storage for row and column coordinate for non-zero elements
      */
@@ -60,19 +61,18 @@ public class FMatrixSparseTriplet implements FMatrixSparse
     }
 
     /**
-     *
      * @param numRows Number of rows in the matrix
      * @param numCols Number of columns in the matrix
      * @param initLength Initial maximum length of data array.
      */
-    public FMatrixSparseTriplet(int numRows, int numCols, int initLength ) {
+    public FMatrixSparseTriplet( int numRows, int numCols, int initLength ) {
         nz_rowcol.reshape(initLength*2);
         nz_value.reshape(initLength);
         this.numRows = numRows;
         this.numCols = numCols;
     }
 
-    public FMatrixSparseTriplet(FMatrixSparseTriplet orig ) {
+    public FMatrixSparseTriplet( FMatrixSparseTriplet orig ) {
         set(orig);
     }
 
@@ -82,14 +82,15 @@ public class FMatrixSparseTriplet implements FMatrixSparse
         numCols = 0;
     }
 
-    public void reshape( int numRows , int numCols ) {
+    @Override
+    public void reshape( int numRows, int numCols ) {
         this.numRows = numRows;
         this.numCols = numCols;
         this.nz_length = 0;
     }
 
     @Override
-    public void reshape(int numRows, int numCols, int arrayLength) {
+    public void reshape( int numRows, int numCols, int arrayLength ) {
         reshape(numRows, numCols);
         nz_rowcol.reshape(arrayLength*2);
         nz_value.reshape(arrayLength);
@@ -107,15 +108,15 @@ public class FMatrixSparseTriplet implements FMatrixSparse
      * @param col Column the element belongs in
      * @param value The value of the element
      */
-    public void addItem(int row , int col , float value ) {
-        if( nz_length == nz_value.data.length ) {
+    public void addItem( int row, int col, float value ) {
+        if (nz_length == nz_value.data.length) {
             int amount = nz_length + 10;
             nz_value.growInternal(amount);
             nz_rowcol.growInternal(amount*2);
         }
         nz_value.data[nz_length] = value;
         nz_rowcol.data[nz_length*2] = row;
-        nz_rowcol.data[nz_length*2+1] = col;
+        nz_rowcol.data[nz_length*2 + 1] = col;
         nz_length += 1;
     }
 
@@ -123,23 +124,22 @@ public class FMatrixSparseTriplet implements FMatrixSparse
      * Adds a triplet of (row,vol,value) to the end of the list and performs a bounds check to make
      * sure it is a legal value.
      *
-     * @See #addItem(int, int, float)
-     *
      * @param row Row the element belongs in
      * @param col Column the element belongs in
      * @param value The value of the element
+     * @see #addItem(int, int, float)
      */
-    public void addItemCheck(int row , int col , float value ) {
-        if( row < 0 || col < 0 || row >= numRows || col >= numCols )
-            throw new IllegalArgumentException("Out of bounds. ("+row+","+col+") "+numRows+" "+numCols);
-        if( nz_length == nz_value.data.length ) {
+    public void addItemCheck( int row, int col, float value ) {
+        if (row < 0 || col < 0 || row >= numRows || col >= numCols)
+            throw new IllegalArgumentException("Out of bounds. (" + row + "," + col + ") " + numRows + " " + numCols);
+        if (nz_length == nz_value.data.length) {
             int amount = nz_length + 10;
             nz_value.growInternal(amount);
             nz_rowcol.growInternal(amount*2);
         }
         nz_value.data[nz_length] = value;
         nz_rowcol.data[nz_length*2] = row;
-        nz_rowcol.data[nz_length*2+1] = col;
+        nz_rowcol.data[nz_length*2 + 1] = col;
         nz_length += 1;
     }
 
@@ -147,18 +147,17 @@ public class FMatrixSparseTriplet implements FMatrixSparse
      * Sets the element's value at (row,col). It first checks to see if the element already has a value and if it
      * does that value is changed. As a result this operation is O(N), where N is the number of elements in the matrix.
      *
-     * @see #addItem(int, int, float) For a faster but less "safe" alternative
-     *
      * @param row Matrix element's row index.
      * @param col Matrix element's column index.
      * @param value value of element.
+     * @see #addItem(int, int, float) For a faster but less "safe" alternative
      */
     @Override
-    public void set( int row , int col , float value ) {
-        if( row < 0 || row >= numRows || col < 0 || col >= numCols )
+    public void set( int row, int col, float value ) {
+        if (row < 0 || row >= numRows || col < 0 || col >= numCols)
             throw new IllegalArgumentException("Outside of matrix bounds");
 
-        unsafe_set(row,col,value);
+        unsafe_set(row, col, value);
     }
 
     /**
@@ -169,10 +168,10 @@ public class FMatrixSparseTriplet implements FMatrixSparse
      * @param value value of element.
      */
     @Override
-    public void unsafe_set(int row, int col, float value) {
-        int index = nz_index(row,col);
-        if( index < 0 )
-            addItem( row,col,value);
+    public void unsafe_set( int row, int col, float value ) {
+        int index = nz_index(row, col);
+        if (index < 0)
+            addItem(row, col, value);
         else {
             nz_value.data[index] = value;
         }
@@ -192,28 +191,54 @@ public class FMatrixSparseTriplet implements FMatrixSparse
      * @return Value at (row,col)
      */
     @Override
-    public float get( int row , int col ) {
-        if( row < 0 || row >= numRows || col < 0 || col >= numCols )
+    public float get( int row, int col ) {
+        if (row < 0 || row >= numRows || col < 0 || col >= numCols)
             throw new IllegalArgumentException("Outside of matrix bounds");
 
-        return unsafe_get(row,col);
+        return unsafe_get(row, col);
+    }
+
+    /**
+     * Searches the list to see if the element at (row,col) has been assigned. The worst case runtime for this
+     * operation is O(N), where N is the number of elements in the matrix.
+     *
+     * @param row Matrix element's row index.
+     * @param col Matrix element's column index.
+     * @param fallBackValue Value to return, if the element is not assigned
+     * @return Value at (row,col) or the fallBackValue, if the element is not assigned.
+     */
+    @Override
+    public float get( int row, int col, float fallBackValue ) {
+        if (row < 0 || row >= numRows || col < 0 || col >= numCols)
+            throw new IllegalArgumentException("Outside of matrix bounds");
+
+        return unsafe_get(row, col, fallBackValue);
     }
 
     @Override
-    public float unsafe_get(int row, int col) {
-        int index = nz_index(row,col);
-        if( index < 0 )
+    public float unsafe_get( int row, int col ) {
+        int index = nz_index(row, col);
+        if (index < 0)
             return 0;
         else
             return nz_value.data[index];
     }
 
-    public int nz_index(int row , int col ) {
+    @Override
+    public float unsafe_get( int row, int col, float fallBackValue ) {
+        int index = nz_index(row, col);
+        if (index < 0)
+            return fallBackValue;
+        else
+            return nz_value.data[index];
+    }
+
+    public int nz_index( int row, int col ) {
         int end = nz_length*2;
         for (int i = 0; i < end; i += 2) {
             int r = nz_rowcol.data[i];
-            int c = nz_rowcol.data[i+1];
-            if( r == row && c == col )
+            int c = nz_rowcol.data[i + 1];
+            if (r == row && c == col)
                 return i/2;
         }
         return -1;
@@ -240,18 +265,18 @@ public class FMatrixSparseTriplet implements FMatrixSparse
 
     @Override
     public <T extends Matrix> T createLike() {
-        return (T)new FMatrixSparseTriplet(numRows,numCols, nz_length);
+        return (T)new FMatrixSparseTriplet(numRows, numCols, nz_length);
     }
 
     @Override
-    public <T extends Matrix> T create(int numRows, int numCols) {
-        return (T)new FMatrixSparseTriplet(numRows,numCols,1);
+    public <T extends Matrix> T create( int numRows, int numCols ) {
+        return (T)new FMatrixSparseTriplet(numRows, numCols, 1);
     }
 
     @Override
-    public void set(Matrix original) {
+    public void set( Matrix original ) {
         FMatrixSparseTriplet orig = (FMatrixSparseTriplet)original;
-        reshape(orig.numRows,orig.numCols);
+        reshape(orig.numRows, orig.numCols);
         this.nz_rowcol.set(orig.nz_rowcol);
         this.nz_value.set(orig.nz_value);
         this.nz_length = orig.nz_length;
@@ -259,12 +284,12 @@ public class FMatrixSparseTriplet implements FMatrixSparse
 
     @Override
     public void shrinkArrays() {
-        if( nz_length < nz_value.length ) {
-            float vtmp[] = new float[nz_length];
-            int rctmp[] = new int[nz_length*2];
+        if (nz_length < nz_value.length) {
+            float[] vtmp = new float[nz_length];
+            int[] rctmp = new int[nz_length*2];
 
-            System.arraycopy(this.nz_value.data,0,vtmp,0,vtmp.length);
-            System.arraycopy(this.nz_rowcol.data,0,rctmp,0,rctmp.length);
+            System.arraycopy(this.nz_value.data, 0, vtmp, 0, vtmp.length);
+            System.arraycopy(this.nz_rowcol.data, 0, rctmp, 0, rctmp.length);
 
             nz_value.data = vtmp;
             nz_rowcol.data = rctmp;
@@ -272,25 +297,25 @@ public class FMatrixSparseTriplet implements FMatrixSparse
     }
 
     @Override
-    public void remove(int row, int col) {
-        int where = nz_index(row,col);
-        if( where >= 0 ) {
+    public void remove( int row, int col ) {
+        int where = nz_index(row, col);
+        if (where >= 0) {
 
             nz_length -= 1;
             for (int i = where; i < nz_length; i++) {
-                nz_value.data[i] = nz_value.data[i+1];
+                nz_value.data[i] = nz_value.data[i + 1];
             }
             int end = nz_length*2;
             for (int i = where*2; i < end; i += 2) {
-                nz_rowcol.data[i] = nz_rowcol.data[i+2];
-                nz_rowcol.data[i+1] = nz_rowcol.data[i+3];
+                nz_rowcol.data[i] = nz_rowcol.data[i + 2];
+                nz_rowcol.data[i + 1] = nz_rowcol.data[i + 3];
             }
         }
     }
 
     @Override
-    public boolean isAssigned(int row, int col) {
-        return nz_index(row,col) >= 0;
+    public boolean isAssigned( int row, int col ) {
+        return nz_index(row, col) >= 0;
     }
 
     @Override
@@ -310,16 +335,16 @@ public class FMatrixSparseTriplet implements FMatrixSparse
 
     @Override
     public void print( String format ) {
-        System.out.println("Type = "+getClass().getSimpleName()+" , rows = "+numRows+" , cols = "+numCols
-                +" , nz_length = "+ nz_length);
+        System.out.println("Type = " + getClass().getSimpleName() + " , rows = " + numRows + " , cols = " + numCols
+                + " , nz_length = " + nz_length);
         for (int row = 0; row < numRows; row++) {
             for (int col = 0; col < numCols; col++) {
-                int index = nz_index(row,col);
-                if( index >= 0 )
-                    System.out.printf(format,nz_value.data[index]);
+                int index = nz_index(row, col);
+                if (index >= 0)
+                    System.out.printf(format, nz_value.data[index]);
                 else
                     System.out.print("   *  ");
-                if( col != numCols-1 )
+                if (col != numCols - 1)
                     System.out.print(" ");
             }
             System.out.println();
@@ -328,14 +353,14 @@ public class FMatrixSparseTriplet implements FMatrixSparse
 
     @Override
     public void printNonZero() {
-        System.out.println("Type = "+getClass().getSimpleName()+" , rows = "+numRows+" , cols = "+numCols
-                +" , nz_length = "+ nz_length);
+        System.out.println("Type = " + getClass().getSimpleName() + " , rows = " + numRows + " , cols = " + numCols
+                + " , nz_length = " + nz_length);
 
         for (int i = 0; i < nz_length; i++) {
             int row = nz_rowcol.data[i*2];
-            int col = nz_rowcol.data[i*2+1];
+            int col = nz_rowcol.data[i*2 + 1];
             float value = nz_value.data[i];
-            System.out.printf("%d %d %f\n",row,col,value);
+            System.out.printf("%d %d %f\n", row, col, value);
         }
     }
 
@@ -346,9 +371,10 @@ public class FMatrixSparseTriplet implements FMatrixSparse
 
     @Override
     public Iterator<CoordinateRealValue> createCoordinateIterator() {
-        return new Iterator<CoordinateRealValue>() {
-            CoordinateRealValue coordinate = new CoordinateRealValue();
+        return new Iterator<>() {
+            final CoordinateRealValue coordinate = new CoordinateRealValue();
             int index = 0;
+
             @Override
             public boolean hasNext() {
                 return index < nz_length;
@@ -357,11 +383,16 @@ public class FMatrixSparseTriplet implements FMatrixSparse
             @Override
             public CoordinateRealValue next() {
                 coordinate.row = nz_rowcol.data[index*2];
-                coordinate.col = nz_rowcol.data[index*2+1];
+                coordinate.col = nz_rowcol.data[index*2 + 1];
                 coordinate.value = nz_value.data[index];
                 index++;
                 return coordinate;
             }
         };
+    }
+
+    @Override
+    public int getNonZeroCount() {
+        return nz_length;
     }
 }

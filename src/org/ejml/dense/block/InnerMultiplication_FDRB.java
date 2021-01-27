@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,6 +18,7 @@
 
 package org.ejml.dense.block;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixRBlock;
 
 /**
@@ -31,6 +32,7 @@ import org.ejml.data.FMatrixRBlock;
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.block.InnerMultiplication_DDRB")
 public class InnerMultiplication_FDRB {
 
     /**
@@ -40,9 +42,9 @@ public class InnerMultiplication_FDRB {
      * C = C + A * B
      * </p>
      */
-    public static void blockMultPlus( final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
+    public static void blockMultPlus( final float[] dataA, final float[] dataB, final float[] dataC,
+                                      int indexA, int indexB, int indexC,
+                                      final int heightA, final int widthA, final int widthC ) {
 //        for( int i = 0; i < heightA; i++ ) {
 //            for( int k = 0; k < widthA; k++ ) {
 //                for( int j = 0; j < widthC; j++ ) {
@@ -53,18 +55,18 @@ public class InnerMultiplication_FDRB {
 
         int a = indexA;
         int rowC = indexC;
-        for( int i = 0; i < heightA; i++ , rowC += widthC ) {
+        for (int i = 0; i < heightA; i++, rowC += widthC) {
             int b = indexB;
 
             final int endC = rowC + widthC;
             final int endA = a + widthA;
-            while( a != endA ) {//for( int k = 0; k < widthA; k++ ) {
+            while (a != endA) {//for( int k = 0; k < widthA; k++ ) {
                 float valA = dataA[a++];
 
                 int c = rowC;
 
-                while( c != endC  ) {//for( int j = 0; j < widthC; j++ ) {
-                    dataC[ c++ ] += valA * dataB[ b++ ];
+                while (c != endC) {//for( int j = 0; j < widthC; j++ ) {
+                    dataC[c++] += valA*dataB[b++];
                 }
             }
         }
@@ -77,9 +79,9 @@ public class InnerMultiplication_FDRB {
      * C = C + A<sup>T</sup> * B
      * </p>
      */
-    public static void blockMultPlusTransA( final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
+    public static void blockMultPlusTransA( final float[] dataA, final float[] dataB, final float[] dataC,
+                                            int indexA, int indexB, int indexC,
+                                            final int heightA, final int widthA, final int widthC ) {
 //        for( int i = 0; i < widthA; i++ ) {
 //            for( int k = 0; k < heightA; k++ ) {
 //                float valA = dataA[k*widthA + i + indexA];
@@ -90,21 +92,21 @@ public class InnerMultiplication_FDRB {
 //        }
 
         int rowC = indexC;
-        for( int i = 0; i < widthA; i++ , rowC += widthC) {
+        for (int i = 0; i < widthA; i++, rowC += widthC) {
             int colA = i + indexA;
             int endA = colA + widthA*heightA;
             int b = indexB;
 
             // for( int k = 0; k < heightA; k++ ) {
-            while(colA != endA ) {
+            while (colA != endA) {
                 float valA = dataA[colA];
 
                 int c = rowC;
                 final int endB = b + widthC;
 
                 //for( int j = 0; j < widthC; j++ ) {
-                while( b != endB ) {
-                    dataC[ c++ ] += valA * dataB[b++];
+                while (b != endB) {
+                    dataC[c++] += valA*dataB[b++];
                 }
                 colA += widthA;
             }
@@ -118,18 +120,18 @@ public class InnerMultiplication_FDRB {
      * C = C + A * B<sup>T</sup>
      * </p>
      */
-    public static void blockMultPlusTransB( final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
-        for( int i = 0; i < heightA; i++ ) {
-            for( int j = 0; j < widthC; j++ ) {
+    public static void blockMultPlusTransB( final float[] dataA, final float[] dataB, final float[] dataC,
+                                            int indexA, int indexB, int indexC,
+                                            final int heightA, final int widthA, final int widthC ) {
+        for (int i = 0; i < heightA; i++) {
+            for (int j = 0; j < widthC; j++) {
                 float val = 0;
 
-                for( int k = 0; k < widthA; k++ ) {
-                    val += dataA[i*widthA + k + indexA] * dataB[j*widthA + k + indexB];
+                for (int k = 0; k < widthA; k++) {
+                    val += dataA[i*widthA + k + indexA]*dataB[j*widthA + k + indexB];
                 }
 
-                dataC[ i*widthC + j + indexC ] += val;
+                dataC[i*widthC + j + indexC] += val;
             }
         }
     }
@@ -141,9 +143,9 @@ public class InnerMultiplication_FDRB {
      * C = C - A * B
      * </p>
      */
-    public static void blockMultMinus( final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
+    public static void blockMultMinus( final float[] dataA, final float[] dataB, final float[] dataC,
+                                       int indexA, int indexB, int indexC,
+                                       final int heightA, final int widthA, final int widthC ) {
 //        for( int i = 0; i < heightA; i++ ) {
 //            for( int k = 0; k < widthA; k++ ) {
 //                for( int j = 0; j < widthC; j++ ) {
@@ -154,18 +156,18 @@ public class InnerMultiplication_FDRB {
 
         int a = indexA;
         int rowC = indexC;
-        for( int i = 0; i < heightA; i++ , rowC += widthC ) {
+        for (int i = 0; i < heightA; i++, rowC += widthC) {
             int b = indexB;
 
             final int endC = rowC + widthC;
             final int endA = a + widthA;
-            while( a != endA ) {//for( int k = 0; k < widthA; k++ ) {
+            while (a != endA) {//for( int k = 0; k < widthA; k++ ) {
                 float valA = dataA[a++];
 
                 int c = rowC;
 
-                while( c != endC  ) {//for( int j = 0; j < widthC; j++ ) {
-                    dataC[ c++ ] -= valA * dataB[ b++ ];
+                while (c != endC) {//for( int j = 0; j < widthC; j++ ) {
+                    dataC[c++] -= valA*dataB[b++];
                 }
             }
         }
@@ -178,9 +180,9 @@ public class InnerMultiplication_FDRB {
      * C = C - A<sup>T</sup> * B
      * </p>
      */
-    public static void blockMultMinusTransA( final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
+    public static void blockMultMinusTransA( final float[] dataA, final float[] dataB, final float[] dataC,
+                                             int indexA, int indexB, int indexC,
+                                             final int heightA, final int widthA, final int widthC ) {
 //        for( int i = 0; i < widthA; i++ ) {
 //            for( int k = 0; k < heightA; k++ ) {
 //                float valA = dataA[k*widthA + i + indexA];
@@ -191,21 +193,21 @@ public class InnerMultiplication_FDRB {
 //        }
 
         int rowC = indexC;
-        for( int i = 0; i < widthA; i++ , rowC += widthC) {
+        for (int i = 0; i < widthA; i++, rowC += widthC) {
             int colA = i + indexA;
             int endA = colA + widthA*heightA;
             int b = indexB;
 
             // for( int k = 0; k < heightA; k++ ) {
-            while(colA != endA ) {
+            while (colA != endA) {
                 float valA = dataA[colA];
 
                 int c = rowC;
                 final int endB = b + widthC;
 
                 //for( int j = 0; j < widthC; j++ ) {
-                while( b != endB ) {
-                    dataC[ c++ ] -= valA * dataB[b++];
+                while (b != endB) {
+                    dataC[c++] -= valA*dataB[b++];
                 }
                 colA += widthA;
             }
@@ -219,18 +221,18 @@ public class InnerMultiplication_FDRB {
      * C = C - A * B<sup>T</sup>
      * </p>
      */
-    public static void blockMultMinusTransB( final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
-        for( int i = 0; i < heightA; i++ ) {
-            for( int j = 0; j < widthC; j++ ) {
+    public static void blockMultMinusTransB( final float[] dataA, final float[] dataB, final float[] dataC,
+                                             int indexA, int indexB, int indexC,
+                                             final int heightA, final int widthA, final int widthC ) {
+        for (int i = 0; i < heightA; i++) {
+            for (int j = 0; j < widthC; j++) {
                 float val = 0;
 
-                for( int k = 0; k < widthA; k++ ) {
-                    val += dataA[i*widthA + k + indexA] * dataB[j*widthA + k + indexB];
+                for (int k = 0; k < widthA; k++) {
+                    val += dataA[i*widthA + k + indexA]*dataB[j*widthA + k + indexB];
                 }
 
-                dataC[ i*widthC + j + indexC ] -= val;
+                dataC[i*widthC + j + indexC] -= val;
             }
         }
     }
@@ -242,9 +244,9 @@ public class InnerMultiplication_FDRB {
      * C = A * B
      * </p>
      */
-    public static void blockMultSet( final float[] dataA, final float []dataB, final float []dataC,
+    public static void blockMultSet( final float[] dataA, final float[] dataB, final float[] dataC,
                                      int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
+                                     final int heightA, final int widthA, final int widthC ) {
 //        for( int i = 0; i < heightA; i++ ) {
 //            for( int k = 0; k < widthA; k++ ) {
 //                for( int j = 0; j < widthC; j++ ) {
@@ -255,23 +257,23 @@ public class InnerMultiplication_FDRB {
 
         int a = indexA;
         int rowC = indexC;
-        for( int i = 0; i < heightA; i++ , rowC += widthC ) {
+        for (int i = 0; i < heightA; i++, rowC += widthC) {
             int b = indexB;
 
             final int endC = rowC + widthC;
             final int endA = a + widthA;
-            while( a != endA ) {//for( int k = 0; k < widthA; k++ ) {
+            while (a != endA) {//for( int k = 0; k < widthA; k++ ) {
                 float valA = dataA[a++];
 
                 int c = rowC;
 
-                if( b == indexB ) {
-                    while( c != endC  ) {//for( int j = 0; j < widthC; j++ ) {
-                        dataC[ c++ ] = valA * dataB[ b++ ];
+                if (b == indexB) {
+                    while (c != endC) {//for( int j = 0; j < widthC; j++ ) {
+                        dataC[c++] = valA*dataB[b++];
                     }
                 } else {
-                    while( c != endC  ) {//for( int j = 0; j < widthC; j++ ) {
-                        dataC[ c++ ] += valA * dataB[ b++ ];
+                    while (c != endC) {//for( int j = 0; j < widthC; j++ ) {
+                        dataC[c++] += valA*dataB[b++];
                     }
                 }
             }
@@ -285,9 +287,9 @@ public class InnerMultiplication_FDRB {
      * C = A<sup>T</sup> * B
      * </p>
      */
-    public static void blockMultSetTransA( final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
+    public static void blockMultSetTransA( final float[] dataA, final float[] dataB, final float[] dataC,
+                                           int indexA, int indexB, int indexC,
+                                           final int heightA, final int widthA, final int widthC ) {
 //        for( int i = 0; i < widthA; i++ ) {
 //            for( int k = 0; k < heightA; k++ ) {
 //                float valA = dataA[k*widthA + i + indexA];
@@ -298,26 +300,26 @@ public class InnerMultiplication_FDRB {
 //        }
 
         int rowC = indexC;
-        for( int i = 0; i < widthA; i++ , rowC += widthC) {
+        for (int i = 0; i < widthA; i++, rowC += widthC) {
             int colA = i + indexA;
             int endA = colA + widthA*heightA;
             int b = indexB;
 
             // for( int k = 0; k < heightA; k++ ) {
-            while(colA != endA ) {
+            while (colA != endA) {
                 float valA = dataA[colA];
 
                 int c = rowC;
                 final int endB = b + widthC;
 
                 //for( int j = 0; j < widthC; j++ ) {
-                if( b == indexB ) {
-                    while( b != endB ) {
-                        dataC[ c++ ] = valA * dataB[b++];
-                    } 
+                if (b == indexB) {
+                    while (b != endB) {
+                        dataC[c++] = valA*dataB[b++];
+                    }
                 } else {
-                    while( b != endB ) {
-                        dataC[ c++ ] += valA * dataB[b++];
+                    while (b != endB) {
+                        dataC[c++] += valA*dataB[b++];
                     }
                 }
                 colA += widthA;
@@ -332,18 +334,18 @@ public class InnerMultiplication_FDRB {
      * C = A * B<sup>T</sup>
      * </p>
      */
-    public static void blockMultSetTransB( final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
-        for( int i = 0; i < heightA; i++ ) {
-            for( int j = 0; j < widthC; j++ ) {
+    public static void blockMultSetTransB( final float[] dataA, final float[] dataB, final float[] dataC,
+                                           int indexA, int indexB, int indexC,
+                                           final int heightA, final int widthA, final int widthC ) {
+        for (int i = 0; i < heightA; i++) {
+            for (int j = 0; j < widthC; j++) {
                 float val = 0;
 
-                for( int k = 0; k < widthA; k++ ) {
-                    val += dataA[i*widthA + k + indexA] * dataB[j*widthA + k + indexB];
+                for (int k = 0; k < widthA; k++) {
+                    val += dataA[i*widthA + k + indexA]*dataB[j*widthA + k + indexB];
                 }
 
-                dataC[ i*widthC + j + indexC ] = val;
+                dataC[i*widthC + j + indexC] = val;
             }
         }
     }
@@ -355,9 +357,9 @@ public class InnerMultiplication_FDRB {
      * C = C +  &alpha; A * B
      * </p>
      */
-    public static void blockMultPlus( float alpha , final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
+    public static void blockMultPlus( float alpha, final float[] dataA, final float[] dataB, final float[] dataC,
+                                      int indexA, int indexB, int indexC,
+                                      final int heightA, final int widthA, final int widthC ) {
 //        for( int i = 0; i < heightA; i++ ) {
 //            for( int k = 0; k < widthA; k++ ) {
 //                for( int j = 0; j < widthC; j++ ) {
@@ -368,18 +370,18 @@ public class InnerMultiplication_FDRB {
 
         int a = indexA;
         int rowC = indexC;
-        for( int i = 0; i < heightA; i++ , rowC += widthC ) {
+        for (int i = 0; i < heightA; i++, rowC += widthC) {
             int b = indexB;
 
             final int endC = rowC + widthC;
             final int endA = a + widthA;
-            while( a != endA ) {//for( int k = 0; k < widthA; k++ ) {
+            while (a != endA) {//for( int k = 0; k < widthA; k++ ) {
                 float valA = alpha*dataA[a++];
 
                 int c = rowC;
 
-                while( c != endC  ) {//for( int j = 0; j < widthC; j++ ) {
-                    dataC[ c++ ] += valA * dataB[ b++ ];
+                while (c != endC) {//for( int j = 0; j < widthC; j++ ) {
+                    dataC[c++] += valA*dataB[b++];
                 }
             }
         }
@@ -392,9 +394,9 @@ public class InnerMultiplication_FDRB {
      * C = C +  &alpha; A<sup>T</sup> * B
      * </p>
      */
-    public static void blockMultPlusTransA( float alpha , final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
+    public static void blockMultPlusTransA( float alpha, final float[] dataA, final float[] dataB, final float[] dataC,
+                                            int indexA, int indexB, int indexC,
+                                            final int heightA, final int widthA, final int widthC ) {
 //        for( int i = 0; i < widthA; i++ ) {
 //            for( int k = 0; k < heightA; k++ ) {
 //                float valA = dataA[k*widthA + i + indexA];
@@ -405,21 +407,21 @@ public class InnerMultiplication_FDRB {
 //        }
 
         int rowC = indexC;
-        for( int i = 0; i < widthA; i++ , rowC += widthC) {
+        for (int i = 0; i < widthA; i++, rowC += widthC) {
             int colA = i + indexA;
             int endA = colA + widthA*heightA;
             int b = indexB;
 
             // for( int k = 0; k < heightA; k++ ) {
-            while(colA != endA ) {
+            while (colA != endA) {
                 float valA = alpha*dataA[colA];
 
                 int c = rowC;
                 final int endB = b + widthC;
 
                 //for( int j = 0; j < widthC; j++ ) {
-                while( b != endB ) {
-                    dataC[ c++ ] += valA * dataB[b++];
+                while (b != endB) {
+                    dataC[c++] += valA*dataB[b++];
                 }
                 colA += widthA;
             }
@@ -433,18 +435,18 @@ public class InnerMultiplication_FDRB {
      * C = C +  &alpha; A * B<sup>T</sup>
      * </p>
      */
-    public static void blockMultPlusTransB( float alpha , final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
-        for( int i = 0; i < heightA; i++ ) {
-            for( int j = 0; j < widthC; j++ ) {
+    public static void blockMultPlusTransB( float alpha, final float[] dataA, final float[] dataB, final float[] dataC,
+                                            int indexA, int indexB, int indexC,
+                                            final int heightA, final int widthA, final int widthC ) {
+        for (int i = 0; i < heightA; i++) {
+            for (int j = 0; j < widthC; j++) {
                 float val = 0;
 
-                for( int k = 0; k < widthA; k++ ) {
-                    val += dataA[i*widthA + k + indexA] * dataB[j*widthA + k + indexB];
+                for (int k = 0; k < widthA; k++) {
+                    val += dataA[i*widthA + k + indexA]*dataB[j*widthA + k + indexB];
                 }
 
-                dataC[ i*widthC + j + indexC ] += alpha *  val;
+                dataC[i*widthC + j + indexC] += alpha*val;
             }
         }
     }
@@ -456,9 +458,9 @@ public class InnerMultiplication_FDRB {
      * C =  &alpha; A * B
      * </p>
      */
-    public static void blockMultSet( float alpha , final float[] dataA, final float []dataB, final float []dataC,
+    public static void blockMultSet( float alpha, final float[] dataA, final float[] dataB, final float[] dataC,
                                      int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
+                                     final int heightA, final int widthA, final int widthC ) {
 //        for( int i = 0; i < heightA; i++ ) {
 //            for( int k = 0; k < widthA; k++ ) {
 //                for( int j = 0; j < widthC; j++ ) {
@@ -469,23 +471,23 @@ public class InnerMultiplication_FDRB {
 
         int a = indexA;
         int rowC = indexC;
-        for( int i = 0; i < heightA; i++ , rowC += widthC ) {
+        for (int i = 0; i < heightA; i++, rowC += widthC) {
             int b = indexB;
 
             final int endC = rowC + widthC;
             final int endA = a + widthA;
-            while( a != endA ) {//for( int k = 0; k < widthA; k++ ) {
+            while (a != endA) {//for( int k = 0; k < widthA; k++ ) {
                 float valA = alpha*dataA[a++];
 
                 int c = rowC;
 
-                if( b == indexB ) {
-                    while( c != endC  ) {//for( int j = 0; j < widthC; j++ ) {
-                        dataC[ c++ ] = valA * dataB[ b++ ];
+                if (b == indexB) {
+                    while (c != endC) {//for( int j = 0; j < widthC; j++ ) {
+                        dataC[c++] = valA*dataB[b++];
                     }
                 } else {
-                    while( c != endC  ) {//for( int j = 0; j < widthC; j++ ) {
-                        dataC[ c++ ] += valA * dataB[ b++ ];
+                    while (c != endC) {//for( int j = 0; j < widthC; j++ ) {
+                        dataC[c++] += valA*dataB[b++];
                     }
                 }
             }
@@ -499,9 +501,9 @@ public class InnerMultiplication_FDRB {
      * C =  &alpha; A<sup>T</sup> * B
      * </p>
      */
-    public static void blockMultSetTransA( float alpha , final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
+    public static void blockMultSetTransA( float alpha, final float[] dataA, final float[] dataB, final float[] dataC,
+                                           int indexA, int indexB, int indexC,
+                                           final int heightA, final int widthA, final int widthC ) {
 //        for( int i = 0; i < widthA; i++ ) {
 //            for( int k = 0; k < heightA; k++ ) {
 //                float valA = dataA[k*widthA + i + indexA];
@@ -512,26 +514,26 @@ public class InnerMultiplication_FDRB {
 //        }
 
         int rowC = indexC;
-        for( int i = 0; i < widthA; i++ , rowC += widthC) {
+        for (int i = 0; i < widthA; i++, rowC += widthC) {
             int colA = i + indexA;
             int endA = colA + widthA*heightA;
             int b = indexB;
 
             // for( int k = 0; k < heightA; k++ ) {
-            while(colA != endA ) {
+            while (colA != endA) {
                 float valA = alpha*dataA[colA];
 
                 int c = rowC;
                 final int endB = b + widthC;
 
                 //for( int j = 0; j < widthC; j++ ) {
-                if( b == indexB ) {
-                    while( b != endB ) {
-                        dataC[ c++ ] = valA * dataB[b++];
-                    } 
+                if (b == indexB) {
+                    while (b != endB) {
+                        dataC[c++] = valA*dataB[b++];
+                    }
                 } else {
-                    while( b != endB ) {
-                        dataC[ c++ ] += valA * dataB[b++];
+                    while (b != endB) {
+                        dataC[c++] += valA*dataB[b++];
                     }
                 }
                 colA += widthA;
@@ -546,18 +548,18 @@ public class InnerMultiplication_FDRB {
      * C =  &alpha; A * B<sup>T</sup>
      * </p>
      */
-    public static void blockMultSetTransB( float alpha , final float[] dataA, final float []dataB, final float []dataC,
-                                     int indexA, int indexB, int indexC,
-                                     final int heightA, final int widthA, final int widthC) {
-        for( int i = 0; i < heightA; i++ ) {
-            for( int j = 0; j < widthC; j++ ) {
+    public static void blockMultSetTransB( float alpha, final float[] dataA, final float[] dataB, final float[] dataC,
+                                           int indexA, int indexB, int indexC,
+                                           final int heightA, final int widthA, final int widthC ) {
+        for (int i = 0; i < heightA; i++) {
+            for (int j = 0; j < widthC; j++) {
                 float val = 0;
 
-                for( int k = 0; k < widthA; k++ ) {
-                    val += dataA[i*widthA + k + indexA] * dataB[j*widthA + k + indexB];
+                for (int k = 0; k < widthA; k++) {
+                    val += dataA[i*widthA + k + indexA]*dataB[j*widthA + k + indexB];
                 }
 
-                dataC[ i*widthC + j + indexC ] = alpha *  val;
+                dataC[i*widthC + j + indexC] = alpha*val;
             }
         }
     }

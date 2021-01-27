@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,23 +18,24 @@
 
 package org.ejml.dense.row.decompose.chol;
 
-
+import javax.annotation.Generated;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.CMatrixRMaj;
 import org.ejml.dense.row.decompose.UtilDecompositons_CDRM;
 import org.ejml.interfaces.decomposition.CholeskyDecomposition_F32;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
- *
  * <p>
  * This is an abstract class for a Cholesky decomposition.  It provides the solvers, but the actual
  * decomposition is provided in other classes.
  * </p>
  *
- * @see CholeskyDecomposition_F32
  * @author Peter Abeles
+ * @see CholeskyDecomposition_F32
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.decompose.chol.CholeskyDecompositionCommon_ZDRM")
 public abstract class CholeskyDecompositionCommon_CDRM
         implements CholeskyDecomposition_F32<CMatrixRMaj> {
 
@@ -44,7 +45,6 @@ public abstract class CholeskyDecompositionCommon_CDRM
     // the decomposed matrix
     protected CMatrixRMaj T;
     protected float[] t;
-
 
     // is it a lower triangular matrix or an upper triangular matrix
     protected boolean lower;
@@ -57,10 +57,9 @@ public abstract class CholeskyDecompositionCommon_CDRM
      *
      * @param lower should a lower or upper triangular matrix be used.
      */
-    public CholeskyDecompositionCommon_CDRM(boolean lower) {
+    protected CholeskyDecompositionCommon_CDRM( boolean lower ) {
         this.lower = lower;
     }
-
 
     /**
      * {@inheritDoc}
@@ -75,7 +74,7 @@ public abstract class CholeskyDecompositionCommon_CDRM
      */
     @Override
     public boolean decompose( CMatrixRMaj mat ) {
-        if( mat.numRows != mat.numCols ) {
+        if (mat.numRows != mat.numCols) {
             throw new IllegalArgumentException("Must be a square matrix.");
         }
 
@@ -84,7 +83,7 @@ public abstract class CholeskyDecompositionCommon_CDRM
         T = mat;
         t = T.data;
 
-        if(lower) {
+        if (lower) {
             return decomposeLower();
         } else {
             return decomposeUpper();
@@ -111,13 +110,13 @@ public abstract class CholeskyDecompositionCommon_CDRM
     protected abstract boolean decomposeUpper();
 
     @Override
-    public CMatrixRMaj getT(CMatrixRMaj T ) {
+    public CMatrixRMaj getT( @Nullable CMatrixRMaj T ) {
         // write the values to T
-        if( lower ) {
-            T = UtilDecompositons_CDRM.checkZerosUT(T,n,n);
-            for( int i = 0; i < n; i++ ) {
+        if (lower) {
+            T = UtilDecompositons_CDRM.checkZerosUT(T, n, n);
+            for (int i = 0; i < n; i++) {
                 int index = i*n*2;
-                for( int j = 0; j <= i; j++ ) {
+                for (int j = 0; j <= i; j++) {
                     T.data[index] = this.T.data[index];
                     index++;
                     T.data[index] = this.T.data[index];
@@ -125,10 +124,10 @@ public abstract class CholeskyDecompositionCommon_CDRM
                 }
             }
         } else {
-            T = UtilDecompositons_CDRM.checkZerosLT(T,n,n);
-            for( int i = 0; i < n; i++ ) {
+            T = UtilDecompositons_CDRM.checkZerosLT(T, n, n);
+            for (int i = 0; i < n; i++) {
                 int index = (i*n + i)*2;
-                for( int j = i; j < n; j++ ) {
+                for (int j = i; j < n; j++) {
                     T.data[index] = this.T.data[index];
                     index++;
                     T.data[index] = this.T.data[index];
@@ -155,7 +154,7 @@ public abstract class CholeskyDecompositionCommon_CDRM
 
         // take advantage of the diagonal elements all being real
         int total = n*n*2;
-        for( int i = 0; i < total; i += 2*(n + 1) ) {
+        for (int i = 0; i < total; i += 2*(n + 1)) {
             prod *= t[i];
         }
 

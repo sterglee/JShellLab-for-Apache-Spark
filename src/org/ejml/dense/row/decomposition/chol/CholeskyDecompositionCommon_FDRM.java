@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,28 +18,29 @@
 
 package org.ejml.dense.row.decomposition.chol;
 
-
+import javax.annotation.Generated;
 import org.ejml.data.Complex_F32;
 import org.ejml.data.FMatrixRMaj;
 import org.ejml.dense.row.decomposition.UtilDecompositons_FDRM;
 import org.ejml.interfaces.decomposition.CholeskyDecomposition_F32;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
- *
  * <p>
  * This is an abstract class for a Cholesky decomposition.  It provides the solvers, but the actual
  * decomposition is provided in other classes.
  * </p>
  *
- * @see CholeskyDecomposition_F32
  * @author Peter Abeles
+ * @see CholeskyDecomposition_F32
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.decomposition.chol.CholeskyDecompositionCommon_DDRM")
 public abstract class CholeskyDecompositionCommon_FDRM
         implements CholeskyDecomposition_F32<FMatrixRMaj> {
 
     // it can decompose a matrix up to this width
-    protected int maxWidth=-1;
+    protected int maxWidth = -1;
 
     // width and height of the matrix
     protected int n;
@@ -49,7 +50,7 @@ public abstract class CholeskyDecompositionCommon_FDRM
     protected float[] t;
 
     // tempoary variable used by various functions
-    protected float vv[];
+    protected float[] vv;
 
     // is it a lower triangular matrix or an upper triangular matrix
     protected boolean lower;
@@ -62,12 +63,12 @@ public abstract class CholeskyDecompositionCommon_FDRM
      *
      * @param lower should a lower or upper triangular matrix be used.
      */
-    public CholeskyDecompositionCommon_FDRM(boolean lower) {
+    protected CholeskyDecompositionCommon_FDRM( boolean lower ) {
         this.lower = lower;
     }
 
-    public void setExpectedMaxSize( int numRows , int numCols ) {
-        if( numRows != numCols ) {
+    public void setExpectedMaxSize( int numRows, int numCols ) {
+        if (numRows != numCols) {
             throw new IllegalArgumentException("Can only decompose square matrices");
         }
 
@@ -97,14 +98,15 @@ public abstract class CholeskyDecompositionCommon_FDRM
      * false since it can't complete its computations.  Not all errors will be
      * found.  This is an efficient way to check for positive definiteness.
      * </p>
+     *
      * @param mat A symmetric positive definite matrix with n &le; widthMax.
      * @return True if it was able to finish the decomposition.
      */
     @Override
     public boolean decompose( FMatrixRMaj mat ) {
-        if( mat.numRows > maxWidth ) {
-            setExpectedMaxSize(mat.numRows,mat.numCols);
-        } else if( mat.numRows != mat.numCols ) {
+        if (mat.numRows > maxWidth) {
+            setExpectedMaxSize(mat.numRows, mat.numCols);
+        } else if (mat.numRows != mat.numCols) {
             throw new IllegalArgumentException("Must be a square matrix.");
         }
 
@@ -113,7 +115,7 @@ public abstract class CholeskyDecompositionCommon_FDRM
         T = mat;
         t = T.data;
 
-        if(lower) {
+        if (lower) {
             return decomposeLower();
         } else {
             return decomposeUpper();
@@ -140,21 +142,21 @@ public abstract class CholeskyDecompositionCommon_FDRM
     protected abstract boolean decomposeUpper();
 
     @Override
-    public FMatrixRMaj getT(FMatrixRMaj T ) {
+    public FMatrixRMaj getT( @Nullable FMatrixRMaj T ) {
 
         // write the values to T
-        if( lower ) {
-            T = UtilDecompositons_FDRM.checkZerosUT(T,n,n);
-            for( int i = 0; i < n; i++ ) {
-                for( int j = 0; j <= i; j++ ) {
-                    T.unsafe_set(i,j,this.T.unsafe_get(i,j));
+        if (lower) {
+            T = UtilDecompositons_FDRM.checkZerosUT(T, n, n);
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j <= i; j++) {
+                    T.unsafe_set(i, j, this.T.unsafe_get(i, j));
                 }
             }
         } else {
-             T = UtilDecompositons_FDRM.checkZerosLT(T,n,n);
-            for( int i = 0; i < n; i++ ) {
-                for( int j = i; j < n; j++ ) {
-                    T.unsafe_set(i,j,this.T.unsafe_get(i,j));
+            T = UtilDecompositons_FDRM.checkZerosLT(T, n, n);
+            for (int i = 0; i < n; i++) {
+                for (int j = i; j < n; j++) {
+                    T.unsafe_set(i, j, this.T.unsafe_get(i, j));
                 }
             }
         }
@@ -180,7 +182,7 @@ public abstract class CholeskyDecompositionCommon_FDRM
         float prod = 1;
 
         int total = n*n;
-        for( int i = 0; i < total; i += n + 1 ) {
+        for (int i = 0; i < total; i += n + 1) {
             prod *= t[i];
         }
 

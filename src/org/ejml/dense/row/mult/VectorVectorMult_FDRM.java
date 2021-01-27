@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2009-2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,16 +18,17 @@
 
 package org.ejml.dense.row.mult;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrix1Row;
 import org.ejml.data.FMatrixD1;
 import org.ejml.data.FMatrixRMaj;
-
 
 /**
  * Operations that involve multiplication of two vectors.
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.mult.VectorVectorMult_DDRM")
 public class VectorVectorMult_FDRM {
 
     /**
@@ -47,13 +48,12 @@ public class VectorVectorMult_FDRM {
      * @param y A vector with n elements. Not modified.
      * @return The inner product of the two vectors.
      */
-    public static float innerProd(FMatrixD1 x, FMatrixD1 y )
-    {
+    public static float innerProd( FMatrixD1 x, FMatrixD1 y ) {
         int m = x.getNumElements();
 
         float total = 0;
-        for( int i = 0; i < m; i++ ) {
-            total += x.get(i) * y.get(i);
+        for (int i = 0; i < m; i++) {
+            total += x.get(i)*y.get(i);
         }
 
         return total;
@@ -64,28 +64,27 @@ public class VectorVectorMult_FDRM {
      * return = x<sup>T</sup>*A*y
      * </p>
      *
-     * @param x  A vector with n elements. Not modified.
-     * @param A  A matrix with n by m elements.  Not modified.
-     * @param y  A vector with m elements. Not modified.
-     * @return  The results.
+     * @param x A vector with n elements. Not modified.
+     * @param A A matrix with n by m elements.  Not modified.
+     * @param y A vector with m elements. Not modified.
+     * @return The results.
      */
-    public static float innerProdA(FMatrixD1 x, FMatrixD1 A , FMatrixD1 y )
-    {
+    public static float innerProdA( FMatrixD1 x, FMatrixD1 A, FMatrixD1 y ) {
         int n = A.numRows;
         int m = A.numCols;
 
-        if( x.getNumElements() != n )
+        if (x.getNumElements() != n)
             throw new IllegalArgumentException("Unexpected number of elements in x");
-        if( y.getNumElements() != m )
+        if (y.getNumElements() != m)
             throw new IllegalArgumentException("Unexpected number of elements in y");
 
         float result = 0;
 
-        for( int i = 0; i < m; i++ ) {
+        for (int i = 0; i < m; i++) {
             float total = 0;
 
-            for( int j = 0; j < n; j++ ) {
-                total += x.get(j)*A.unsafe_get(j,i);
+            for (int j = 0; j < n; j++) {
+                total += x.get(j)*A.unsafe_get(j, i);
             }
 
             result += total*y.get(i);
@@ -94,37 +93,35 @@ public class VectorVectorMult_FDRM {
         return result;
     }
 
-
     /**
      * <p>
      * x<sup>T</sup>A<sup>T</sup>y
      * </p>
      *
-     * @param x  A vector with n elements. Not modified.
-     * @param A  A matrix with n by n elements.  Not modified.
-     * @param y  A vector with n elements. Not modified.
-     * @return  The results.
+     * @param x A vector with n elements. Not modified.
+     * @param A A matrix with n by n elements.  Not modified.
+     * @param y A vector with n elements. Not modified.
+     * @return The results.
      */
     // TODO better name for this
-    public static float innerProdTranA(FMatrixD1 x, FMatrixD1 A , FMatrixD1 y )
-    {
+    public static float innerProdTranA( FMatrixD1 x, FMatrixD1 A, FMatrixD1 y ) {
         int n = A.numRows;
 
-        if( n != A.numCols)
+        if (n != A.numCols)
             throw new IllegalArgumentException("A must be square");
 
-        if( x.getNumElements() != n )
+        if (x.getNumElements() != n)
             throw new IllegalArgumentException("Unexpected number of elements in x");
-        if( y.getNumElements() != n )
+        if (y.getNumElements() != n)
             throw new IllegalArgumentException("Unexpected number of elements in y");
 
         float result = 0;
 
-        for( int i = 0; i < n; i++ ) {
+        for (int i = 0; i < n; i++) {
             float total = 0;
 
-            for( int j = 0; j < n; j++ ) {
-                total += x.get(j)*A.unsafe_get(i,j);
+            for (int j = 0; j < n; j++) {
+                total += x.get(j)*A.unsafe_get(i, j);
             }
 
             result += total*y.get(i);
@@ -154,15 +151,15 @@ public class VectorVectorMult_FDRM {
      * @param y A vector with n elements. Not modified.
      * @param A A Matrix with m by n elements. Modified.
      */
-    public static void outerProd(FMatrixD1 x, FMatrixD1 y, FMatrix1Row A ) {
+    public static void outerProd( FMatrixD1 x, FMatrixD1 y, FMatrix1Row A ) {
         int m = A.numRows;
         int n = A.numCols;
 
         int index = 0;
-        for( int i = 0; i < m; i++ ) {
+        for (int i = 0; i < m; i++) {
             float xdat = x.get(i);
-            for( int j = 0; j < n; j++ ) {
-                A.set(index++ ,  xdat*y.get(j) );
+            for (int j = 0; j < n; j++) {
+                A.set(index++, xdat*y.get(j));
             }
         }
     }
@@ -189,28 +186,27 @@ public class VectorVectorMult_FDRM {
      * @param y A vector with n elements. Not modified.
      * @param A A Matrix with m by n elements. Modified.
      */
-    public static void addOuterProd(float gamma , FMatrixD1 x, FMatrixD1 y, FMatrix1Row A ) {
+    public static void addOuterProd( float gamma, FMatrixD1 x, FMatrixD1 y, FMatrix1Row A ) {
         int m = A.numRows;
         int n = A.numCols;
 
         int index = 0;
-        if( gamma == 1.0f ) {
-            for( int i = 0; i < m; i++ ) {
+        if (gamma == 1.0f) {
+            for (int i = 0; i < m; i++) {
                 float xdat = x.get(i);
-                for( int j = 0; j < n; j++ ) {
-                    A.plus( index++ , xdat*y.get(j) );
+                for (int j = 0; j < n; j++) {
+                    A.plus(index++, xdat*y.get(j));
                 }
             }
         } else {
-            for( int i = 0; i < m; i++ ) {
+            for (int i = 0; i < m; i++) {
                 float xdat = x.get(i);
-                for( int j = 0; j < n; j++ ) {
-                    A.plus( index++ , gamma*xdat*y.get(j));
+                for (int j = 0; j < n; j++) {
+                    A.plus(index++, gamma*xdat*y.get(j));
                 }
             }
         }
     }
-
 
     /**
      * <p>
@@ -221,22 +217,22 @@ public class VectorVectorMult_FDRM {
      * <p>
      * The Householder reflection is used in some implementations of QR decomposition.
      * </p>
+     *
      * @param u A vector. Not modified.
      * @param x a vector. Not modified.
      * @param y Vector where the result are written to.
      */
-    public static void householder(float gamma,
-                                   FMatrixD1 u ,
-                                   FMatrixD1 x , FMatrixD1 y )
-    {
+    public static void householder( float gamma,
+                                    FMatrixD1 u,
+                                    FMatrixD1 x, FMatrixD1 y ) {
         int n = u.getNumElements();
 
         float sum = 0;
-        for( int i = 0; i < n; i++ ) {
+        for (int i = 0; i < n; i++) {
             sum += u.get(i)*x.get(i);
         }
-        for( int i = 0; i < n; i++ ) {
-            y.set( i , x.get(i) + gamma*u.get(i)*sum);
+        for (int i = 0; i < n; i++) {
+            y.set(i, x.get(i) + gamma*u.get(i)*sum);
         }
     }
 
@@ -257,18 +253,17 @@ public class VectorVectorMult_FDRM {
      * @param w A vector with m elements.  Not modified.
      * @param B A m by m matrix where the results are stored. Modified.
      */
-    public static void rank1Update(float gamma,
-                                   FMatrixRMaj A ,
-                                   FMatrixRMaj u , FMatrixRMaj w ,
-                                   FMatrixRMaj B )
-    {
+    public static void rank1Update( float gamma,
+                                    FMatrixRMaj A,
+                                    FMatrixRMaj u, FMatrixRMaj w,
+                                    FMatrixRMaj B ) {
         int n = u.getNumElements();
 
         int matrixIndex = 0;
-        for( int i = 0; i < n; i++ ) {
+        for (int i = 0; i < n; i++) {
             float elementU = u.data[i];
 
-            for( int j = 0; j < n; j++ , matrixIndex++) {
+            for (int j = 0; j < n; j++, matrixIndex++) {
                 B.data[matrixIndex] = A.data[matrixIndex] + gamma*elementU*w.data[j];
             }
         }
@@ -289,17 +284,16 @@ public class VectorVectorMult_FDRM {
      * @param u A vector with m elements.  Not modified.
      */
     public static void rank1Update( float gamma,
-                                    FMatrixRMaj A ,
-                                    FMatrixRMaj u ,
-                                    FMatrixRMaj w )
-    {
+                                    FMatrixRMaj A,
+                                    FMatrixRMaj u,
+                                    FMatrixRMaj w ) {
         int n = u.getNumElements();
 
         int matrixIndex = 0;
-        for( int i = 0; i < n; i++ ) {
+        for (int i = 0; i < n; i++) {
             float elementU = u.data[i];
 
-            for( int j = 0; j < n; j++ ) {
+            for (int j = 0; j < n; j++) {
                 A.data[matrixIndex++] += gamma*elementU*w.data[j];
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -22,7 +22,7 @@ import org.ejml.data.Complex_F64;
 import org.ejml.data.ZMatrixRMaj;
 import org.ejml.dense.row.decompose.UtilDecompositons_ZDRM;
 import org.ejml.interfaces.decomposition.QRDecomposition;
-
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -50,6 +50,7 @@ import org.ejml.interfaces.decomposition.QRDecomposition;
  *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
 public class QRDecompositionHouseholder_ZDRM implements QRDecomposition<ZMatrixRMaj> {
 
     /**
@@ -60,49 +61,49 @@ public class QRDecompositionHouseholder_ZDRM implements QRDecomposition<ZMatrixR
     protected ZMatrixRMaj QR;
 
     // used internally to store temporary data
-    protected double u[],v[];
+    protected double[] u;
+    protected double[] v;
 
     // dimension of the decomposed matrices
     protected int numCols; // this is 'n'
     protected int numRows; // this is 'm'
     protected int minLength;
 
-    protected double dataQR[];
+    protected double[] dataQR;
 
     // the computed gamma for Q_k matrix
-    protected double gammas[];
+    protected double[] gammas;
     protected Complex_F64 tau = new Complex_F64();
-
 
     // did it encounter an error?
     protected boolean error;
 
-    public void setExpectedMaxSize( int numRows , int numCols ) {
+    public void setExpectedMaxSize( int numRows, int numCols ) {
         error = false;
 
         this.numCols = numCols;
         this.numRows = numRows;
-        minLength = Math.min(numRows,numCols);
-        int maxLength = Math.max(numRows,numCols);
+        minLength = Math.min(numRows, numCols);
+        int maxLength = Math.max(numRows, numCols);
 
-        if( QR == null ) {
-            QR = new ZMatrixRMaj(numRows,numCols);
-            u = new double[ maxLength*2 ];
-            v = new double[ maxLength*2 ];
-            gammas = new double[ minLength ];
+        if (QR == null) {
+            QR = new ZMatrixRMaj(numRows, numCols);
+            u = new double[maxLength*2];
+            v = new double[maxLength*2];
+            gammas = new double[minLength];
         } else {
-            QR.reshape(numRows,numCols);
+            QR.reshape(numRows, numCols);
         }
 
         dataQR = QR.data;
 
-        if( u.length < maxLength*2 ) {
-            u = new double[ maxLength*2 ];
-            v = new double[ maxLength*2 ];
+        if (u.length < maxLength*2) {
+            u = new double[maxLength*2];
+            v = new double[maxLength*2];
         }
 
-        if( gammas.length < minLength ) {
-            gammas = new double[ minLength ];
+        if (gammas.length < minLength) {
+            gammas = new double[minLength];
         }
     }
 
@@ -123,15 +124,15 @@ public class QRDecompositionHouseholder_ZDRM implements QRDecomposition<ZMatrixR
      * @param Q The orthogonal Q matrix.
      */
     @Override
-    public ZMatrixRMaj getQ(ZMatrixRMaj Q , boolean compact ) {
-        if( compact )
-            Q = UtilDecompositons_ZDRM.checkIdentity(Q,numRows,minLength);
+    public ZMatrixRMaj getQ( @Nullable ZMatrixRMaj Q, boolean compact ) {
+        if (compact)
+            Q = UtilDecompositons_ZDRM.checkIdentity(Q, numRows, minLength);
         else
-            Q = UtilDecompositons_ZDRM.checkIdentity(Q,numRows,numRows);
+            Q = UtilDecompositons_ZDRM.checkIdentity(Q, numRows, numRows);
 
-        for( int j = minLength-1; j >= 0; j-- ) {
-            QrHelperFunctions_ZDRM.extractHouseholderColumn(QR,j,numRows,j,u,0);
-            QrHelperFunctions_ZDRM.rank1UpdateMultR(Q,u,0,gammas[j],j,j,numRows,v);
+        for (int j = minLength - 1; j >= 0; j--) {
+            QrHelperFunctions_ZDRM.extractHouseholderColumn(QR, j, numRows, j, u, 0);
+            QrHelperFunctions_ZDRM.rank1UpdateMultR(Q, u, 0, gammas[j], j, j, numRows, v);
         }
 
         return Q;
@@ -141,22 +142,21 @@ public class QRDecompositionHouseholder_ZDRM implements QRDecomposition<ZMatrixR
      * Returns an upper triangular matrix which is the R in the QR decomposition.
      *
      * @param R An upper triangular matrix.
-     * @param compact
      */
     @Override
-    public ZMatrixRMaj getR(ZMatrixRMaj R, boolean compact) {
-        if( compact )
-            R = UtilDecompositons_ZDRM.checkZerosLT(R,minLength,numCols);
+    public ZMatrixRMaj getR( @Nullable ZMatrixRMaj R, boolean compact ) {
+        if (compact)
+            R = UtilDecompositons_ZDRM.checkZerosLT(R, minLength, numCols);
         else
-            R = UtilDecompositons_ZDRM.checkZerosLT(R,numRows,numCols);
+            R = UtilDecompositons_ZDRM.checkZerosLT(R, numRows, numCols);
 
-        for( int i = 0; i < minLength; i++ ) {
-            for( int j = i; j < numCols; j++ ) {
-                int indexQR = QR.getIndex(i,j);
+        for (int i = 0; i < minLength; i++) {
+            for (int j = i; j < numCols; j++) {
+                int indexQR = QR.getIndex(i, j);
                 double realQR = QR.data[indexQR];
-                double imagQR = QR.data[indexQR+1];
+                double imagQR = QR.data[indexQR + 1];
 
-                R.set(i,j,realQR,imagQR);
+                R.set(i, j, realQR, imagQR);
             }
         }
 
@@ -179,7 +179,7 @@ public class QRDecompositionHouseholder_ZDRM implements QRDecomposition<ZMatrixR
     public boolean decompose( ZMatrixRMaj A ) {
         commonSetup(A);
 
-        for( int j = 0; j < minLength; j++ ) {
+        for (int j = 0; j < minLength; j++) {
             householder(j);
         }
 
@@ -206,50 +206,47 @@ public class QRDecompositionHouseholder_ZDRM implements QRDecomposition<ZMatrixR
      *
      * @param j Which submatrix to work off of.
      */
-    protected void householder( int j )
-    {
+    protected void householder( int j ) {
         // find the element with the largest absolute value in the column and make a copy
-        double max = QrHelperFunctions_ZDRM.extractColumnAndMax(QR,j,numRows,j,u,0);
+        double max = QrHelperFunctions_ZDRM.extractColumnAndMax(QR, j, numRows, j, u, 0);
 
-        if( max <= 0.0 ) {
+        if (max <= 0.0) {
             gammas[j] = 0;
             error = true;
         } else {
-            double gamma = QrHelperFunctions_ZDRM.computeTauGammaAndDivide(j,numRows,u,max,tau);
+            double gamma = QrHelperFunctions_ZDRM.computeTauGammaAndDivide(j, numRows, u, max, tau);
             gammas[j] = gamma;
 
             // divide u by u_0
-            double real_u_0 = u[j*2]   + tau.real;
-            double imag_u_0 = u[j*2+1] + tau.imaginary;
-            QrHelperFunctions_ZDRM.divideElements(j + 1, numRows, u, 0, real_u_0,imag_u_0 );
+            double real_u_0 = u[j*2] + tau.real;
+            double imag_u_0 = u[j*2 + 1] + tau.imaginary;
+            QrHelperFunctions_ZDRM.divideElements(j + 1, numRows, u, 0, real_u_0, imag_u_0);
 
             // write the reflector into the lower left column of the matrix
-            for (int i = j+1; i < numRows; i++) {
-                dataQR[(i*numCols+j)*2]   = u[i*2];
-                dataQR[(i*numCols+j)*2+1] = u[i*2+1];
+            for (int i = j + 1; i < numRows; i++) {
+                dataQR[(i*numCols + j)*2] = u[i*2];
+                dataQR[(i*numCols + j)*2 + 1] = u[i*2 + 1];
             }
 
-            u[j*2]   = 1;
-            u[j*2+1] = 0;
+            u[j*2] = 1;
+            u[j*2 + 1] = 0;
 
-            QrHelperFunctions_ZDRM.rank1UpdateMultR(QR,u,0,gamma,j+1,j,numRows,v);
+            QrHelperFunctions_ZDRM.rank1UpdateMultR(QR, u, 0, gamma, j + 1, j, numRows, v);
 
             // since the first element in the householder vector is known to be 1
             // store the full upper hessenberg
-            if( j < numCols ) {
-                dataQR[(j * numCols + j) * 2] = -tau.real * max;
-                dataQR[(j * numCols + j) * 2 + 1] = -tau.imaginary * max;
+            if (j < numCols) {
+                dataQR[(j*numCols + j)*2] = -tau.real*max;
+                dataQR[(j*numCols + j)*2 + 1] = -tau.imaginary*max;
             }
         }
     }
 
     /**
      * This function performs sanity check on the input for decompose and sets up the QR matrix.
-     *
-     * @param A
      */
-    protected void commonSetup(ZMatrixRMaj A) {
-        setExpectedMaxSize(A.numRows,A.numCols);
+    protected void commonSetup( ZMatrixRMaj A ) {
+        setExpectedMaxSize(A.numRows, A.numCols);
 
         QR.set(A);
     }
@@ -257,5 +254,4 @@ public class QRDecompositionHouseholder_ZDRM implements QRDecomposition<ZMatrixR
     public double[] getGammas() {
         return gammas;
     }
-
 }

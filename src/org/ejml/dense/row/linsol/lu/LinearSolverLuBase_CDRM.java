@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,27 +18,27 @@
 
 package org.ejml.dense.row.linsol.lu;
 
+import javax.annotation.Generated;
 import org.ejml.data.CMatrixRMaj;
 import org.ejml.dense.row.decompose.lu.LUDecompositionBase_CDRM;
 import org.ejml.dense.row.linsol.LinearSolverAbstract_CDRM;
 
 import java.util.Arrays;
 
-
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.dense.row.linsol.lu.LinearSolverLuBase_ZDRM")
 public abstract class LinearSolverLuBase_CDRM extends LinearSolverAbstract_CDRM {
 
     protected LUDecompositionBase_CDRM decomp;
 
-    public LinearSolverLuBase_CDRM(LUDecompositionBase_CDRM decomp) {
+    protected LinearSolverLuBase_CDRM( LUDecompositionBase_CDRM decomp ) {
         this.decomp = decomp;
-
     }
 
     @Override
-    public boolean setA(CMatrixRMaj A) {
+    public boolean setA( CMatrixRMaj A ) {
         _setA(A);
 
         return decomp.decompose(A);
@@ -50,30 +50,29 @@ public abstract class LinearSolverLuBase_CDRM extends LinearSolverAbstract_CDRM 
     }
 
     @Override
-    public void invert(CMatrixRMaj A_inv) {
-        float []vv = decomp._getVV();
+    public void invert( CMatrixRMaj A_inv ) {
+        float[] vv = decomp._getVV();
         CMatrixRMaj LU = decomp.getLU();
 
-        if( A_inv.numCols != LU.numCols || A_inv.numRows != LU.numRows )
-            throw new IllegalArgumentException("Unexpected matrix dimension");
+        A_inv.reshape(LU.numRows, LU.numCols);
 
         int n = A.numCols;
 
         float dataInv[] = A_inv.data;
         int strideAinv = A_inv.getRowStride();
 
-        for( int j = 0; j < n; j++ ) {
+        for (int j = 0; j < n; j++) {
             // don't need to change inv into an identity matrix before hand
-            Arrays.fill(vv,0,n*2,0);
+            Arrays.fill(vv, 0, n*2, 0);
             vv[j*2] = 1;
-            vv[j*2+1] = 0;
+            vv[j*2 + 1] = 0;
 
             decomp._solveVectorInternal(vv);
 //            for( int i = 0; i < n; i++ ) dataInv[i* n +j] = vv[i];
             int index = j*2;
-            for( int i = 0; i < n; i++ , index += strideAinv) {
+            for (int i = 0; i < n; i++, index += strideAinv) {
                 dataInv[index] = vv[i*2];
-                dataInv[index+1] = vv[i*2+1];
+                dataInv[index + 1] = vv[i*2 + 1];
             }
         }
     }

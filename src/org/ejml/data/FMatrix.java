@@ -18,11 +18,13 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
 /**
  * Interface for all 64F real matrices.
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.data.DMatrix")
 public interface FMatrix extends Matrix {
 
     /**

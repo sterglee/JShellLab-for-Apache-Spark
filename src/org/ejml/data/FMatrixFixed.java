@@ -18,11 +18,13 @@
 
 package org.ejml.data;
 
+import javax.annotation.Generated;
 /**
  * Interface which all fixed sized matrices must implement
  *
  * @author Peter Abeles
  */
+@Generated("org.ejml.data.DMatrixFixed")
 public interface FMatrixFixed extends FMatrix {
     @Override
     default <T extends Matrix> T create(int numRows, int numCols) {

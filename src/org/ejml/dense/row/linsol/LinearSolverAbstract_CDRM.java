@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017, Peter Abeles. All Rights Reserved.
+ * Copyright (c) 2020, Peter Abeles. All Rights Reserved.
  *
  * This file is part of Efficient Java Matrix Library (EJML).
  *
@@ -18,9 +18,9 @@
 
 package org.ejml.dense.row.linsol;
 
+import javax.annotation.Generated;
 import org.ejml.data.CMatrixRMaj;
 import org.ejml.interfaces.linsol.LinearSolverDense;
-
 
 /**
  * <p>
@@ -32,9 +32,11 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
  * The extending class must explicity call {@link #_setA(CMatrixRMaj)}
  * inside of its {@link #setA} function.
  * </p>
- * 
+ *
  * @author Peter Abeles
  */
+@SuppressWarnings("NullAway.Init")
+@Generated("org.ejml.dense.row.linsol.LinearSolverAbstract_ZDRM")
 public abstract class LinearSolverAbstract_CDRM implements LinearSolverDense<CMatrixRMaj> {
 
     protected CMatrixRMaj A;
@@ -46,7 +48,7 @@ public abstract class LinearSolverAbstract_CDRM implements LinearSolverDense<CMa
         return A;
     }
 
-    protected void _setA(CMatrixRMaj A) {
+    protected void _setA( CMatrixRMaj A ) {
         this.A = A;
         this.numRows = A.numRows;
         this.numCols = A.numCols;
@@ -54,7 +56,7 @@ public abstract class LinearSolverAbstract_CDRM implements LinearSolverDense<CMa
     }
 
     @Override
-    public void invert(CMatrixRMaj A_inv) {
-        InvertUsingSolve_CDRM.invert(this,A,A_inv);
+    public void invert( CMatrixRMaj A_inv ) {
+        InvertUsingSolve_CDRM.invert(this, A, A_inv);
     }
 }

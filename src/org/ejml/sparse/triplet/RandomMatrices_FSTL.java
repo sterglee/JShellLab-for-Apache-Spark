@@ -18,6 +18,7 @@
 
 package org.ejml.sparse.triplet;
 
+import javax.annotation.Generated;
 import org.ejml.data.FMatrixSparseTriplet;
 
 import java.util.Random;
@@ -25,6 +26,7 @@ import java.util.Random;
 /**
  * @author Peter Abeles
  */
+@Generated("org.ejml.sparse.triplet.RandomMatrices_DSTL")
 public class RandomMatrices_FSTL {
     /**
      * Randomly generates matrix with the specified number of matrix elements filled with values from min to max.
